@@ -82,7 +82,7 @@
       "label": "Delve",
       "codePrefix": "D",
       "mapShape": "diamond",
-      "mapDepthFrom": "connects:out",
+      "mapBetween": "connects:out",
       "printTemplate": "heart/print/landmark.peb",
       "quickCreate": [
         { "type": "heart.landmark", "rel": "connects:out" },

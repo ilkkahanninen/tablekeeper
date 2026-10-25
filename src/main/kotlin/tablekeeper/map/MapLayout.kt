@@ -9,17 +9,16 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
- * Deterministic force-directed layout (Fruchterman–Reingold) for the campaign map.
- * Start positions are seeded from node ids and the iteration count is fixed, so the same
+ * Deterministic map layout. Start positions are seeded from node ids and the iteration count is fixed, so the same
  * places and links always give the same map; it only moves when links change.
  *
- * Each connected group of places is laid out on its own and the groups are then packed side by
- * side. Without that, an unconnected place gets pushed far away and squeezes everything else
- * into a corner.
- *
- * A place with a [Item.depth] (Heart's tier) is fixed at a height set by it, deeper lower, the
- * same scale for every group; links only move it sideways. Groups without depths are instead turned so their longest spread
- * runs horizontally, and packed above the others.
+ * 1. The core places (landmarks) get a force layout (Fruchterman–Reingold). Delves are not in it: their landmarks are
+ *    linked directly instead, on springs twice as long, since a delve will sit between them. Each connected group is
+ *    laid out on its own and the groups are packed side by side, so an unconnected place can't squeeze the rest.
+ *    A place with a [Item.depth] (Heart's tier) is fixed at that height, deeper lower; links only move it sideways.
+ *    Groups without depths are turned so their longest spread runs horizontally.
+ * 2. Delves go to the middle of their landmarks, and minor locations are fanned out above their landmark.
+ * 3. The result is fitted to the page, and labels are pushed apart where they would overlap.
  */
 object MapLayout {
     /**
@@ -41,25 +40,106 @@ object MapLayout {
     private const val MIN_GAP = K * 1.2
     /** Roughly half a place label's width, for keeping minor locations off other places' labels. */
     private const val LABEL_HALF_WIDTH = K * 0.75
+    /** Layout units from a landmark to its minor locations. */
+    private const val SATELLITE_DISTANCE = K * 0.55
     /** Output units: a label's height below its shape. */
     private const val LABEL_HEIGHT = 28.0
     /** Output units between neighbouring labels on a row. */
     private const val LABEL_PADDING = 16.0
 
     /** Positions inside a [width] × [height] box, keeping [margin] free on every side for labels. */
-    fun layout(items: List<Item>, edges: List<Pair<String, String>>, width: Double, height: Double, margin: Double): Map<String, Point> {
+    /**
+     * [between]: nodes drawn between others, e.g. a delve -> the landmarks it connects. They are left out of the force
+     * layout, which instead links their anchors directly (on a spring twice as long), and are then put between them.
+     * [satellites]: nodes drawn around a parent, e.g. a minor location -> its landmark, placed once the parent is.
+     */
+    fun layout(
+        items: List<Item>, edges: List<Pair<String, String>>, width: Double, height: Double, margin: Double,
+        between: Map<String, List<String>> = emptyMap(), satellites: Map<String, String> = emptyMap(),
+    ): Map<String, Point> {
         if (items.isEmpty()) return emptyMap()
         val ids = items.map { it.id }.toSet()
-        val links = edges.filter { (a, b) -> a in ids && b in ids && a != b }
         val small = items.associate { it.id to it.small }
         val depth = items.mapNotNull { i -> i.depth?.let { i.id to it } }.toMap()
 
-        val groups = components(items.map { it.id }, links)
-            .map { group -> place(group, links.filter { it.first in group }, small, depth) }
+        // Core = everything not hung off something else: landmarks (and anything without anchors or parent)
+        val anchorsOf = between.filterKeys { it in ids }
+            .mapValues { (_, a) -> a.filter { it in ids && it !in between && it !in satellites }.distinct() }
+            .filterValues { it.isNotEmpty() }
+        val parentOf = satellites.filter { (s, p) -> s in ids && s !in anchorsOf && p in ids && p !in satellites && p !in anchorsOf }
+        val core = ids.filter { it !in anchorsOf && it !in parentOf }.toSet()
+        val springs = edges.filter { (a, b) -> a in core && b in core && a != b }
+            .map { (a, b) -> Spring(a, b, if (small.getValue(a) || small.getValue(b)) K * 0.3 else K) } +
+            anchorsOf.values.flatMap { a -> a.indices.flatMap { i -> (i + 1 until a.size).map { j -> Spring(a[i], a[j], 2 * K) } } }
+
+        val groups = components(items.map { it.id }.filter { it in core }, springs.map { it.a to it.b })
+            .map { group -> place(group, springs.filter { it.a in group }, depth) }
             .sortedWith(compareByDescending<Map<String, Point>> { it.size }.thenBy { it.keys.min() })
         val (layered, free) = groups.partition { g -> g.keys.any { it in depth } }
-        val placed = fit(pack(layered, free, width / height), width, height, margin)
+        val points = pack(layered, free, width / height).toMutableMap()
+        placeBetween(points, anchorsOf)
+        clearSmallOfLabels(points, small.filterKeys { it !in parentOf })
+        placeSatellites(points, parentOf, edges.filter { (a, b) -> a in points && b in points })
+        val placed = fit(points, width, height, margin)
         return declutter(placed, items.associateBy { it.id }, width, margin)
+    }
+
+    /** A force-layout link: [a] and [b] pulled towards [length] apart. */
+    private data class Spring(val a: String, val b: String, val length: Double)
+
+    /**
+     * Puts each between-node (delve) at the middle of its anchors (landmarks), so its height is their average.
+     * Several between the same anchors fan out sideways; a dead end (one anchor) steps out from it, away from the map's middle.
+     */
+    private fun placeBetween(points: MutableMap<String, Point>, anchorsOf: Map<String, List<String>>) {
+        val middle = Point(points.values.map { it.x }.average(), points.values.map { it.y }.average())
+        anchorsOf.entries.groupBy { it.value.toSet() }.forEach { (anchorSet, entries) ->
+            val members = entries.map { it.key }.sorted()
+            val anchors = anchorSet.mapNotNull { points[it] }
+            val cx = anchors.map { it.x }.average()
+            val cy = anchors.map { it.y }.average()
+            if (anchors.size >= 2) {
+                // Fan out perpendicular to the first two anchors' line
+                val vx = anchors[1].x - anchors[0].x; val vy = anchors[1].y - anchors[0].y
+                val len = max(sqrt(vx * vx + vy * vy), 0.01)
+                members.forEachIndexed { i, id ->
+                    val off = (i - (members.size - 1) / 2.0) * K * 0.6
+                    points[id] = Point(cx - vy / len * off, cy + vx / len * off)
+                }
+            } else {
+                val side = if (cx >= middle.x) 1.0 else -1.0
+                members.forEachIndexed { i, id -> points[id] = Point(cx + side * K * (i + 1), cy) }
+            }
+        }
+    }
+
+    /**
+     * Puts each satellite (minor location) close to its parent (landmark), in the free-est of 12 directions: furthest
+     * from other places and from the parent's lines, and never in the label area below the parent.
+     */
+    private fun placeSatellites(points: MutableMap<String, Point>, parentOf: Map<String, String>, edges: List<Pair<String, String>>) {
+        parentOf.entries.groupBy({ it.value }, { it.key }).forEach { (parent, children) ->
+            val p = points.getValue(parent)
+            // Points along the parent's lines, so satellites keep off them
+            val alongLines = edges.filter { parent in it.toList() }.map { (a, b) -> points.getValue(if (a == parent) b else a) }
+                .flatMap { q -> listOf(0.25, 0.5, 0.75).map { t -> Point(p.x + (q.x - p.x) * t, p.y + (q.y - p.y) * t) } }
+            for (id in children.sorted()) {
+                val others = points.filterKeys { it != parent && it != id && it !in children.subList(children.indexOf(id), children.size) }.values + alongLines
+                val best = (0 until 12).map { Math.toRadians(it * 30.0) }
+                    .filter { a -> sin(a) < 0.01 }  // level with or above the parent: its label hangs below
+                    .map { a -> Point(p.x + cos(a) * SATELLITE_DISTANCE, p.y + sin(a) * SATELLITE_DISTANCE) }
+                    .maxBy { c -> others.minOfOrNull { o -> (c.x - o.x) * (c.x - o.x) + (c.y - o.y) * (c.y - o.y) } ?: 0.0 }
+                points[id] = best
+            }
+        }
+    }
+
+    private fun clearSmallOfLabels(points: MutableMap<String, Point>, small: Map<String, Boolean>) {
+        val ids = points.keys.toList()
+        val xs = DoubleArray(ids.size) { points.getValue(ids[it]).x }
+        val ys = DoubleArray(ids.size) { points.getValue(ids[it]).y }
+        for (i in ids.indices) if (small.getValue(ids[i])) clearOfLabels(i, xs, ys)
+        ids.forEachIndexed { i, id -> points[id] = Point(xs[i], ys[i]) }
     }
 
     /**
@@ -115,15 +195,13 @@ object MapLayout {
      * Force layout of one connected group, centred horizontally. With depths, y is absolute (depth × [LEVEL]);
      * without, the group is centred and turned to lie horizontally.
      */
-    private fun place(
-        ids: List<String>, links: List<Pair<String, String>>, small: Map<String, Boolean>, depth: Map<String, Double>,
-    ): Map<String, Point> {
+    private fun place(ids: List<String>, springs: List<Spring>, depth: Map<String, Double>): Map<String, Point> {
         val n = ids.size
         val target = DoubleArray(n) { depth[ids[it]]?.times(LEVEL) ?: Double.NaN }
         val layered = target.any { !it.isNaN() }
         if (n == 1) return mapOf(ids.single() to Point(0.0, if (layered) target[0] else 0.0))
         val index = ids.withIndex().associate { (i, id) -> id to i }
-        val pairs = links.map { (a, b) -> index.getValue(a) to index.getValue(b) }
+        val pairs = springs.map { Triple(index.getValue(it.a), index.getValue(it.b), it.length) }
         val spread = K * sqrt(n.toDouble())
         val xs = DoubleArray(n) { Random(ids[it].hashCode()).nextDouble() * spread }
         val ys = DoubleArray(n) {
@@ -142,12 +220,11 @@ object MapLayout {
                 dx[i] += ex * f; dy[i] += ey * f
                 dx[j] -= ex * f; dy[j] -= ey * f
             }
-            // Links attract; links to small nodes want to be much shorter
-            for ((i, j) in pairs) {
+            // Links attract, each towards its spring's length
+            for ((i, j, ideal) in pairs) {
                 val ex = xs[i] - xs[j]
                 val ey = ys[i] - ys[j]
                 val d = max(sqrt(ex * ex + ey * ey), 0.01)
-                val ideal = if (small.getValue(ids[i]) || small.getValue(ids[j])) K * 0.3 else K
                 val f = d / ideal
                 dx[i] -= ex * f; dy[i] -= ey * f
                 dx[j] += ex * f; dy[j] += ey * f
@@ -167,7 +244,6 @@ object MapLayout {
             val mx = xs.average()
             for (i in 0 until n) xs[i] -= mx
         } else alignToWidth(xs, ys)
-        for (i in 0 until n) if (small.getValue(ids[i])) clearOfLabels(i, xs, ys)
         return ids.indices.associate { ids[it] to Point(xs[it], ys[it]) }
     }
 

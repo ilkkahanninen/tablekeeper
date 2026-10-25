@@ -263,7 +263,7 @@ class GameModulesTest {
         assertEquals(null, heart.depthOf("heart.landmark", mapOf("tier" to "Rogue")), "placed freely")
         assertEquals(MapDepth(1.0, "Tier 1"), heart.depthOf("heart.landmark", mapOf("tier" to 1)), "numbers still work for other modules")
         assertEquals(null, heart.mapDepth("heart.delve"))
-        assertEquals("connects:out", heart.mapDepthFrom("heart.delve")?.key)
+        assertEquals("connects:out", heart.mapBetween("heart.delve")?.key)
         assertTrue(PropsForm.fields(heart.propsSchema("heart.delve"), emptyMap()).none { it.name == "tier" }, "delves have no tier")
         assertEquals(null, heart.mapDepth("heart.minor_location"))
     }

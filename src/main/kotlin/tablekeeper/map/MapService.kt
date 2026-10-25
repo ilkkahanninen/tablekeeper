@@ -3,6 +3,7 @@ package tablekeeper.map
 import tablekeeper.core.Campaign
 import tablekeeper.core.Direction
 import tablekeeper.core.GraphService
+import tablekeeper.modules.LinkOption
 import tablekeeper.modules.ResolvedModule
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -28,7 +29,7 @@ data class MapView(val width: Int, val height: Int, val places: List<MapPlace>, 
 
 /**
  * The campaign map: node types with a module `mapShape` are places, and links between places are lines.
- * Places whose type has a `mapDepth` prop (Heart's tier) are drawn lower the higher it is; `mapDepthFrom` types (delves)
+ * Places whose type has a `mapDepth` prop (Heart's tier) are drawn lower the higher it is; `mapBetween` types (delves)
  * take the average depth of what they link to. GM view.
  */
 class MapService(private val graph: GraphService) {
@@ -44,25 +45,25 @@ class MapService(private val graph: GraphService) {
 
         // Depth = the type's mapDepth prop, e.g. a landmark's tier; unset tiers (and ones like Rogue) leave the place free
         val depths = places.mapNotNull { (n, _) -> module.depthOf(n.type, n.props)?.let { n.id to it } }.toMap()
-        // ...or the average over a link, e.g. a delve halfway between its landmarks' tiers. These don't get guides.
-        val derivedDepths = places.mapNotNull { (n, _) ->
-            val via = module.mapDepthFrom(n.type) ?: return@mapNotNull null
-            val linked = edges.filter { it.type == via.edgeType }.mapNotNull { e ->
-                when (via.direction) {
-                    Direction.OUT -> e.toId.takeIf { e.fromId == n.id }
-                    Direction.IN -> e.fromId.takeIf { e.toId == n.id }
-                }
+        fun linked(id: UUID, via: LinkOption): List<UUID> = edges.filter { it.type == via.edgeType }.mapNotNull { e ->
+            when (via.direction) {
+                Direction.OUT -> e.toId.takeIf { e.fromId == id }
+                Direction.IN -> e.fromId.takeIf { e.toId == id }
             }
-            linked.mapNotNull { depths[it]?.depth }.takeIf { it.isNotEmpty() }?.let { n.id to it.average() }
-        }.toMap()
+        }.filter { it in shapes }
+        // Delves are drawn between their landmarks (mapBetween); minor locations around theirs (context)
+        val between = places.mapNotNull { (n, _) -> module.mapBetween(n.type)?.let { n.id to linked(n.id, it) } }.toMap()
+        val satellites = places.mapNotNull { (n, _) -> module.context(n.type)?.let { c -> linked(n.id, c).firstOrNull()?.let { n.id to it } } }.toMap()
 
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
-                MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.depth ?: derivedDepths[n.id],
+                MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.depth,
                     labelWidth = labelWidth(n.code, n.title, shape), body = BODY.getValue(shape))
             },
             lines.map { (a, b) -> a.toString() to b.toString() },
             WIDTH.toDouble(), HEIGHT.toDouble(), MARGIN,
+            between = between.entries.associate { (k, v) -> k.toString() to v.map { it.toString() } },
+            satellites = satellites.entries.associate { (k, v) -> k.toString() to v.toString() },
         )
         fun at(id: UUID) = pos.getValue(id.toString())
 

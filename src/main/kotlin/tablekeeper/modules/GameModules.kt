@@ -45,8 +45,8 @@ data class NodeTypeDef(
      * whose "x-depth" maps values to depths ("Tier 2": 2; values left out, like "Rogue", are placed freely). Missing = inherit.
      */
     val mapDepth: String? = null,
-    /** Link whose far ends' map depths are averaged for this type, e.g. a delve between its landmarks. Missing = inherit. */
-    val mapDepthFrom: String? = null,
+    /** Link to the places this type is drawn between on the map, e.g. a delve's landmarks; its depth is their average. Missing = inherit. */
+    val mapBetween: String? = null,
     /**
      * Columns of this type's table on the campaign home: prop names, or "@rel" for linked titles
      * (e.g. "@connects:out"). Link slots are added automatically. Missing = inherit.
@@ -179,7 +179,7 @@ data class TypePatch(
     val context: String? = null,
     val mapShape: String? = null,
     val mapDepth: String? = null,
-    val mapDepthFrom: String? = null,
+    val mapBetween: String? = null,
     val overview: List<String>? = null,
     val overviewMuted: String? = null,
     val checklists: List<ChecklistDef>? = null,
@@ -198,7 +198,7 @@ data class TypePatch(
         context = context ?: def.context,
         mapShape = mapShape ?: def.mapShape,
         mapDepth = mapDepth ?: def.mapDepth,
-        mapDepthFrom = mapDepthFrom ?: def.mapDepthFrom,
+        mapBetween = mapBetween ?: def.mapBetween,
         overview = overview ?: def.overview,
         overviewMuted = overviewMuted ?: def.overviewMuted,
         checklists = checklists ?: def.checklists,
@@ -328,9 +328,9 @@ class ResolvedModule(
         }
     }
 
-    /** The type's `mapDepthFrom` link option, e.g. a delve's "connects" (to its landmarks). */
-    fun mapDepthFrom(typeId: String): LinkOption? =
-        inherited(typeId) { it.mapDepthFrom }?.let { key -> linkOptions(typeId).firstOrNull { it.key == key } }
+    /** The type's `mapBetween` link option, e.g. a delve's "connects" (to the landmarks it's drawn between). */
+    fun mapBetween(typeId: String): LinkOption? =
+        inherited(typeId) { it.mapBetween }?.let { key -> linkOptions(typeId).firstOrNull { it.key == key } }
 
     /** The type's `context` link option, e.g. a minor location's "is part of" (its landmark). */
     fun context(typeId: String): LinkOption? =
@@ -399,8 +399,8 @@ class ResolvedModule(
                 val s = schemaProps?.get(p)
                 s?.get("type")?.asText() != "integer" && !(s?.has("enum") == true && s.get("x-depth")?.isObject == true)
             }?.let { "${def.id}: mapDepth '$it' is not an integer prop, or an enum prop with \"x-depth\", in its props schema" }) +
-            listOfNotNull(def.mapDepthFrom?.takeIf { key -> options.none { it.key == key } }
-                ?.let { "${def.id}: mapDepthFrom '$it' is not a link option of ${def.id}" })
+            listOfNotNull(def.mapBetween?.takeIf { key -> options.none { it.key == key } }
+                ?.let { "${def.id}: mapBetween '$it' is not a link option of ${def.id}" })
         val overview = def.overview.orEmpty().mapNotNull { col ->
             if (col.startsWith("@")) "${def.id}: overview '$col' is not a link option of ${def.id}".takeIf { options.none { it.key == col.drop(1) } }
             else "${def.id}: overview prop '$col' is not in its props schema".takeIf { schemaProps?.has(col) != true }

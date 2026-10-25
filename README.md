@@ -171,12 +171,15 @@ An unknown type or `groupBy` prop stops the app at startup.
 
 ## Map
 
-Each campaign has a map (*Map* in the top bar, or `/c/{id}/map`), plus a printable A4 version at `/c/{id}/map.pdf`. The layout is automatic: places that are linked sit near each other, each connected group is laid out separately, and the same links always give the same map. Module settings choose what's drawn:
+Each campaign has a map (*Map* in the top bar, or `/c/{id}/map`), plus a printable A4 version at `/c/{id}/map.pdf`. The layout is automatic and repeatable:
+- Landmarks are laid out first, linked directly through their delves. Each connected group is laid out separately.
+- Delves (`mapBetween`) then go between the landmarks they connect, and minor locations (`context`) fan out above their landmark.
+- The same links always give the same map. Module settings choose what's drawn:
 
 ```json
 "mapShape": "circle"   // core.place (so Heart landmarks); "diamond" for delves, "dot" for minor locations
 "mapDepth": "tier"     // heart.landmark: higher tiers drawn lower, closer to the Heart
-"mapDepthFrom": "connects:out"   // heart.delve: depth = average tier of the landmarks it connects
+"mapBetween": "connects:out"   // heart.delve: drawn between the landmarks it connects (so its depth is their average)
 ```
 
 `mapDepth` names an integer prop, or an enum prop whose `"x-depth"` maps values to depths. Heart's tier is `{"Tier 0": 0, …, "Tier 3": 3}`; Rogue, Fracture and The Eight Heavens have no depth, so they're placed by their links. With `mapDepth`, places are fixed at a height set by that prop, and faint guides ("TIER 1", "TIER 2"…) mark the levels. Places without a value, like minor locations, follow their links.

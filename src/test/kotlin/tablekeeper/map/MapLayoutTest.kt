@@ -110,6 +110,30 @@ class MapLayoutTest {
     }
 
     @Test
+    fun `landmarks first, then delves between them and minor locations above`() {
+        val items = listOf(
+            MapLayout.Item("L1", depth = 1.0), MapLayout.Item("L2", depth = 2.0), MapLayout.Item("L3", depth = 2.0),
+            MapLayout.Item("D1"), MapLayout.Item("D2"), MapLayout.Item("D3"), MapLayout.Item("Dead"),
+            MapLayout.Item("M1", small = true),
+        )
+        val edges = listOf("D1" to "L1", "D1" to "L2", "D2" to "L1", "D2" to "L2", "D3" to "L2", "D3" to "L3", "Dead" to "L3", "M1" to "L1")
+        val between = mapOf("D1" to listOf("L1", "L2"), "D2" to listOf("L1", "L2"), "D3" to listOf("L2", "L3"), "Dead" to listOf("L3"))
+        val p = MapLayout.layout(items, edges, 1400.0, 990.0, 130.0, between = between, satellites = mapOf("M1" to "L1"))
+        fun mid(a: String, b: String) = MapLayout.Point((p.getValue(a).x + p.getValue(b).x) / 2, (p.getValue(a).y + p.getValue(b).y) / 2)
+        // A lone delve sits right between its landmarks (L2 and L3 share a tier, so D3 is on it too)
+        assertTrue(dist(p.getValue("D3"), mid("L2", "L3")) < 1.0, "D3 at the middle")
+        // Two delves between the same landmarks fan out either side of the middle, at its height on average
+        assertTrue(dist(p.getValue("D1"), p.getValue("D2")) > 20.0, "D1 and D2 apart")
+        assertEquals(mid("L1", "L2").y, (p.getValue("D1").y + p.getValue("D2").y) / 2, 1.0)
+        // A dead end steps out from its landmark, at the same height
+        assertEquals(p.getValue("L3").y, p.getValue("Dead").y, 1.0)
+        assertTrue(dist(p.getValue("Dead"), p.getValue("L3")) > 20.0)
+        // The minor location sits above its landmark, close by
+        assertTrue(p.getValue("M1").y < p.getValue("L1").y)
+        assertTrue(dist(p.getValue("M1"), p.getValue("L1")) < dist(p.getValue("L1"), p.getValue("L2")))
+    }
+
+    @Test
     fun `a single place sits in the middle`() {
         assertEquals(MapLayout.Point(700.0, 495.0), MapLayout.layout(listOf(MapLayout.Item("L1")), emptyList(), 1400.0, 990.0, 130.0)["L1"])
     }
