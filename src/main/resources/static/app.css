@@ -40,7 +40,7 @@ h3 { font-size: .85rem; margin: .75rem 0 .25rem; color: var(--muted); font-weigh
 .plain li { padding: .2rem 0; }
 
 label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; color: var(--muted); }
-label.check { flex-direction: row; align-items: center; color: var(--ink); }
+label.check { flex-direction: row; align-items: baseline; color: var(--ink); }   /* a wrapping name keeps its box on the first line */
 input, select, textarea, button { font: inherit; font-size: 1rem; }
 input, select, textarea { padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); }
 /* Textareas grow with their text (app.js); rows= is the minimum height */
