@@ -1,0 +1,10 @@
+{# A long text (Notes, or a textarea / list prop): formatted (bold, italic, lists, [[mentions]] as links) until clicked,
+   then the text to edit; typing [[ offers nodes (app.js). The view is refreshed out-of-band after a full-form autosave
+   (_save_status.peb, id "view-<key>"). Variables: key, label, name, value, html, rows, random (its tables, or null), append. #}
+<div class="wide notes-field">
+  <label for="input-{{ key }}">{{ label }}</label>
+  <div id="view-{{ key }}" class="notes-view"{% if value is empty %} hidden{% endif %}>{{ html | raw }}</div>
+  <textarea id="input-{{ key }}" name="{{ name }}" rows="{{ rows }}" data-mentions="/c/{{ campaign.id }}/n/{{ node.id }}/mentions"{% if value is not empty %} hidden{% endif %}>{{ value }}</textarea>
+  <div class="menu mention-menu" role="listbox" hidden></div>
+  {% if random is not null %}<div class="random-row">{% include "node/_random.peb" with {"field": name, "choices": random, "append": append} %}</div>{% endif %}
+</div>

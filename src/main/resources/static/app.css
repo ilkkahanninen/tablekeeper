@@ -93,6 +93,7 @@ legend { font-size: .85rem; color: var(--muted); }
 .with-random input { flex: 1; min-width: 0; }
 .random { align-self: center; }
 label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top: .25rem; }
+.notes-field .random-row { align-self: flex-end; }
 .random-menu { position: relative; }
 .random-menu > summary { list-style: none; cursor: pointer; display: inline-block; }
 .random-menu > summary::-webkit-details-marker { display: none; }

@@ -49,14 +49,22 @@ class NodePage(
     private val tables: RandomTableService,
     private val print: PrintService,
 ) {
-    fun model(c: Campaign, m: ResolvedModule, n: Node, errors: List<String> = emptyList()) = mapOf(
+    fun model(c: Campaign, m: ResolvedModule, n: Node, errors: List<String> = emptyList()): Map<String, Any?> {
+        val mentions = mentions(c, m)
+        fun format(text: String) = Notes.html(text, mentions) { "/c/${c.id}/n/${it.id}" }
+        return model(c, m, n, errors, ::format)
+    }
+
+    private fun model(c: Campaign, m: ResolvedModule, n: Node, errors: List<String>, format: (String) -> String) = mapOf(
         "campaign" to c,
         "module" to m,
         "node" to n,
         "typeLabel" to m.label(n.type),
         "displayTitle" to m.displayTitle(n),
-        // Notes as shown when not editing: formatting, and [[mentions]] as links to the nodes
-        "notes" to Notes.html(n.body, mentions(c, m)) { "/c/${c.id}/n/${it.id}" },
+        // Notes and long-text props as shown when not editing: formatting, and [[mentions]] as links to the nodes
+        "notes" to format(n.body),
+        "fieldViews" to PropsForm.fields(m.propsSchema(n.type), n.props).filter { it.kind == "textarea" || it.kind == "list" }
+            .associate { it.name to format(it.value.toString()) },
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),

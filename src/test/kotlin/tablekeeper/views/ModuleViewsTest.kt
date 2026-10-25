@@ -28,7 +28,7 @@ class ModuleViewsTest {
         val group = viewNode.linked.single()
         assertEquals("Fallouts", group.label)
         assertEquals(
-            listOf("Broken arm: Major · Blood · Can't hold a weapon two-handed", "Nightmares: Minor · Mind"),
+            listOf("Broken arm: Major · Blood · Can&#39;t hold a weapon two-handed", "Nightmares: Minor · Mind"),   // summaries are HTML
             group.items.map { "${it.title}: ${it.summary}" },
         )
     }

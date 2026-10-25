@@ -40,7 +40,6 @@
   .item .box + p { display: inline; }
   .item p { margin: 0 0 1mm; }
   .item ul { margin: 0 0 1mm; padding-left: 4.5mm; }
-  .long-text { white-space: pre-wrap; margin: 1mm 0; }
   .foot { font-size: 6.5pt; color: #888; margin-top: 3mm; }
 </style>
 </head>

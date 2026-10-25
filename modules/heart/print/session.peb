@@ -51,7 +51,6 @@
   .item .box + p { display: inline; }
   .item p { margin: 0 0 1mm; }
   .item ul { margin: 0 0 1mm; padding-left: 4.5mm; }
-  .long-text { white-space: pre-wrap; margin: 1mm 0; }
   .box { display: inline-block; width: 2.6mm; height: 2.6mm; border: 0.3mm solid #111; margin-right: 1mm; vertical-align: -0.3mm; }
 
   /* Inspiration body (shared _inspiration.peb) */
@@ -119,7 +118,7 @@
           {% endif %}
           {% for lg in c.linked %}
             <div class="linked-label">{{ lg.label }}</div>
-            <ul>{% for i in lg.items %}<li>{{ i.title }} <span class="ref">({{ i.code }})</span>{% if i.summary is not empty %}: {{ i.summary }}{% endif %}</li>{% endfor %}</ul>
+            <ul>{% for i in lg.items %}<li>{{ i.title }} <span class="ref">({{ i.code }})</span>{% if i.summary is not empty %}: {{ i.summary | raw }}{% endif %}</li>{% endfor %}</ul>
           {% endfor %}
           {% for g in v.groups["class"] %}
             {% if g.hint is not null and g.value == c.fields.class.value and g.nodes[0].node.code == c.node.code %}

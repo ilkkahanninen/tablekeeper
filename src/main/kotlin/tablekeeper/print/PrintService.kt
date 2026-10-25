@@ -30,15 +30,16 @@ import java.util.UUID
 /**
  * [details]: chosen options with their "x-enumDescriptions" text, e.g. Fragile → "The resource will be destroyed…".
  * [multi]: several options can be chosen (checkboxes), so cards list them in their own section.
+ * [html]: a long-text ("textarea") field as HTML, formatted like notes ([Notes.html]).
  * [items]: a "list" field's items (e.g. a delve's events) as HTML, formatted like notes ([Notes.html]); printed with a tick box each.
  * [track]: an "x-track" field's number (e.g. resistance 12), printed as that many boxes to tick off.
  */
 data class PropLine(val name: String, val label: String, val value: String,
                     val details: List<PropDetail> = emptyList(), val multi: Boolean = false,
-                    val items: List<String> = emptyList(), val track: Int? = null)
+                    val items: List<String> = emptyList(), val track: Int? = null, val html: String = "")
 data class PropDetail(val option: String, val text: String)
 /**
- * [summary]: the type's `printSummary`, e.g. "Kill d8 · Brutal, Reload"; empty if it has none.
+ * [summary]: the type's `printSummary` as HTML (formatted like notes), e.g. "Kill d8 · Brutal, Reload"; empty if it has none.
  * [children]: what this node has, when the card's type nests it (`printNested`), e.g. a minor location's contents.
  */
 data class PrintRef(val code: String, val title: String, val typeLabel: String, val summary: String = "",
@@ -116,7 +117,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val (factLinks, otherLinks) = links.partition { module.isA(it.other.type, "core.fact") }
         val groups = module.groupLinks(otherLinks).map { (label, ls) ->
             LinkGroup(label, ls.map { link ->
-                ref(module, all, link.other, names).copy(children = nested(campaign, module, all, node, link, audience, names))
+                ref(module, all, link.other, names, mentions).copy(children = nested(campaign, module, all, node, link, audience, names, mentions))
             }.distinctBy { it.code })
         }
         val facts = factLinks.map { it.other }.distinctBy { it.id }.mapNotNull { all.byId[it.id] }
@@ -250,12 +251,12 @@ class PrintService(private val graph: GraphService, private val templates: Templ
 
     /** Nodes linked to [link]'s far end via the card type's `printNested` "show" rel, e.g. a minor location's contents. */
     private fun nested(campaign: Campaign, module: ResolvedModule, all: CampaignGraph, node: Node, link: Link,
-                       audience: Audience, names: Map<UUID, String>): List<PrintRef> {
+                       audience: Audience, names: Map<UUID, String>, mentions: Mentions): List<PrintRef> {
         val shows = module.printNested(node.type).filter { it.rel == link.key }.map { it.show }
         if (shows.isEmpty()) return emptyList()
         return graph.links(campaign.id, link.other.id)
             .filter { it.key in shows && it.other.id != node.id && audience.canSee(it.other.visibility) }
-            .map { ref(module, all, it.other, names) }
+            .map { ref(module, all, it.other, names, mentions) }
             .distinctBy { it.code }
     }
 
@@ -264,10 +265,13 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val details = chosen.mapNotNull { o -> f.hints[o]?.let { PropDetail(o, it) } }
         return f.text.takeIf { it.isNotBlank() }?.let {
             PropLine(f.name, f.label, it, details, multi = f.kind == "multi", items = f.items.map { item -> Notes.html(item, mentions) },
+                html = if (f.kind == "textarea") Notes.html(f.value.toString(), mentions) else "",
                 track = if (f.track) it.toIntOrNull()?.takeIf { n -> n in 1..MAX_TRACK } else null)
         }
     }
 
-    private fun ref(module: ResolvedModule, all: CampaignGraph, n: NodeRef, names: Map<UUID, String>): PrintRef =
-        PrintRef(n.code, names[n.id] ?: n.title, module.label(n.type), all.byId[n.id]?.let { module.summary(n.type, it.props) }.orEmpty())
+    /** How a linked node is listed; its summary as HTML, formatted like notes (e.g. a fallout's description). */
+    private fun ref(module: ResolvedModule, all: CampaignGraph, n: NodeRef, names: Map<UUID, String>, mentions: Mentions): PrintRef =
+        PrintRef(n.code, names[n.id] ?: n.title, module.label(n.type),
+            all.byId[n.id]?.let { Notes.inline(module.summary(n.type, it.props), mentions) }.orEmpty())
 }

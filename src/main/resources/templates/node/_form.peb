@@ -28,13 +28,8 @@
     {% endfor %}
   </div>
 
-  {# Notes: formatted (bold, italic, lists, [[mentions]] as links) until clicked, then the text to edit; typing [[ offers nodes. See app.js #}
-  <div class="wide notes-field">
-    <label for="notes-input">Notes</label>
-    <div id="notes-view" class="notes-view"{% if node.body is empty %} hidden{% endif %}>{{ notes | raw }}</div>
-    <textarea id="notes-input" name="body" rows="10" data-mentions="/c/{{ campaign.id }}/n/{{ node.id }}/mentions"{% if node.body is not empty %} hidden{% endif %}>{{ node.body }}</textarea>
-    <div class="menu mention-menu" role="listbox" hidden></div>
-  </div>
+  {% include "node/_long_text.peb" with {"key": "body", "label": "Notes", "name": "body", "value": node.body, "html": notes, "rows": 10,
+      "random": null, "append": false} %}
 
   <div class="actions">
     {# Waits for an autosave still on its way (hx-sync), so the copy has the last edit #}

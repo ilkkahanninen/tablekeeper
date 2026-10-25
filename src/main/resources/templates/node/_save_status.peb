@@ -1,3 +1,6 @@
-{# Autosave result: the errors, or nothing (the changed field flashes, see app.js); after a full form save also the formatted notes. #}
-{% if notesOob %}<div id="notes-view" hx-swap-oob="innerHTML">{{ notes | raw }}</div>{% endif %}
+{# Autosave result: the errors, or nothing (the changed field flashes, see app.js); after a full form save also the formatted notes and long-text fields. #}
+{% if notesOob %}
+  <div id="view-body" hx-swap-oob="innerHTML">{{ notes | raw }}</div>
+  {% for v in fieldViews %}<div id="view-{{ v.key }}" hx-swap-oob="innerHTML">{{ v.value | raw }}</div>{% endfor %}
+{% endif %}
 {% if errors is not empty %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}

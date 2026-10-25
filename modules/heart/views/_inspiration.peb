@@ -20,7 +20,7 @@
           {% endif %}
           {% for lg in c.linked %}
             <div class="linked-label">{{ lg.label }}</div>
-            <ul class="beats">{% for i in lg.items %}<li><span class="code">{{ i.code }}</span> {{ i.title }}{% if i.summary is not empty %}: {{ i.summary }}{% endif %}</li>{% endfor %}</ul>
+            <ul class="beats">{% for i in lg.items %}<li><span class="code">{{ i.code }}</span> {{ i.title }}{% if i.summary is not empty %}: {{ i.summary | raw }}{% endif %}</li>{% endfor %}</ul>
           {% endfor %}
         {% endfor %}
       </div>
