@@ -130,12 +130,14 @@ One brief landscape A4 document for the next session, with the text in three col
 - **Characters:** Inspiration for the ticked characters only
 - **Landmarks:** each selected landmark, by tier, with its props, notes, haunts, who and what is there (NPC voice and appearance, resources' die and tags), minor locations with their contents, and facts with tick boxes
 - **Delves:** only those between selected landmarks
+- **NPCs:** those at a selected landmark or in one of its minor locations, with voice, appearance, notes and what they carry
 
 Module settings (Heart sets them on `core.session` via `patchTypes`):
 
 ```json
 "checklists": [{ "rel": "features:out", "types": ["heart.landmark"] }, { "rel": "features:out", "types": ["heart.pc"] }],
-"packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }], "columns": 3 },
+"packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }],
+            "around": [{ "type": "core.npc", "rel": "located_at:out" }], "columns": 3 },
 "printTemplate": "heart/print/session.peb"
 ```
 
@@ -143,12 +145,14 @@ Module settings (Heart sets them on `core.session` via `patchTypes`):
 - `packet` gives the print template:
   - `map`: the whole map, selected places highlighted
   - `views`: the module views over the selected nodes, e.g. Inspiration
-  - `sections`: print models of the other selected nodes, plus the `between` ones, i.e. nodes whose every `rel` link ends at a selected node
+  - `sections`: print models of the other selected nodes, plus:
+    - the `between` ones: nodes whose every `rel` link ends at a selected node
+    - the `around` ones: nodes with a `rel` link to a selected node, or to one inside it via its `context`, e.g. a minor location
 - With `columns` > 1, the print template is rendered twice:
   - `part = "cover"` (the map page), as is
   - `part = "columns"`, the text, laid out as one column on narrow pages; the app places these side by side on landscape sheets
 - The landmark card and the packet share `heart/print/_place.peb`; the Inspiration page and the packet share `heart/views/_inspiration.peb`.
-- `"x-trueLabel": "dead"` on a checkbox makes a ticked box read "dead" instead of "yes".
+- `"x-trueLabel": "dead"` on a checkbox makes a ticked box read "dead" instead of "yes". On print cards and packets it's shown as a tag next to the name rather than a row.
 
 ## Module views
 

@@ -21,4 +21,13 @@ class PacketTest {
     fun `nothing selected means no delves`() {
         assertEquals(emptyList(), Packet.between(emptySet(), connects.keys.toList()) { connects.getValue(it) })
     }
+
+    @Test
+    fun `npcs at a selected landmark or inside it are around, others are not`() {
+        val market = UUID.randomUUID(); val alley = UUID.randomUUID(); val elsewhere = UUID.randomUUID()
+        val silvia = UUID.randomUUID(); val grub = UUID.randomUUID(); val moth = UUID.randomUUID(); val pool = UUID.randomUUID()
+        val at = mapOf(silvia to listOf(market), grub to listOf(alley), moth to listOf(elsewhere), pool to emptyList())
+        val parent = mapOf(alley to market)
+        assertEquals(setOf(silvia, grub), Packet.around(setOf(market), at.keys.toList(), { at.getValue(it) }, { parent[it] }).toSet())
+    }
 }

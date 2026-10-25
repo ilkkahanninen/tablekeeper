@@ -16,7 +16,8 @@
         { "rel": "features:out", "types": ["heart.landmark"] },
         { "rel": "features:out", "types": ["heart.pc"] }
       ],
-      "packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }], "columns": 3 }
+      "packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }],
+                  "around": [{ "type": "core.npc", "rel": "located_at:out" }], "columns": 3 }
     },
     {
       "id": "core.npc",
@@ -145,6 +146,7 @@
       "overview": ["category", "quality", "tags"],
       "extends": "core.item",
       "label": "Equipment",
+      "plural": "Equipment",
       "codePrefix": "E",
       "printSummary": { "group": "Equipment", "parts": ["{category} {quality.value}", "{tags}", "uses: {limitedUses}"] },
       "props": {

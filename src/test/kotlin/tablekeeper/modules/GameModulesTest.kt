@@ -357,6 +357,7 @@ class GameModulesTest {
         val packet = heart.packet("core.session")!!
         assertEquals("features:out", packet.rel)
         assertEquals(listOf(BetweenDef("heart.delve", "connects:out")), packet.between)
+        assertEquals(listOf(BetweenDef("core.npc", "located_at:out")), packet.around)
         assertEquals("heart/print/session.peb", heart.printTemplate("core.session"))
         // A plain core campaign keeps a plain session
         val core = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("core")
@@ -388,6 +389,12 @@ class GameModulesTest {
             assertTrue(expected in e.message.orEmpty(), e.message)
             dir.deleteRecursively()
         }
+    }
+
+    @Test
+    fun `plural labels default to label plus s`() {
+        assertEquals(listOf("Landmarks", "Delves", "Characters", "Minor locations", "NPCs", "Equipment"),
+            listOf("heart.landmark", "heart.delve", "heart.pc", "heart.minor_location", "core.npc", "heart.equipment").map { heart.plural(it) })
     }
 
     @Test

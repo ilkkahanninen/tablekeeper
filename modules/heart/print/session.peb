@@ -22,6 +22,7 @@
   .text > h2:first-child { margin-top: 0; }
   h3 { font-size: 12pt; margin: 4mm 0 1mm; page-break-after: avoid; }
   .place { page-break-inside: avoid; margin-bottom: 3mm; }
+  .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
 
   /* Place body (shared _place.peb), as on the cards but on A4 */
   .props { border-collapse: collapse; margin-bottom: 1.5mm; }
@@ -72,7 +73,7 @@
     <h2>{{ s.label }}</h2>
     {% for item in s.items %}
       <div class="place">
-        <h3><span class="code">{{ item.node.code }}</span> {{ item.node.title }}</h3>
+        <h3><span class="code">{{ item.node.code }}</span> {{ item.node.title }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
         {# Pebble's include takes a literal map: pass the place's print model through #}
         {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedProps": item.linkedProps,
             "groups": item.groups, "facts": item.facts, "audience": item.audience} %}

@@ -58,6 +58,9 @@ data class SearchResult(val id: UUID, val code: String, val title: String, val c
 data class ChecklistView(val label: String, val option: LinkOption, val items: List<ChecklistItem>)
 data class ChecklistItem(val id: UUID, val code: String, val title: String, val checked: Boolean)
 
+/** A create-row choice: [key] identifies the quick-create option, [label] is what the dropdown shows. */
+data class CreateChoice(val key: String, val label: String)
+
 /** One dropdown entry; [value] is "<rel>|<node id>". */
 data class Choice(val value: String, val label: String, val selected: Boolean)
 data class ChoiceGroup(val label: String, val choices: List<Choice>)
@@ -202,7 +205,11 @@ fun Application.routes(d: Deps) {
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
         "checklists" to checklists(c, m, n),
-        "quickCreate" to quickCreateOptions(c, m, n),
+        "quickCreate" to quickCreateOptions(c, m, n).let { options ->
+            // Just the type ("Delve"); the relation only where one type is offered through several
+            val repeated = options.groupingBy { it.type.id }.eachCount().filterValues { it > 1 }.keys
+            options.map { CreateChoice(it.key, if (it.type.id in repeated) "${it.type.label} · ${it.option.label}" else it.type.label) }
+        },
         "linkedProps" to d.print.linkedProps(c, m, n, Audience.GM),
         "groups" to linkGroups(c, m, n),
         "errors" to errors,

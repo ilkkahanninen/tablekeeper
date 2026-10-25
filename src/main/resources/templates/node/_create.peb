@@ -4,7 +4,7 @@
   {% if quickCreate is not empty %}
     <form class="create-row" hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/quick-create" hx-include="#link-q">
       <select name="choice" aria-label="Create as">
-        {% for c in quickCreate %}<option value="{{ c.key }}">{{ c.type.label }} · {{ c.option.label }}</option>{% endfor %}
+        {% for c in quickCreate %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}
       </select>
       <button>Create</button>
       <button type="button" class="stay" aria-label="Create without opening" title="Create without opening"

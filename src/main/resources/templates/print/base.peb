@@ -14,6 +14,7 @@
   .title { font-size: 15pt; font-weight: bold; }
   .type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; }
   .code { font-family: monospace; font-size: 11pt; text-align: right; }
+  .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
   .props { width: 100%; border-collapse: collapse; margin-bottom: 2mm; }
   .props td { padding: 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
   .props td.k { width: 25mm; color: #555; font-size: 7.5pt; text-transform: uppercase; }
@@ -33,7 +34,7 @@
 <body>
 <div class="card">
   <table class="head"><tr>
-    <td><div class="type">{{ typeLabel }}{% if audience == 'players' %} · handout{% endif %}</div><div class="title">{{ node.title }}</div></td>
+    <td><div class="type">{{ typeLabel }}{% if audience == 'players' %} · handout{% endif %}</div><div class="title">{{ node.title }}{% for f in flags %} <span class="flag">{{ f }}</span>{% endfor %}</div></td>
     <td class="code">{{ node.code }}</td>
   </tr></table>
 

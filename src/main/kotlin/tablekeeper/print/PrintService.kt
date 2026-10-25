@@ -52,7 +52,10 @@ class PrintService(private val graph: GraphService, private val templates: Templ
     fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience, withPacket: Boolean = true): Map<String, Any?> {
         if (!audience.canSee(node.visibility)) throw HiddenFromAudience()
 
-        val fields = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
+        val all = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
+        // A ticked checkbox with an "x-trueLabel" (e.g. "dead") is a flag shown next to the title, not a row
+        val flags = all.filter { it.kind == "bool" && it.trueLabel != null && it.value == true }.map { it.text }
+        val fields = all.filterNot { it.kind == "bool" && it.trueLabel != null }
         val props = PropsForm.rows(fields).flatMap { row ->
             if (row.label == null) row.fields.mapNotNull(::propLine)
             // "x-row" fields print as one line, e.g. "Beat 1: Major · Find the ledger"
@@ -86,6 +89,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             "node" to node,
             "typeLabel" to module.label(node.type),
             "props" to props,
+            "flags" to flags,
             "linkedProps" to linkedProps(campaign, module, node, audience).filter { it.sources.isNotEmpty() },
             "groups" to groups,
             "facts" to facts,
@@ -113,17 +117,23 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             val via = module.linkOptions(b.type).first { it.key == b.rel }
             Packet.between(selectedIds, nodes.filter { module.isA(it.type, b.type) }.map { it.id }) { linked(it, via) }
         }.mapNotNull { byId[it] }
+        // A node "inside" another via its type's context link, e.g. a minor location inside its landmark
+        fun parentOf(id: UUID): UUID? = byId[id]?.let { n -> module.context(n.type)?.let { linked(id, it).firstOrNull() } }
+        val around = def.around.flatMap { a ->
+            val via = module.linkOptions(a.type).first { it.key == a.rel }
+            Packet.around(selectedIds, nodes.filter { module.isA(it.type, a.type) }.map { it.id }, { linked(it, via) }, ::parentOf)
+        }.mapNotNull { byId[it] }
 
         val views = module.views.map { ModuleViews.build(module, it, selected) }.filter { it.nodes.isNotEmpty() }
         val inViews = views.flatMap { v -> v.nodes.map { it.node.id } }.toSet()
-        val sections = (selected.filter { it.id !in inViews } + between).distinctBy { it.id }
+        val sections = (selected.filter { it.id !in inViews } + between + around).distinctBy { it.id }
             .groupBy { it.type }.entries
             .sortedWith(compareBy({ module.overviewRank(it.key) }, { module.label(it.key) }))
             .map { (type, ofType) ->
                 // Deepest last, e.g. landmarks by tier (the way down to the Heart), then by title
                 val depth = module.mapDepth(type)
                 val ordered = ofType.sortedWith(compareBy({ depth?.let { p -> (it.props[p] as? Number)?.toDouble() } ?: 0.0 }, { it.title }))
-                PacketSection(type, module.label(type), ordered.map { place ->
+                PacketSection(type, module.plural(type), ordered.map { place ->
                     val m = model(campaign, module, place, audience, withPacket = false)
                     // Links back to this session ("featured in S1") say nothing inside its own packet, and a list whose
                     // nodes the linked props already name (a delve's landmarks, in its Tier and Domains rows) repeats them

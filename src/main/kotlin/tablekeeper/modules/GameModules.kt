@@ -17,6 +17,8 @@ import java.io.File
 data class NodeTypeDef(
     val id: String,
     val label: String,
+    /** Plural label for headings, e.g. "Landmarks". Missing = [label] + "s". */
+    val plural: String? = null,
     val codePrefix: String,
     val extends: String? = null,
     val printTemplate: String? = null,
@@ -62,10 +64,12 @@ data class ChecklistDef(val rel: String, val types: List<String>)
 /**
  * A printed packet of the nodes linked via [rel] (e.g. a session's "features"), plus [between] nodes:
  * those whose every link of a kind points at a selected node, e.g. delves between selected landmarks.
+ * [around] adds nodes whose link of a kind ends at a selected node, or at a node inside one (via its `context`),
+ * e.g. NPCs located at a selected landmark or its minor locations.
  * [columns] > 1 prints the text on landscape A4 in that many columns (after the template's cover part).
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PacketDef(val rel: String, val between: List<BetweenDef> = emptyList(), val columns: Int = 1)
+data class PacketDef(val rel: String, val between: List<BetweenDef> = emptyList(), val around: List<BetweenDef> = emptyList(), val columns: Int = 1)
 
 /** Nodes of [type] included when each of their [rel] links ends at a selected node (and there is at least one). */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -235,6 +239,8 @@ class ResolvedModule(
 
     fun label(typeId: String): String = types[typeId]?.label ?: typeId
 
+    fun plural(typeId: String): String = types[typeId]?.let { it.plural ?: it.label + "s" } ?: typeId
+
     fun edgeType(id: String): EdgeTypeDef? = edgeTypes.firstOrNull { it.id == id }
 
     /** Type inheritance check: isA("heart.landmark", "core.place") == true. "*" matches anything. */
@@ -385,9 +391,9 @@ class ResolvedModule(
         }
         val packet = def.packet?.let { pk ->
             listOfNotNull("${def.id}: packet rel '${pk.rel}' is not a link option of ${def.id}".takeIf { options.none { it.key == pk.rel } }) +
-                pk.between.flatMap { b ->
-                    if (b.type !in types) listOf("${def.id}: packet between type '${b.type}' is unknown")
-                    else listOfNotNull("${def.id}: packet between rel '${b.rel}' is not a link option of ${b.type}"
+                (pk.between.map { "between" to it } + pk.around.map { "around" to it }).flatMap { (kind, b) ->
+                    if (b.type !in types) listOf("${def.id}: packet $kind type '${b.type}' is unknown")
+                    else listOfNotNull("${def.id}: packet $kind rel '${b.rel}' is not a link option of ${b.type}"
                         .takeIf { linkOptions(b.type).none { it.key == b.rel } })
                 }
         }.orEmpty()
