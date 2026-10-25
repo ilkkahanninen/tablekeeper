@@ -1,7 +1,7 @@
 {#
   Landmark / delve body: props (resistance as a track to tick off), linked props, notes, haunts / events (one tick box each), links (minor locations nested with their
   contents), facts with tick boxes. Model: a node print model (node, props, linkedProps, groups, facts, audience).
-  Used by the A6 card (landmark.peb) and the session packet (session.peb), so both print the same content.
+  Used by the A4 print (landmark.peb) and the session packet (session.peb), so both print the same content.
 #}
   <table class="props">
     {% for p in props %}

@@ -32,7 +32,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
 - **Map:** an automatic, repeatable layout. Landmarks sit by tier, delves between them, and minor locations around them. Available on screen and as an A4 PDF.
 - **Inspiration:** what the party wants from play. Beats by calling, the rule book's class texts, and each character's fallouts.
 - **Session packet** and **debrief:** see below.
-- **Print cards:** an A6 GM card for any node.
+- **Print:** any node as an A4 GM sheet (as many pages as it needs).
 
 ## Session packet
 

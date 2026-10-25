@@ -4,11 +4,9 @@
 <meta charset="utf-8">
 <title>{{ node.code }} {{ displayTitle }}</title>
 <style>
-  /* A4 sheet; one A6 card in the top-left corner with cut marks, so packets can later
-     tile four cards per page. openhtmltopdf supports CSS 2.1 + paged media: no flexbox/grid. */
-  @page { size: A4; margin: 10mm; }
-  body { font-family: serif; font-size: 9pt; color: #111; margin: 0; }
-  .card { width: 105mm; height: 148mm; box-sizing: border-box; padding: 6mm; border: 0.3mm dashed #999; overflow: hidden; }
+  /* A node's print: A4 pages, as many as its text needs. openhtmltopdf supports CSS 2.1 + paged media: no flexbox/grid. */
+  @page { size: A4; margin: 15mm; }
+  body { font-family: serif; font-size: 10pt; color: #111; margin: 0; }
   .head { width: 100%; border-bottom: 0.6mm solid #111; margin-bottom: 2mm; border-collapse: collapse; }
   .head td { vertical-align: bottom; padding: 0 0 1mm 0; }
   .title { font-size: 15pt; font-weight: bold; }
@@ -17,7 +15,7 @@
   .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
   .props { width: 100%; border-collapse: collapse; margin-bottom: 2mm; }
   .props td { padding: 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
-  .props td.k { width: 25mm; color: #555; font-size: 7.5pt; text-transform: uppercase; }
+  .props td.k { width: 32mm; color: #555; font-size: 7.5pt; text-transform: uppercase; }
   .body { margin: 2mm 0; }
   /* Formatted notes (Notes.html): paragraphs and lists; [[mentions]] in bold */
   .body p, .notes p { margin: 0 0 1.5mm; }
