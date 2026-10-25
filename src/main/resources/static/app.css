@@ -58,10 +58,14 @@ legend { font-size: .85rem; color: var(--muted); }
 .node-page { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; }
 @media (max-width: 800px) { .node-page { grid-template-columns: 1fr; } }
 .node-form { display: flex; flex-direction: column; gap: .9rem; }
+.node-form > #save-status:not(:has(*)) { display: none; }   /* no errors: no empty row (and gap) at the top of the form */
 .title-input { font-size: 1.6rem; font-weight: 600; border: none; border-bottom: 2px solid var(--line); background: transparent; border-radius: 0; padding-left: 0; }
 /* With a Random button the underline runs under the whole row, so titles look the same on every page */
 .title-row { border-bottom: 2px solid var(--line); }
 .title-row .title-input { border-bottom: none; }
+/* The title's own form, first on the page */
+.title-form { margin: 0 0 1rem; }
+.title-form > .title-input { width: 100%; box-sizing: border-box; }
 /* A form of stacked fields (e.g. New campaign) */
 .stack { display: flex; flex-direction: column; gap: .75rem; }
 .stack button { align-self: flex-start; }

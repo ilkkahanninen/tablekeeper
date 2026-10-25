@@ -47,7 +47,7 @@ document.addEventListener("input", (e) => {
 // Autosave: flash the field that was just stored (an empty status means no errors).
 document.addEventListener("htmx:afterRequest", (e) => {
   const d = e.detail;
-  if (d.elt.id === "node-form" && d.successful && d.xhr.responseText.trim() === "") {
+  if (d.elt.matches("#node-form, .title-form") && d.successful && d.xhr.responseText.trim() === "") {
     const field = d.requestConfig?.triggeringEvent?.target;
     if (field instanceof HTMLElement && field !== d.elt) {
       field.classList.add("just-saved");

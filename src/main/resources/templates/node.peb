@@ -10,6 +10,7 @@
 <div class="node-page">
   <div class="main-col">
     <p class="muted small">{% include "node/_icon.peb" with {"type": node.type, "code": node.code} %} {{ typeLabel }} · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
+    {% include "node/_title.peb" %}
     {% include "node/_slots.peb" %}
     {% include "node/_checklists.peb" %}
     {% include "node/_linked_props.peb" %}
