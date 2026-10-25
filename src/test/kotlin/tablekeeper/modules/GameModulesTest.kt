@@ -135,7 +135,7 @@ class GameModulesTest {
         assertTrue(heart.isA("heart.equipment", "core.item"))
         assertTrue("heart.equipment" in heart.nodeTypes.map { it.id })
         val slot = heart.linkSlots("heart.equipment").single()
-        assertEquals("Location", slot.label)
+        assertEquals("Location / carried by", slot.label)
         val (at, carried) = slot.options
         for (place in listOf("heart.landmark", "heart.delve")) assertTrue(heart.acceptsOther(at, place), place)
         for (carrier in listOf("core.npc", "heart.pc")) assertTrue(heart.acceptsOther(carried, carrier), carrier)

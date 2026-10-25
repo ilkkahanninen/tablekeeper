@@ -12,7 +12,7 @@ class OverviewTest {
     fun `columns are the type's overview props and links, then its link slots`() {
         assertEquals(listOf("Tier", "Default stress", "Domains"), Overview.columns(heart, "heart.landmark").map { it.label })
         assertEquals(listOf("Connects", "Resistance"), Overview.columns(heart, "heart.delve").map { it.label })
-        assertEquals(listOf("Die", "Tags", "Location"), Overview.columns(heart, "heart.resource").map { it.label })
+        assertEquals(listOf("Die", "Tags", "Location / carried by"), Overview.columns(heart, "heart.resource").map { it.label })
         assertEquals(listOf("Voice", "Appearance", "Dead", "Location"), Overview.columns(heart, "core.npc").map { it.label })
     }
 

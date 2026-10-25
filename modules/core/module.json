@@ -21,7 +21,7 @@
         }
       } },
     { "id": "core.item",    "label": "Item",             "codePrefix": "I",
-      "linkSlots": [{ "label": "Location", "rels": ["located_at:out", "carries:in"] }] },
+      "linkSlots": [{ "label": "Location / carried by", "rels": ["located_at:out", "carries:in"] }] },
     { "id": "core.faction", "label": "Faction",          "codePrefix": "G" },
     { "id": "core.fact",    "label": "Fact",             "codePrefix": "F" },
     {

@@ -28,7 +28,7 @@ docker compose up --build
 
 1. Create a campaign (Heart).
 2. Pick Landmark in *Add* in the top bar (there on every campaign page) and name it "Red Market": tier 1, domains Occult + Desolate. Fields save as you leave them; there's no Save button.
-3. On Red Market, type "Silvia" in the *Link* box. Pick *NPC · has here* in the create row under it, then *Create* to create and open her, or ↓ to create her and stay (with the box empty, it's named "New NPC"). Her *Location* now says Red Market ("— Pool —" means nowhere yet).
+3. On Red Market, type "Silvia" in the *Link* box. Pick *NPC* in the create row under it, then *Create* to create and open her, or ↓ to create her and stay (with the box empty, it's named "New NPC"). Her *Location* now says Red Market ("— Pool —" means nowhere yet).
 4. Type "Gut" in the *Link* box, create it as *Delve · reached via*. Its Domains show "L1 Red Market: Occult, Desolate".
 5. Typing the name of something that already exists lists it with a button per relation (Any), e.g. *has here*, *relates to*. Pick a relation in the dropdown to narrow it.
 6. Red Market → **Print**: props, notes, "has here: Silvia (N1)", facts with tick boxes.
@@ -220,7 +220,7 @@ For "exactly one of these" links, use `linkSlots`. A slot is a dropdown on the n
 
 ```json
 "linkSlots": [{ "label": "Location", "rels": ["located_at:out"] }]                 // core.npc, core.pc
-"linkSlots": [{ "label": "Location", "rels": ["located_at:out", "carries:in"] }]   // core.item: at a place or carried
+"linkSlots": [{ "label": "Location / carried by", "rels": ["located_at:out", "carries:in"] }]   // core.item: at a place or carried
 ```
 
 Slot rels leave the *Link* box but still show under *Links*. Linking from the other end replaces the slot's current link. For example, adding a resource under a landmark's *has here*, or to an NPC's *carries*, moves it there. The carrier's side isn't a slot, so an NPC can carry many items.
