@@ -1,12 +1,12 @@
 {# Random button for a field (variables: field = input name, choices = its tables, RandomChoice: id, name; append = add a list item). 
    Each button asks the server for a roll (see app.js). One table rolls directly; several open a menu of table names. #}
 {% if choices | length == 1 %}
-  <button type="button" class="random" data-for="{{ field }}"{% if append %} data-append{% endif %} data-roll="/c/{{ campaign.id }}/tables/{{ choices[0].id }}/roll">Random</button>
+  <button type="button" class="secondary random" data-for="{{ field }}"{% if append %} data-append{% endif %} data-roll="/c/{{ campaign.id }}/tables/{{ choices[0].id }}/roll">Random</button>
 {% else %}
   <details class="random-menu">
-    <summary class="random">Random ▾</summary>
-    <div class="random-choices">
-      {% for ch in choices %}<button type="button" class="random" data-for="{{ field }}"{% if append %} data-append{% endif %} data-roll="/c/{{ campaign.id }}/tables/{{ ch.id }}/roll">{{ ch.name }}</button>{% endfor %}
+    <summary class="secondary">Random ▾</summary>
+    <div class="menu random-choices">
+      {% for ch in choices %}<button type="button" class="menu-item random" data-for="{{ field }}"{% if append %} data-append{% endif %} data-roll="/c/{{ campaign.id }}/tables/{{ ch.id }}/roll">{{ ch.name }}</button>{% endfor %}
     </div>
   </details>
 {% endif %}

@@ -8,7 +8,7 @@
           <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links" hx-target="#linked" hx-swap="outerHTML">
             <input type="hidden" name="rel" value="{{ ch.option.key }}">
             <input type="hidden" name="other" value="{{ r.id }}">
-            <button class="rel"{% if ch.blocked is not null %} disabled title="{{ ch.blocked }}"{% endif %}>{{ ch.option.label }}</button>
+            <button class="secondary"{% if ch.blocked is not null %} disabled title="{{ ch.blocked }}"{% endif %}>{{ ch.option.label }}</button>
           </form>
         {% endfor %}
       </span>

@@ -33,13 +33,13 @@
     <label for="notes-input">Notes</label>
     <div id="notes-view" class="notes-view"{% if node.body is empty %} hidden{% endif %}>{{ notes | raw }}</div>
     <textarea id="notes-input" name="body" rows="10" data-mentions="/c/{{ campaign.id }}/n/{{ node.id }}/mentions"{% if node.body is not empty %} hidden{% endif %}>{{ node.body }}</textarea>
-    <div class="mention-menu" role="listbox" hidden></div>
+    <div class="menu mention-menu" role="listbox" hidden></div>
   </div>
 
   <div class="actions">
     {# Waits for an autosave still on its way (hx-sync), so the copy has the last edit #}
     <button type="button" class="secondary" hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/duplicate" hx-sync="closest form:queue all">Duplicate</button>
-    <button type="button" class="danger"
+    <button type="button" class="secondary"
             hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/delete"
             hx-confirm="Delete {{ node.code }} {{ node.title }} and all its links?">Delete</button>
   </div>

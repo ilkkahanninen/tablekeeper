@@ -38,7 +38,7 @@
     {% if s.creatable %}
       <form class="section-create" method="post" action="/c/{{ campaign.id }}/nodes">
         <input type="hidden" name="type" value="{{ s.typeId }}">
-        <button>Create</button>
+        <button class="secondary">Create</button>
       </form>
     {% endif %}
   </section>

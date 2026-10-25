@@ -54,11 +54,14 @@ document.addEventListener("htmx:afterRequest", (e) => {
       setTimeout(() => field.classList.remove("just-saved"), 700);
     }
   }
-  // "Create without opening" in the Link box: clear the search, ready for the next one
-  if (d.elt.matches("[data-clear-search]") && d.successful) {
-    const q = document.getElementById("link-q");
-    if (q) { q.value = ""; q.dispatchEvent(new Event("input", { bubbles: true })); }
-  }
+});
+
+// "Create without opening" in the Link box: clear the search, ready for the next one. On beforeSwap, not afterRequest:
+// the response replaces the create row (out-of-band), so the button is gone and its later events never reach document.
+document.addEventListener("htmx:beforeSwap", (e) => {
+  if (!e.detail.requestConfig?.elt?.matches("[data-clear-search]") || e.detail.xhr.status >= 400) return;   // elt = the button
+  const q = document.getElementById("link-q");
+  if (q) { q.value = ""; q.dispatchEvent(new Event("input", { bubbles: true })); }
 });
 
 // Random table button: fill its field with a roll from the server (a different value when possible); the field's change autosaves.

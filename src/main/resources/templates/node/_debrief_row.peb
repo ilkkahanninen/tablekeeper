@@ -5,6 +5,6 @@
   {% for f in r.fields %}<input type="hidden" name="only" value="{{ f.name }}">{% endfor %}
   {% if r.label is not null %}<span class="row-label">{{ r.label }}</span>{% endif %}
   {% for f in r.fields %}{% include "node/_field.peb" %}{% endfor %}
-  {% if r.done %}<button type="button" class="done" hx-post="/c/{{ campaign.id }}/n/{{ target.id }}"
+  {% if r.done %}<button type="button" class="secondary" hx-post="/c/{{ campaign.id }}/n/{{ target.id }}"
                          hx-vals='{"autosave": "1", "clear": "1", "refresh": "1"}' hx-target="#debrief-status">Done</button>{% endif %}
 </form>

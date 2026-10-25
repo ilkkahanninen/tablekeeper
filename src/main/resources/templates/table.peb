@@ -32,7 +32,7 @@
   {% endif %}
 
   <div class="actions">
-    <button type="button" class="danger"
+    <button type="button" class="secondary"
             hx-post="/c/{{ campaign.id }}/tables/{{ table.id }}/delete"
             hx-confirm="Delete {{ table.name }}?">Delete</button>
   </div>

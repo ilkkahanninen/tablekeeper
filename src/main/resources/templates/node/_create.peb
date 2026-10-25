@@ -7,7 +7,7 @@
         {% for c in quickCreate %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}
       </select>
       <button>Create</button>
-      <button type="button" class="stay" aria-label="Create without opening" title="Create without opening"
+      <button type="button" class="secondary" aria-label="Create without opening" title="Create without opening"
               hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/quick-create" hx-vals='{"stay": "1"}' hx-include="#link-q, closest form"
               hx-target="#linked" hx-swap="outerHTML" data-clear-search>↓</button>
     </form>

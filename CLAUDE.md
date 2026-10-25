@@ -20,6 +20,7 @@ Tests load the real `./modules` directory (passed as the `modulesDir` system pro
 ## UI rules
 
 - Cut taglines, helper text and secondary labels (subtitles, "No X yet." messages, placeholders, type labels next to codes). If a screen needs them to make sense, fix the layout instead: table headers, grouping, ordering.
+- Two button levels, one size (`static/app.css`): primary (a plain `<button>`) only for the action that completes a small form you just filled in (Add, Create); `class="secondary"` for everything else. `×` icons (`.unlink`) and dropdown rows (`.menu` / `.menu-item`) aren't buttons. No per-feature button styles.
 - Make the decision that improves UX, DX and AX together, without breaking anything. Prefer module data and shared partials over one-off markup.
 - Node pages autosave: `_form.peb` posts on `change` with `autosave=1`, and only `#save-status` is swapped. Never swap the form there, or focus and typed text are lost.
 
