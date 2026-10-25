@@ -21,7 +21,7 @@ data class ViewNode(val node: Node, val fields: Map<String, FormField>, val disp
 data class ViewLinkGroup(val label: String, val items: List<ViewLinkItem>)
 data class ViewLinkItem(val code: String, val title: String, val summary: String)
 
-/** View nodes sharing one value of a `groupBy` prop; [hint] is that value's "x-enumDescriptions" text, if any. */
+/** View nodes sharing one value of a `groupBy` prop; [hint] is that value's "x-enumNotes" text, if any. */
 data class ViewGroup(val value: String, val label: String, val hint: String?, val nodes: List<ViewNode>)
 
 /** A module view's template model: its nodes, and for each `groupBy` prop those nodes grouped. */
@@ -65,7 +65,7 @@ object ModuleViews {
         val field = nodes.firstNotNullOfOrNull { it.fields[prop] } ?: return emptyList()
         val order = field.options.withIndex().associate { (i, o) -> o to i }
         val groups = nodes.flatMap(::values).distinct().sortedBy { order[it] ?: Int.MAX_VALUE }.map { value ->
-            ViewGroup(value, field.labels[value] ?: value, field.hints[value], nodes.filter { value in values(it) })
+            ViewGroup(value, field.labels[value] ?: value, field.notes[value], nodes.filter { value in values(it) })
         }
         val unset = nodes.filter { values(it).isEmpty() }
         return groups + listOfNotNull(unset.takeIf { it.isNotEmpty() }?.let { ViewGroup("", "Not set", null, it) })

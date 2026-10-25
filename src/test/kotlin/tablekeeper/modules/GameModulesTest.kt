@@ -307,9 +307,10 @@ class GameModulesTest {
         assertEquals(listOf("heart.pc"), view.types)
         assertEquals(listOf("calling", "class"), view.groupBy)
         val classes = PropsForm.fields(heart.propsSchema("heart.pc"), emptyMap()).single { it.name == "class" }
-        assertTrue(classes.hints.getValue("Cleaver").startsWith("Opportunities to hunt"))
-        assertTrue(classes.hints.keys.all { it in classes.options }, "every class text belongs to a class")
-        assertEquals(null, classes.hints["Witness"])
+        assertTrue(classes.notes.getValue("Cleaver").startsWith("Opportunities to hunt"))
+        assertTrue(classes.notes.keys.all { it in classes.options }, "every class text belongs to a class")
+        assertEquals(null, classes.notes["Witness"])
+        assertTrue(classes.hints.isEmpty(), "inspiration texts aren't class descriptions: no hover hints, nothing on cards")
     }
 
     @Test

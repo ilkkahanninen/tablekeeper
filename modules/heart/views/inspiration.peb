@@ -2,7 +2,7 @@
 {#
   GM inspiration: what the party's characters want from play. Heart module view over heart.pc.
   Model: campaign, module, nodes (ViewNode: node + fields by name), groups["calling"], groups["class"]
-  (ViewGroup: value, label, hint = the class text from "x-enumDescriptions", nodes).
+  (ViewGroup: value, label, hint = the class text from "x-enumNotes", nodes).
 #}
 {% block title %}Inspiration · {{ campaign.name }}{% endblock %}
 {% block crumbs %}

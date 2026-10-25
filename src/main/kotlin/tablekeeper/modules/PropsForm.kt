@@ -19,6 +19,7 @@ import tablekeeper.core.Json
  *
  * "x-enumDescriptions": {"Fragile": "…"} on a select/multi field becomes a hover hint per option.
  * "x-enumLabels": {"Professional": "d8 Professional"} shows an option differently from its stored value.
+ * "x-enumNotes": {"Cleaver": "…"} per-option texts for module views only (e.g. Heart's class inspiration); not on forms or cards.
  * "x-hideIf": {"category": ["Miscellaneous"]} hides a field while another field has one of those values;
  * "x-showIf": {"tags": ["Limited X"]} shows it only then. A hidden field is dropped on save and left off print cards.
  * "x-wide": true gives a field a full-width row of its own.
@@ -39,6 +40,8 @@ data class FormField(
     val hints: Map<String, String> = emptyMap(),
     /** Display text per option, from "x-enumLabels"; options without one show as stored. */
     val labels: Map<String, String> = emptyMap(),
+    /** Text per option for module views, from "x-enumNotes" (e.g. what a class brings to play); not shown on forms or cards. */
+    val notes: Map<String, String> = emptyMap(),
     /** From "x-hideIf": other field name -> values that hide this field. */
     val hideIf: Map<String, List<String>> = emptyMap(),
     /** From "x-showIf": other field name -> values that must be present for this field to show. */
@@ -120,8 +123,9 @@ object PropsForm {
         fun textMap(key: String) = s.get(key)?.fields()?.asSequence()?.associate { (k, v) -> k to v.asText() }.orEmpty()
         val hints = textMap("x-enumDescriptions")
         val labels = textMap("x-enumLabels")
+        val notes = textMap("x-enumNotes")
         return when {
-            s.has("enum") -> FormField(name, label, "select", s.get("enum").map { it.asText() }, hints = hints, labels = labels,
+            s.has("enum") -> FormField(name, label, "select", s.get("enum").map { it.asText() }, hints = hints, labels = labels, notes = notes,
                 value = current?.toString() ?: "")
             s.get("type")?.asText() == "array" && s.get("items")?.has("enum") == true ->
                 FormField(name, label, "multi", s.get("items").get("enum").map { it.asText() }, hints = hints, labels = labels,

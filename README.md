@@ -175,6 +175,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `"x-row": "Beat 1"` | Fields sharing a value sit on one labelled line, also on cards |
 | `"x-enumLabels"` | Show an option differently from its stored value (`"d8": "d8 Professional"`) |
 | `"x-enumDescriptions"` | Hover hint per option; printed on cards |
+| `"x-enumNotes"` | Text per option for module views only, e.g. Heart's class inspiration (`groupBy` hint); not on forms or cards |
 | `"x-hideIf"` / `"x-showIf"` | Hide or show a field depending on another field; hidden values are cleared |
 | `"x-trueLabel"` | Text for a ticked checkbox (`"dead"`); printed as a tag next to the name |
 | `"x-depth"` | Map depth per enum value (`"Tier 2": 2`) |

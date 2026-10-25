@@ -135,7 +135,7 @@
           "player":   { "type": "string", "title": "Player" },
           "ancestry": { "enum": ["Aelfir", "Drow", "Gnoll", "Human"], "title": "Ancestry" },
           "class":    { "enum": ["Blightborn", "Cleaver", "Crawler", "Deadwalker", "Deep Apiarist", "Heretic", "Hound", "Incarnadine", "Junk Mage", "Snail Pilgrim", "Vermissian Knight", "Witch", "Witness"], "title": "Class",
-            "x-enumDescriptions": {
+            "x-enumNotes": {
               "Cleaver": "Opportunities to hunt and to explore Wild and Cursed domains; Normal-ish people to compare themselves to so they can feel monstrous; Weaker enemies to terrify and huge enemies to bring down with a concerted effort; Body-horror; Havens to be unsettling in and places where they're welcome.",
               "Deadwalker": "Travel; Mysticism and ritual; Ghosts and the undead; Otherworlds and fractures; Practical applications of religious rites; Meeting weird hermits who dispense semi-useless wisdom; Stealing things from heaven.",
               "Deep Apiarist": "Technology sufficiently advanced as to be indistinguishable from magic; To encounter chaos and attempt to control it; To create and build structures; To help others, even if it creeps out the people they're helping; To understand and combat the machinations of the Heart Itself.",
