@@ -69,10 +69,17 @@ data class ChecklistDef(val rel: String, val types: List<String>)
  * those whose every link of a kind points at a selected node, e.g. delves between selected landmarks.
  * [around] adds nodes whose link of a kind ends at a selected node, or at a node inside one (via its `context`),
  * e.g. NPCs located at a selected landmark or its minor locations.
+ * [related] then adds nodes with a link of a kind to anything already in the packet, e.g. the factions its NPCs are members of.
  * [columns] > 1 prints the text on landscape A4 in that many columns (after the template's cover part).
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PacketDef(val rel: String, val between: List<BetweenDef> = emptyList(), val around: List<BetweenDef> = emptyList(), val columns: Int = 1)
+data class PacketDef(
+    val rel: String,
+    val between: List<BetweenDef> = emptyList(),
+    val around: List<BetweenDef> = emptyList(),
+    val related: List<BetweenDef> = emptyList(),
+    val columns: Int = 1,
+)
 
 /** Nodes of [type] included when each of their [rel] links ends at a selected node (and there is at least one). */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -434,7 +441,7 @@ class ResolvedModule(
         }
         val packet = def.packet?.let { pk ->
             listOfNotNull("${def.id}: packet rel '${pk.rel}' is not a link option of ${def.id}".takeIf { options.none { it.key == pk.rel } }) +
-                (pk.between.map { "between" to it } + pk.around.map { "around" to it }).flatMap { (kind, b) ->
+                (pk.between.map { "between" to it } + pk.around.map { "around" to it } + pk.related.map { "related" to it }).flatMap { (kind, b) ->
                     if (b.type !in types) listOf("${def.id}: packet $kind type '${b.type}' is unknown")
                     else listOfNotNull("${def.id}: packet $kind rel '${b.rel}' is not a link option of ${b.type}"
                         .takeIf { linkOptions(b.type).none { it.key == b.rel } })

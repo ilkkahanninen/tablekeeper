@@ -137,6 +137,7 @@ One brief landscape A4 document for the next session, with the text in three col
 - **Landmarks:** each selected landmark, by tier, with its props, notes, haunts, who and what is there (NPC voice and appearance, resources' die and tags), minor locations with their contents, and facts with tick boxes
 - **Delves:** only those between selected landmarks
 - **NPCs:** those at a selected landmark or in one of its minor locations, with voice, appearance, notes and what they carry
+- **Factions:** those at a selected landmark or in one of its minor locations, and those any NPC in the packet is a member of
 
 Module settings (Heart sets them on `core.session` via `patchTypes`):
 
@@ -154,6 +155,7 @@ Module settings (Heart sets them on `core.session` via `patchTypes`):
   - `sections`: print models of the other selected nodes, plus:
     - the `between` ones: nodes whose every `rel` link ends at a selected node
     - the `around` ones: nodes with a `rel` link to a selected node, or to one inside it via its `context`, e.g. a minor location
+    - the `related` ones: nodes with a `rel` link to anything already in the packet, e.g. factions of its NPCs
 - With `columns` > 1, the print template is rendered twice:
   - `part = "cover"` (the map page), as is
   - `part = "columns"`, the text, laid out as one column on narrow pages; the app places these side by side on landscape sheets

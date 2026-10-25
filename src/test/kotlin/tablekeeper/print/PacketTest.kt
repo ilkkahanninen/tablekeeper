@@ -30,4 +30,12 @@ class PacketTest {
         val parent = mapOf(alley to market)
         assertEquals(setOf(silvia, grub), Packet.around(setOf(market), at.keys.toList(), { at.getValue(it) }, { parent[it] }).toSet())
     }
+
+    @Test
+    fun `factions with a member in the packet are related, others are not`() {
+        val silvia = UUID.randomUUID(); val moth = UUID.randomUUID()
+        val hounds = UUID.randomUUID(); val church = UUID.randomUUID(); val empty = UUID.randomUUID()
+        val members = mapOf(hounds to listOf(silvia), church to listOf(moth), empty to emptyList())
+        assertEquals(listOf(hounds), Packet.related(setOf(silvia), members.keys.toList()) { members.getValue(it) })
+    }
 }

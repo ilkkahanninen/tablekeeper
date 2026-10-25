@@ -20,4 +20,8 @@ object Packet {
      */
     fun around(selected: Set<UUID>, candidates: List<UUID>, linksOf: (UUID) -> List<UUID>, parentOf: (UUID) -> UUID?): List<UUID> =
         candidates.filter { c -> linksOf(c).any { it in selected || parentOf(it) in selected } }
+
+    /** [candidates] (e.g. factions) with a link (given by [linksOf], e.g. their members) to anything [included] in the packet. */
+    fun related(included: Set<UUID>, candidates: List<UUID>, linksOf: (UUID) -> List<UUID>): List<UUID> =
+        candidates.filter { c -> c !in included && linksOf(c).any { it in included } }
 }

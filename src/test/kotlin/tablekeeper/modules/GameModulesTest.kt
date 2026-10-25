@@ -360,7 +360,8 @@ class GameModulesTest {
         val packet = heart.packet("core.session")!!
         assertEquals("features:out", packet.rel)
         assertEquals(listOf(BetweenDef("heart.delve", "connects:out")), packet.between)
-        assertEquals(listOf(BetweenDef("core.npc", "located_at:out")), packet.around)
+        assertEquals(listOf(BetweenDef("core.npc", "located_at:out"), BetweenDef("core.faction", "located_at:out")), packet.around)
+        assertEquals(listOf(BetweenDef("core.faction", "member_of:in")), packet.related)
         assertEquals("heart/print/session.peb", heart.printTemplate("core.session"))
         // A plain core campaign keeps a plain session
         val core = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("core")
