@@ -1,0 +1,6 @@
+{# Table rows for linked props, one per linked node; include inside <table class="props">. #}
+{% for lp in linkedProps %}
+  {% for s in lp.sources %}
+    <tr><td class="k">{% if loop.first %}{{ lp.label }}{% endif %}</td><td>{{ s.title }} <span class="ref">({{ s.code }})</span>: {% if s.values is empty %}–{% else %}{{ s.values | join(", ") }}{% endif %}</td></tr>
+  {% endfor %}
+{% endfor %}

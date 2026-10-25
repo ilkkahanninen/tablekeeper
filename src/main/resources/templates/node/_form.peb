@@ -1,0 +1,33 @@
+{# Autosaves on change (blur/select) and Enter; only #save-status is swapped, so focus and typed text survive. #}
+<form id="node-form" class="node-form" method="post"
+      action="/c/{{ campaign.id }}/n/{{ node.id }}"
+      hx-post="/c/{{ campaign.id }}/n/{{ node.id }}" hx-trigger="change, submit"
+      hx-vals='{"autosave": "1"}' hx-target="#save-status">
+
+  <div id="save-status" aria-live="polite">{% include "node/_save_status.peb" %}</div>
+
+  <input class="title-input" name="title" value="{{ node.title }}" required>
+
+  <div class="fields">
+    {% for r in rows %}
+      {% if r.label is null %}
+        {% for f in r.fields %}{% include "node/_field.peb" %}{% endfor %}
+      {% else %}
+        <fieldset class="field-row">
+          <legend>{{ r.label }}</legend>
+          {% for f in r.fields %}{% include "node/_field.peb" %}{% endfor %}
+        </fieldset>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <label class="wide">Notes
+    <textarea name="body" rows="10">{{ node.body }}</textarea>
+  </label>
+
+  <div class="actions">
+    <button type="button" class="danger"
+            hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/delete"
+            hx-confirm="Delete {{ node.code }} {{ node.title }} and all its links?">Delete</button>
+  </div>
+</form>

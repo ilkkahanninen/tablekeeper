@@ -1,0 +1,14 @@
+{% extends "layout.peb" %}
+
+{% block title %}Map · {{ campaign.name }}{% endblock %}
+{% block crumbs %}
+  <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
+  <span class="sep">/</span> Map
+{% endblock %}
+
+{% block content %}
+<h1>Map{% if map.places is not empty %} <a class="small" href="/c/{{ campaign.id }}/map.pdf" target="_blank">Print</a>{% endif %}</h1>
+{% if map.places is not empty %}
+  <div class="card map-card">{% include "map/_svg.peb" with {"links": true} %}</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{# One props field; included per field by _form.peb (variable f). #}
+<div class="field"{% if f.conditional %} data-conditions="{{ f.conditionsJson }}"{% endif %}{% if f.hidden %} hidden{% endif %}>
+{% if f.kind == 'multi' %}
+  <fieldset>
+    <legend>{{ f.label }}</legend>
+    {% for opt in f.options %}
+      <label class="check"{% if f.hints[opt] is not null %} title="{{ f.hints[opt] }}"{% endif %}><input type="checkbox" name="{{ f.inputName }}" value="{{ opt }}" {% if f.value contains opt %}checked{% endif %}> {{ f.labels[opt] | default(opt) }}</label>
+    {% endfor %}
+  </fieldset>
+{% elseif f.kind == 'select' %}
+  <label>{% if f.row is null %}{{ f.label }}{% endif %}
+    <select name="{{ f.inputName }}"{% if f.row is not null %} aria-label="{{ f.label }}"{% endif %}>
+      <option value="">–</option>
+      {% for opt in f.options %}<option value="{{ opt }}" {% if f.value == opt %}selected{% endif %}{% if f.hints[opt] is not null %} title="{{ f.hints[opt] }}"{% endif %}>{{ f.labels[opt] | default(opt) }}</option>{% endfor %}
+    </select>
+  </label>
+{% elseif f.kind == 'int' %}
+  <label>{{ f.label }}
+    <input type="number" name="{{ f.inputName }}" value="{{ f.value }}"
+           {% if f.min is not null %}min="{{ f.min }}"{% endif %} {% if f.max is not null %}max="{{ f.max }}"{% endif %}>
+  </label>
+{% elseif f.kind == 'bool' %}
+  <label class="check"><input type="checkbox" name="{{ f.inputName }}" {% if f.value %}checked{% endif %}> {{ f.label }}</label>
+{% elseif f.kind == 'textarea' %}
+  <label class="wide">{{ f.label }}<textarea name="{{ f.inputName }}" rows="3">{{ f.value }}</textarea></label>
+{% else %}
+  <label{% if f.row is not null %} class="grow"{% elseif f.wide %} class="wide"{% endif %}>{% if f.row is null %}{{ f.label }}{% endif %}<input name="{{ f.inputName }}" value="{{ f.value }}"{% if f.row is not null %} placeholder="{{ f.label }}" aria-label="{{ f.label }}"{% endif %}></label>
+{% endif %}
+</div>

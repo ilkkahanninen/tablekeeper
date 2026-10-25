@@ -1,0 +1,48 @@
+{
+  "id": "core",
+  "name": "Generic",
+  "extends": [],
+  "nodeTypes": [
+    { "id": "core.place",   "label": "Place",            "codePrefix": "P",  "mapShape": "circle" },
+    { "id": "core.pc",      "label": "Player character", "codePrefix": "PC",
+      "linkSlots": [{ "label": "Location", "rels": ["located_at:out"] }] },
+    { "id": "core.npc",     "label": "NPC",              "codePrefix": "N",
+      "linkSlots": [{ "label": "Location", "rels": ["located_at:out"] }],
+      "overview": ["voice", "appearance", "dead"],
+      "overviewMuted": "dead",
+      "props": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "voice":      { "type": "string", "title": "Voice", "x-wide": true },
+          "appearance": { "type": "string", "title": "Appearance", "x-wide": true },
+          "dead":       { "type": "boolean", "title": "Dead" }
+        }
+      } },
+    { "id": "core.item",    "label": "Item",             "codePrefix": "I",
+      "linkSlots": [{ "label": "Location", "rels": ["located_at:out", "carries:in"] }] },
+    { "id": "core.faction", "label": "Faction",          "codePrefix": "G" },
+    { "id": "core.fact",    "label": "Fact",             "codePrefix": "F" },
+    {
+      "id": "core.session", "label": "Session", "codePrefix": "S",
+      "props": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "number": { "type": "integer", "title": "Session #", "minimum": 0 },
+          "date":   { "type": "string",  "title": "Date", "format": "date" }
+        }
+      }
+    }
+  ],
+  "edgeTypes": [
+    { "id": "relates_to",   "label": "relates to",      "inverseLabel": "relates to",        "from": ["*"],                        "to": ["*"] },
+    { "id": "located_at",   "label": "is located at",   "inverseLabel": "has here",          "from": ["core.npc", "core.pc", "core.item", "core.faction"], "to": ["core.place"] },
+    { "id": "knows",        "label": "knows",           "inverseLabel": "is known by",       "from": ["core.npc", "core.pc", "core.faction"], "to": ["core.fact"] },
+    { "id": "about",        "label": "is about",        "inverseLabel": "facts",             "from": ["core.fact"],                "to": ["*"] },
+    { "id": "carries",      "label": "carries",         "inverseLabel": "carried by",        "from": ["core.npc", "core.pc"],      "to": ["core.item"] },
+    { "id": "member_of",    "label": "is member of",    "inverseLabel": "members",           "from": ["core.npc", "core.pc"],      "to": ["core.faction"] },
+    { "id": "features",     "label": "features",        "inverseLabel": "featured in",       "from": ["core.session"],             "to": ["*"] },
+    { "id": "plans_reveal", "label": "plans to reveal", "inverseLabel": "reveal planned in", "from": ["core.session"],             "to": ["core.fact"] }
+  ]
+}

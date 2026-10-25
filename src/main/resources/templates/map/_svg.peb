@@ -1,0 +1,38 @@
+{# The campaign map drawing. Variables: map (MapView), campaign, links (wrap places in links to their pages). #}
+<svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ map.width }} {{ map.height }}"{% if svgWidth is not null %} width="{{ svgWidth }}" height="{{ svgHeight }}"{% endif %} font-family="serif">
+  {% for lv in map.levels %}
+    <line x1="0" y1="{{ lv.y }}" x2="{{ map.width }}" y2="{{ lv.y }}" stroke="#d9d0c2" stroke-width="1.5" stroke-dasharray="2 8"/>
+    <text x="12" y="{{ lv.y - 8 }}" font-size="15" fill="#9a9086" letter-spacing="1">{{ lv.label | upper }}</text>
+  {% endfor %}
+  {% for l in map.lines %}
+    {% set stroke = l.minor ? '#9a9086' : '#1d1a17' %}
+    {% set strokeWidth = l.minor ? '1.5' : '3' %}
+    {% set dash = l.minor ? '6 5' : 'none' %}
+    {% if l.cx is null %}
+      <line x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="{{ stroke }}" stroke-width="{{ strokeWidth }}" stroke-dasharray="{{ dash }}"/>
+    {% else %}
+      {# Curved around a place it would otherwise run through #}
+      <path d="M {{ l.x1 }} {{ l.y1 }} Q {{ l.cx }} {{ l.cy }} {{ l.x2 }} {{ l.y2 }}" fill="none" stroke="{{ stroke }}" stroke-width="{{ strokeWidth }}" stroke-dasharray="{{ dash }}"/>
+    {% endif %}
+  {% endfor %}
+  {% for p in map.places %}
+    {% if links %}<a href="/c/{{ campaign.id }}/n/{{ p.id }}">{% endif %}
+    <g class="place place-{{ p.shape }}">
+      {% if p.shape == 'circle' %}
+        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="26" fill="#fffdf8" stroke="#8c1c13" stroke-width="4"/>
+        {% set labelY = p.y + 50 %}
+      {% elseif p.shape == 'diamond' %}
+        <polygon points="{{ p.x }},{{ p.y - 17 }} {{ p.x + 17 }},{{ p.y }} {{ p.x }},{{ p.y + 17 }} {{ p.x - 17 }},{{ p.y }}" fill="#1d1a17"/>
+        {% set labelY = p.y + 38 %}
+      {% else %}
+        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="7" fill="#7a7166"/>
+        {% set labelY = p.y + 24 %}
+      {% endif %}
+      {# Each label twice: a paper-coloured outline first, so lines passing underneath don't cut through the text #}
+      {% for halo in [true, false] %}
+      <text x="{{ p.x }}" y="{{ labelY }}" text-anchor="middle" font-size="{% if p.shape == 'dot' %}15{% else %}19{% endif %}" fill="#1d1a17"{% if halo %} stroke="#fffdf8" stroke-width="5" stroke-linejoin="round"{% endif %}><tspan font-family="monospace" font-size="{% if p.shape == 'dot' %}12{% else %}15{% endif %}"{% if not halo %} fill="#7a7166"{% endif %}>{{ p.code }}</tspan> {{ p.title }}</text>
+      {% endfor %}
+    </g>
+    {% if links %}</a>{% endif %}
+  {% endfor %}
+</svg>

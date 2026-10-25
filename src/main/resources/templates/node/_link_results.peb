@@ -1,0 +1,17 @@
+{# Link box results: existing matches, with a button per relation they can take. #}
+<ul class="plain results">
+  {% for r in results %}
+    <li class="result">
+      <span><span class="code">{{ r.code }}</span> {{ r.title }}</span>
+      <span class="rels">
+        {% for ch in r.choices %}
+          <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links" hx-target="#linked" hx-swap="outerHTML">
+            <input type="hidden" name="rel" value="{{ ch.option.key }}">
+            <input type="hidden" name="other" value="{{ r.id }}">
+            <button class="rel"{% if ch.blocked is not null %} disabled title="{{ ch.blocked }}"{% endif %}>{{ ch.option.label }}</button>
+          </form>
+        {% endfor %}
+      </span>
+    </li>
+  {% endfor %}
+</ul>

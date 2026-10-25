@@ -1,0 +1,39 @@
+{% extends "layout.peb" %}
+
+{% block title %}{{ node.code }} {{ node.title }}{% endblock %}
+{% block crumbs %}
+  <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
+  <span class="sep">/</span> {{ node.code }}
+{% endblock %}
+
+{% block content %}
+<div class="node-page">
+  <div class="main-col">
+    <p class="muted small">{{ typeLabel }} · <span class="code">{{ node.code }}</span> · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
+    {% include "node/_slots.peb" %}
+    {% include "node/_linked_props.peb" %}
+    {% include "node/_form.peb" %}
+  </div>
+
+  <aside class="side-col">
+    {# Link box: type to find something to link (results below), or create it with the create row #}
+    <section class="card">
+      <h2>Link</h2>
+      <form class="link-picker"
+            hx-get="/c/{{ campaign.id }}/n/{{ node.id }}/link-search"
+            hx-trigger="input delay:200ms, change, submit, links-changed from:body"
+            hx-target="#link-results">
+        <input id="link-q" name="q" type="search" aria-label="Find or create" autocomplete="off">
+        <select name="rel" aria-label="Relation">
+          <option value="">Any</option>
+          {% for o in linkOptions %}<option value="{{ o.key }}">{{ o.label }}</option>{% endfor %}
+        </select>
+      </form>
+      {% include "node/_create.peb" %}
+      <div id="link-results"></div>
+    </section>
+
+    {% include "node/_linked.peb" %}
+  </aside>
+</div>
+{% endblock %}

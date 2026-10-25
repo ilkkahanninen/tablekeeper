@@ -1,0 +1,24 @@
+{% extends "layout.peb" %}
+
+{% block content %}
+<h1>Campaigns</h1>
+
+<ul class="list">
+  {% for c in campaigns %}
+    <li><a href="/c/{{ c.id }}">{{ c.name }}</a> <span class="muted">{{ c.gameModule }}</span></li>
+  {% else %}
+    <li class="muted">No campaigns yet.</li>
+  {% endfor %}
+</ul>
+
+<form class="card" method="post" action="/campaigns">
+  <h2>New campaign</h2>
+  <label>Name <input name="name" required placeholder="e.g. The Red Line"></label>
+  <label>Game
+    <select name="module">
+      {% for m in modules %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <button>Create</button>
+</form>
+{% endblock %}

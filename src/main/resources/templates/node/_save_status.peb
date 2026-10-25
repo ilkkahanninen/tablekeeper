@@ -1,0 +1,2 @@
+{# Autosave result: the errors, or nothing (the changed field flashes, see app.js). #}
+{% if errors is not empty %}<ul class="errors">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}

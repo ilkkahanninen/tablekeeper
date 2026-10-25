@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{ campaign.name }}: map</title>
+<style>
+  @page { size: A4 landscape; margin: 10mm; }
+  body { font-family: serif; color: #111; margin: 0; }
+  h1 { font-size: 13pt; margin: 0 0 2mm; border-bottom: 0.6mm solid #111; padding-bottom: 1mm; }
+  .empty { color: #777; }
+</style>
+</head>
+<body>
+  <h1>{{ campaign.name }} · Map</h1>
+  {% if map.places is empty %}
+    <p class="empty">No places yet.</p>
+  {% else %}
+    {# 1400×990 drawing scaled to fit the page under the heading #}
+    {% include "map/_svg.peb" with {"links": false, "svgWidth": 940, "svgHeight": 665} %}
+  {% endif %}
+</body>
+</html>

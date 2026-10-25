@@ -1,0 +1,19 @@
+{# Read-only values from linked nodes (module "linkedProps"), one line per linked node. Sent out-of-band after link changes. #}
+<div id="linked-props" class="linked-props"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% for lp in linkedProps %}
+    <div class="linked-prop">
+      <span class="k">{{ lp.label }}</span>
+      <ul class="plain">
+        {% for s in lp.sources %}
+          <li>
+            <span class="code">{{ s.code }}</span>
+            <a href="/c/{{ campaign.id }}/n/{{ s.id }}">{{ s.title }}</a>:
+            {% if s.values is empty %}<span class="muted">none set</span>{% else %}{{ s.values | join(", ") }}{% endif %}
+          </li>
+        {% else %}
+          <li class="muted">none yet</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+</div>

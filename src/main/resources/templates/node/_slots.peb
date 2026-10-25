@@ -1,0 +1,18 @@
+{# Link slot dropdowns (module "linkSlots"), e.g. Location = a place or a carrier. Sent out-of-band after link changes. #}
+<div id="link-slots" class="link-slots"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% for s in slots %}
+    <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/slot" hx-trigger="change" hx-target="#linked" hx-swap="outerHTML">
+      <input type="hidden" name="slot" value="{{ s.index }}">
+      <label>{{ s.label }}
+        <select name="value">
+          <option value="">— Pool —</option>
+          {% for g in s.groups %}
+            <optgroup label="{{ g.label }}">
+              {% for ch in g.choices %}<option value="{{ ch.value }}"{% if ch.selected %} selected{% endif %}>{{ ch.label }}</option>{% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+  {% endfor %}
+</div>

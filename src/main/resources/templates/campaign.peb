@@ -1,0 +1,39 @@
+{% extends "layout.peb" %}
+
+{% block title %}{{ campaign.name }}{% endblock %}
+{% block crumbs %}<span class="sep">/</span> {{ campaign.name }}{% endblock %}
+
+{% block content %}
+<h1>{{ campaign.name }}</h1>
+
+{% if sections is not empty %}
+  <input type="search" class="overview-filter" aria-label="Filter" autocomplete="off">
+{% endif %}
+
+{# One table per type; columns from the module's "overview" settings plus link slots (e.g. Location) #}
+{% for s in sections %}
+  <section class="overview-section">
+    <h2>{{ s.label }}</h2>
+    <div class="table-scroll">
+      <table class="overview">
+        {% if s.columns is not empty %}
+          <thead><tr><th></th>{% for col in s.columns %}<th>{{ col.label }}</th>{% endfor %}</tr></thead>
+        {% endif %}
+        <tbody>
+          {% for r in s.rows %}
+            <tr class="overview-row{% if r.muted %} muted-row{% endif %}">
+              <td><span class="code">{{ r.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ r.id }}">{{ r.title }}</a></td>
+              {% for cell in r.cells %}<td>{{ cell }}</td>{% endfor %}
+            </tr>
+            {% for ch in r.children %}
+              <tr class="overview-row child{% if ch.muted %} muted-row{% endif %}">
+                <td colspan="{{ (s.columns | length) + 1 }}"><span class="code">{{ ch.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ ch.id }}">{{ ch.title }}</a></td>
+              </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endfor %}
+{% endblock %}

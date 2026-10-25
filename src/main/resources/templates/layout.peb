@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Tablekeeper{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/">Tablekeeper</a>
+    {% block crumbs %}{% endblock %}
+    {# On every campaign page: campaign-wide pages, and create any kind of node, then open it #}
+    {% if campaign is not null and module is not null %}
+      <nav class="top-nav">
+        <a href="/c/{{ campaign.id }}/map">Map</a>
+        {% for v in module.views %}<a href="/c/{{ campaign.id }}/v/{{ v.id }}">{{ v.label }}</a>{% endfor %}
+      </nav>
+      <form class="top-create" method="post" action="/c/{{ campaign.id }}/nodes">
+        <select name="type" aria-label="Type">
+          {# Preselect the current page's type: the node's own, or the type a module view lists #}
+          {% for t in module.nodeTypes %}<option value="{{ t.id }}"{% if (node is not null and node.type == t.id) or (view is not null and view.types contains t.id) %} selected{% endif %}>{{ t.label }}</option>{% endfor %}
+        </select>
+        <input name="title" placeholder="Title" aria-label="Title" required>
+        <button>Add</button>
+      </form>
+    {% endif %}
+  </header>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: tablekeeper
+      POSTGRES_USER: tablekeeper
+      POSTGRES_PASSWORD: tablekeeper
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tablekeeper -d tablekeeper"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    # Reachable from the host (IDE run config, psql); localhost only
+    ports: ["127.0.0.1:5432:5432"]
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/tablekeeper
+      DATABASE_USER: tablekeeper
+      DATABASE_PASSWORD: tablekeeper
+      AUTH_MODE: none          # 'session' later, when it runs on a server
+      TEMPLATE_CACHE: "false"  # module print templates reload on every request
+    volumes:
+      - ./modules:/app/modules # edit module.json / print templates live (module.json needs a restart)
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
