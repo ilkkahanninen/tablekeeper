@@ -200,22 +200,27 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         templates.render(template(module, node), model(campaign, module, node, audience).asMap())
 
     /**
-     * A node's print as PDF. A packet with `columns` > 1 renders its template twice: `part = "cover"` as is
-     * (e.g. the map page), and `part = "columns"` as one long column on narrow pages, which [Imposition] then
-     * places side by side on landscape sheets.
+     * A node's print as PDF. A packet with `columns` > 1 renders its template in parts: `part = "cover"` as is
+     * (e.g. the map page), then `part = "columns"` once per section (`only` = "view:<id>" or "section:<type>", whose
+     * heading the template leaves out) as one long column on narrow pages. [Imposition] places those side by side on
+     * landscape sheets, each section from a new column, and draws the headings across their columns.
      */
     fun pdf(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): ByteArray {
         val columns = module.packet(node.type)?.columns ?: 1
         if (columns <= 1) return pdf(html(campaign, module, node, audience))
         val model = model(campaign, module, node, audience)
         val vars = model.asMap()
-        val cover = pdf(templates.render(template(module, node), vars + ("part" to "cover")))
-        val hasText = model.packet?.let { it.views.isNotEmpty() || it.sections.isNotEmpty() } == true
-        val text = if (!hasText) null else pdf(
-            templates.render(template(module, node), vars + ("part" to "columns")),
-            pageCss = "@page { size: ${Imposition.columnWidthMm(columns)}mm ${Imposition.columnHeightMm()}mm; margin: 0; }",
-        )
-        return Imposition.columns(cover, text, columns)
+        val template = template(module, node)
+        val cover = pdf(templates.render(template, vars + ("part" to "cover")))
+        val pageCss = "@page { size: ${Imposition.columnWidthMm(columns)}mm ${Imposition.columnHeightMm()}mm; margin: 0; }"
+        // Views are headed by their type's plural ("Characters" for Inspiration), sections by theirs
+        val sections = model.packet?.let { p ->
+            p.views.map { "view:${it.view.id}" to module.plural(it.view.types.first()) } + p.sections.map { "section:${it.typeId}" to it.label }
+        }.orEmpty()
+        val parts = sections.map { (key, heading) ->
+            Imposition.Part(heading, pdf(templates.render(template, vars + ("part" to "columns") + ("only" to key)), pageCss))
+        }
+        return Imposition.columns(cover, parts, columns)
     }
 
     /** The campaign map as a one-page PDF. */

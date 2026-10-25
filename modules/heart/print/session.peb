@@ -4,7 +4,9 @@
   - "cover": the session's title and notes, and the whole map with the selected places filled red;
     with a previous session's recap (packet "recap"), that recap beside the map, "Last time";
   - "columns": the selected characters' Inspiration, then a section per selected landmark and delve between them.
-    Laid out as one column on narrow pages, which the app places three to a sheet (packet "columns": 3).
+    Laid out as one column on narrow pages, which the app places three to a sheet (packet "columns": 3). The PDF
+    renders one section at a time (variable `only`: "view:inspiration" or "section:<type id>") without its h2:
+    the app draws section headings across their columns on each sheet.
   No part (the HTML preview) shows both. Model: the session's print model plus map, views, sections.
 #}
 <html>
@@ -21,8 +23,9 @@
   .code, .ref { font-family: monospace; font-size: 8pt; color: #555; }
   h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: 0.6pt; color: #8c1c13; border-bottom: 0.3mm solid #8c1c13; margin: 4mm 0 2mm; padding-bottom: 0.5mm; page-break-after: avoid; }
   .text > h2:first-child { margin-top: 0; }
-  h3 { font-size: 12pt; margin: 4mm 0 1mm; page-break-after: avoid; }
-  .place { page-break-inside: avoid; margin-bottom: 3mm; }
+  /* Entries are spaced below, not above their titles: one that starts a column then sits right under the heading band */
+  h3 { font-size: 12pt; margin: 0 0 1mm; page-break-after: avoid; }
+  .place { page-break-inside: avoid; margin-bottom: 6mm; }
   .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
 
   /* Place body (shared _place.peb), as on the cards but on A4 */
@@ -62,7 +65,7 @@
   .beat-type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #8c1c13; margin-right: 1mm; }
   .wants { margin: 0.5mm 0 0; }
   .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 1.5mm 0 0.3mm; }
-  .character { page-break-inside: avoid; margin-bottom: 3mm; }
+  .character { page-break-inside: avoid; margin-bottom: 6mm; }
   .role { color: #555; font-size: 8.5pt; margin: 0 0 0.5mm; }
 
   /* Cover with the previous session's recap ("Last time") beside the map */
@@ -96,8 +99,8 @@
   {% if part != 'cover' %}
   <div class="text">
   {% for v in views %}
-    {% if v.view.id == 'inspiration' %}
-      <h2>Characters</h2>
+    {% if v.view.id == 'inspiration' and (only is null or only == 'view:inspiration') %}
+      {% if only is null %}<h2>Characters</h2>{% endif %}
       {# One block per character: calling · class, notes, beats, fallouts, and the class's inspiration points.
          Characters sharing a class: the points print only under the first of them (the class group's first node). #}
       {% for c in v.nodes %}
@@ -129,8 +132,8 @@
     {% endif %}
   {% endfor %}
 
-  {% for s in sections %}
-    <h2>{{ s.label }}</h2>
+  {% for s in sections %}{% if only is null or only == 'section:' ~ s.typeId %}
+    {% if only is null %}<h2>{{ s.label }}</h2>{% endif %}
     {% for item in s.items %}
       <div class="place">
         <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
@@ -139,7 +142,7 @@
             "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes} %}
       </div>
     {% endfor %}
-  {% endfor %}
+  {% endif %}{% endfor %}
   </div>
   {% endif %}
 </body>
