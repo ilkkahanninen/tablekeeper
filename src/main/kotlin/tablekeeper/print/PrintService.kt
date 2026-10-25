@@ -70,7 +70,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
 
         val groups = otherLinks
             .sortedWith(compareBy({ module.linkGroupRank(it.type, it.other.type).first }, { module.linkGroupRank(it.type, it.other.type).second }))
-            .groupBy { link -> module.printSummary(link.other.type)?.group ?: module.linkGroupLabel(link.type, link.direction, link.other.type) }
+            .groupBy { link -> module.linkGroupLabel(link.type, link.direction, link.other.type) }
             .map { (label, links) ->
                 LinkGroup(label, links.map { link ->
                     ref(campaign, module, link.other, names).copy(children = nested(campaign, module, node, link, audience, names))

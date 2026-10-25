@@ -432,6 +432,7 @@ class GameModulesTest {
         for (type in listOf("heart.pc", "core.npc")) assertTrue(heart.quickCreate(type).any { it.type.id == "heart.fallout" }, type)
         assertEquals(listOf("suffers:out"), heart.view("inspiration")!!.links)
         assertEquals("Fallouts", heart.plural("heart.fallout"))
+        assertEquals("Fallouts", heart.linkGroupLabel("suffers", Direction.OUT, "heart.fallout"), "the character's list heading")
     }
 
     @Test

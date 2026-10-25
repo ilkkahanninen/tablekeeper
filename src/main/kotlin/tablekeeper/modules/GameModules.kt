@@ -280,10 +280,12 @@ class ResolvedModule(
     fun edgeType(id: String): EdgeTypeDef? = edgeTypes.firstOrNull { it.id == id }
 
     /**
-     * Heading for a link in a node's lists: the edge's label seen from that node ("is located at", "has here"), or on
-     * the `to` side of a `groupByType` edge the linked node's plural type label ("NPCs").
+     * Heading for a link in a node's lists, on screen and in print: the linked type's print-summary group ("Fallouts",
+     * "Equipment"), or on the `to` side of a `groupByType` edge its plural type label ("NPCs"), else the edge's label
+     * seen from that node ("is located at", "has here").
      */
     fun linkGroupLabel(edgeTypeId: String, direction: Direction, otherType: String): String {
+        printSummary(otherType)?.group?.let { return it }
         val e = edgeType(edgeTypeId) ?: return edgeTypeId
         return when {
             e.groupByType && direction == Direction.IN -> plural(otherType)
