@@ -1,4 +1,5 @@
-{# One props field; included per field by _form.peb (variable f). #}
+{# One props field; included per field by _form.peb (variable f). A text field in an "x-row" (e.g. a beat) is one line
+   of text that wraps and grows (textarea.line, see app.js) instead of being cut off. #}
 <div class="field"{% if f.conditional %} data-conditions="{{ f.conditionsJson }}"{% endif %}{% if f.hidden %} hidden{% endif %}>
 {% if f.kind == 'multi' %}
   <fieldset>
@@ -28,6 +29,6 @@
 {% elseif f.kind == 'textarea' or f.kind == 'list' %}
   <label class="wide">{{ f.label }}<textarea name="{{ f.inputName }}" rows="{{ f.kind == 'list' ? 5 : 3 }}">{{ f.value }}</textarea>{% if random[f.name] is not null %}{% include "node/_random.peb" with {"field": f.inputName, "choices": random[f.name], "append": f.kind == 'list'} %}{% endif %}</label>
 {% else %}
-  <label{% if f.row is not null %} class="grow"{% elseif f.wide %} class="wide"{% endif %}>{% if f.row is null %}{{ f.label }}{% endif %}<span class="with-random"><input name="{{ f.inputName }}" value="{{ f.value }}"{% if f.row is not null %} aria-label="{{ f.label }}"{% endif %}>{% if random[f.name] is not null %}{% include "node/_random.peb" with {"field": f.inputName, "choices": random[f.name]} %}{% endif %}</span></label>
+  <label{% if f.row is not null %} class="grow"{% elseif f.wide %} class="wide"{% endif %}>{% if f.row is null %}{{ f.label }}{% endif %}<span class="with-random">{% if f.row is not null %}<textarea class="line" name="{{ f.inputName }}" rows="1" aria-label="{{ f.label }}">{{ f.value }}</textarea>{% else %}<input name="{{ f.inputName }}" value="{{ f.value }}">{% endif %}{% if random[f.name] is not null %}{% include "node/_random.peb" with {"field": f.inputName, "choices": random[f.name]} %}{% endif %}</span></label>
 {% endif %}
 </div>

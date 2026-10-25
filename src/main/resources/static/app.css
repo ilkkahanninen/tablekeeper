@@ -74,9 +74,11 @@ legend { font-size: .85rem; color: var(--muted); }
 .fields .wide input { width: 100%; box-sizing: border-box; }
 .field { display: contents; }  /* wrapper only, so its label/fieldset stays a grid item */
 .field[hidden] { display: none; }
-.field-row { align-items: flex-end; flex-wrap: nowrap; }
+.field-row { align-items: flex-start; flex-wrap: nowrap; }   /* a beat that wraps keeps its type select at the top */
 .field-row .grow { flex: 1; }
-.field-row .grow input { width: 100%; box-sizing: border-box; }
+.field-row .grow input, .field-row .grow textarea { width: 100%; box-sizing: border-box; }
+/* One line of text that wraps and grows (a beat): looks like an input, see app.js */
+textarea.line { min-width: 0; flex: 1; }
 .actions { display: flex; gap: .75rem; align-items: center; justify-content: flex-end; }
 /* Autosave: the changed field flashes once it's stored */
 .just-saved { background-color: #e6efe0 !important; transition: background-color .6s; }
@@ -149,7 +151,8 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 .debrief-row label { flex-direction: row; align-items: center; gap: .3rem; }
 .debrief-row .grow { flex: 1; min-width: 12rem; }
 .debrief-row .grow .with-random { flex: 1; }
-.debrief .row-label { font-size: .85rem; color: var(--muted); min-width: 3.5rem; }
+.debrief .row-label { font-size: .85rem; color: var(--muted); min-width: 3.5rem; padding-top: .45rem; }
+.debrief-row:has(textarea.line) { align-items: flex-start; }   /* a wrapping beat: select, label and Done stay on its first line */
 .debrief-slot { margin: 0 0 0 auto; }
 .debrief-slot select { max-width: 16rem; }
 .debrief-links { margin: .4rem 0 0 1rem; }

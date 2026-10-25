@@ -9,6 +9,17 @@ const grow = (t) => {
 };
 const growAll = (root) => root.querySelectorAll("textarea").forEach(grow);
 for (const type of ["input", "change"]) document.addEventListener(type, (e) => { if (e.target instanceof HTMLTextAreaElement) grow(e.target); });
+
+// One-line text that wraps (textarea.line, e.g. beats): Enter saves instead of adding a line break, and pasted
+// line breaks become spaces, so the value stays a single line.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" || !e.target.matches("textarea.line")) return;
+  e.preventDefault();
+  e.target.dispatchEvent(new Event("change", { bubbles: true }));
+});
+document.addEventListener("input", (e) => {
+  if (e.target.matches("textarea.line") && e.target.value.includes("\n")) e.target.value = e.target.value.replace(/\s*\n\s*/g, " ");
+});
 document.addEventListener("htmx:afterSettle", (e) => growAll(e.detail.elt));
 let resizeTimer;
 window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => growAll(document), 100); });
