@@ -7,7 +7,12 @@ import io.ktor.http.Parameters
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.http.content.staticResources
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.server.request.receiveMultipart
 import io.ktor.server.request.receiveParameters
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.readByteArray
 import io.ktor.server.response.header
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondRedirect
@@ -22,6 +27,8 @@ import tablekeeper.auth.user
 import tablekeeper.core.BadRequest
 import tablekeeper.core.Campaign
 import tablekeeper.core.CampaignService
+import tablekeeper.core.CampaignImport
+import tablekeeper.core.CampaignTransfer
 import tablekeeper.core.GraphService
 import tablekeeper.core.Node
 import tablekeeper.core.NotFound
@@ -48,6 +55,7 @@ class Deps(
     val templates: Templates,
     val print: PrintService,
     val tables: RandomTableService,
+    val transfer: CampaignTransfer,
 ) {
     val linker = Linker(graph)
     val nodePage = NodePage(graph, linker, tables, print)
@@ -136,6 +144,21 @@ fun Application.routes(d: Deps) = with(d) {
             val module = modules.get(p["module"] ?: "heart")
             val c = campaigns.create(call.user, name, module.id)
             call.respondRedirect("/c/${c.id}")
+        }
+
+        // Import a campaign file (from Export) as a new campaign; nothing existing is changed
+        post("/campaigns/import") {
+            var bytes: ByteArray? = null
+            call.receiveMultipart(formFieldLimit = 50L * 1024 * 1024).forEachPart { part ->
+                if (part is PartData.FileItem && part.name == "file") bytes = part.provider().readRemaining().readByteArray()
+                part.dispose()
+            }
+            val export = CampaignImport.parse(bytes?.takeIf { it.isNotEmpty() } ?: throw BadRequest("Choose a campaign file to import"))
+            val module = modules.all.firstOrNull { it.id == export.campaign.module }
+                ?: throw BadRequest("The file is for a game this Tablekeeper doesn't have: ${export.campaign.module}")
+            export.nodes.map { it.type }.distinct().filter { module.type(it) == null }.takeIf { it.isNotEmpty() }
+                ?.let { throw BadRequest("The file has node types ${module.name} doesn't know: ${it.joinToString()}") }
+            call.respondRedirect("/c/${transfer.import(call.user, export)}")
         }
 
         route("/c/{cid}") {

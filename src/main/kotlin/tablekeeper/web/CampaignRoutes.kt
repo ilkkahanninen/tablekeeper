@@ -1,6 +1,10 @@
 package tablekeeper.web
 
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.header
+import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -9,6 +13,7 @@ import tablekeeper.core.BadRequest
 import tablekeeper.core.NotFound
 import tablekeeper.map.MapService
 import tablekeeper.views.ModuleViews
+import java.time.LocalDate
 
 /** Under /c/{cid}: the campaign home, new nodes, module views and the map. */
 fun Route.campaignRoutes(d: Deps) = with(d) {
@@ -48,6 +53,13 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
     get("/map") {
         val (c, m) = call.game()
         call.html("map.peb", mapOf("campaign" to c, "module" to m, "map" to MapService.view(graph.snapshot(c.id), m)))
+    }
+
+    // The whole campaign as a JSON file, to keep as a backup or import elsewhere (home page)
+    get("/export.json") {
+        val (c, _) = call.game()
+        call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"${slug(c.name)}-${LocalDate.now()}.json\"")
+        call.respondBytes(transfer.toJson(transfer.export(c)), ContentType.Application.Json)
     }
 
     get("/map.pdf") {

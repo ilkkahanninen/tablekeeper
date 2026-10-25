@@ -19,4 +19,11 @@
   </label>
   <button>Create</button>
 </form>
+
+{# A file from a campaign's Export, always as a new campaign #}
+<form class="card stack" method="post" action="/campaigns/import" enctype="multipart/form-data">
+  <h2>Import campaign</h2>
+  <label>File <input type="file" name="file" accept=".json,application/json" required></label>
+  <button>Import</button>
+</form>
 {% endblock %}

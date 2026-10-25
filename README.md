@@ -9,6 +9,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
 ## Features
 
 - **Campaign page:** one table per type (Sessions, Landmarks, Delves, Characters, NPCs, Fallouts, Equipment, Resources, Factions…), with key columns, a filter box and a **Create** button under each table. Minor locations sit under their landmark, sessions are in date order, and dead NPCs are greyed out.
+- **Export and import:** **Export** on the campaign page downloads the whole campaign as one JSON file (nodes, links, random tables); **Import** on the home page makes a new campaign from such a file, so it works as a backup and as a way to copy a campaign.
 - **Quick find:** press `/` (or Ctrl/⌘ K) on any campaign page and type part of a name or code; arrows and Enter open the node.
 - **Node pages:**
   - Fields save as you leave them.
@@ -53,7 +54,7 @@ docker compose up --build
 # open http://localhost:8080
 ```
 
-- Data lives in the `pgdata` volume. To back it up:
+- Data lives in the `pgdata` volume. To back up one campaign, use **Export** on its page; to back up the whole database:
   ```sh
   docker compose exec db pg_dump -U tablekeeper tablekeeper > backups/$(date +%F).sql
   ```

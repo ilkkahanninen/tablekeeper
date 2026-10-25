@@ -13,6 +13,7 @@ import tablekeeper.auth.currentUserPlugin
 import tablekeeper.auth.userResolverFor
 import tablekeeper.core.BadRequest
 import tablekeeper.core.CampaignService
+import tablekeeper.core.CampaignTransfer
 import tablekeeper.core.GraphService
 import tablekeeper.core.HiddenFromAudience
 import tablekeeper.core.NotFound
@@ -31,7 +32,7 @@ fun main() {
     val campaigns = CampaignService(db)
     val graph = GraphService(db)
     val templates = Templates(config.modulesDir, cache = config.templateCache)
-    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates), RandomTableService(db))
+    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates), RandomTableService(db), CampaignTransfer(db))
     val resolver = userResolverFor(config.authMode, campaigns)
 
     embeddedServer(Netty, port = config.port, host = "0.0.0.0") {

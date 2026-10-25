@@ -4,7 +4,11 @@
 {% block crumbs %}<span class="sep">/</span> {{ campaign.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ campaign.name }}</h1>
+<div class="page-head">
+  <h1>{{ campaign.name }}</h1>
+  {# The whole campaign as one file: a backup, or to import as a copy (home page) #}
+  <a class="secondary" href="/c/{{ campaign.id }}/export.json">Export</a>
+</div>
 
 {% if sections is not empty %}
   <input type="search" class="overview-filter" aria-label="Filter" autocomplete="off">
