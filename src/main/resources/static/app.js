@@ -1,3 +1,19 @@
+// Textareas grow to show all their text: when the page loads, while typing, when text is filled in by script
+// (Random, the [[ picker; those fire "change") and when htmx swaps new ones in. Hidden ones can't be measured.
+const grow = (t) => {
+  if (t.hidden || t.offsetParent === null) return;
+  const y = window.scrollY;   // collapsing it for a moment mustn't make the page jump
+  t.style.height = "auto";   // back to the rows= height, so it can also shrink
+  t.style.height = `${t.scrollHeight + t.offsetHeight - t.clientHeight}px`;   // content + borders
+  window.scrollTo(window.scrollX, y);
+};
+const growAll = (root) => root.querySelectorAll("textarea").forEach(grow);
+for (const type of ["input", "change"]) document.addEventListener(type, (e) => { if (e.target instanceof HTMLTextAreaElement) grow(e.target); });
+document.addEventListener("htmx:afterSettle", (e) => growAll(e.detail.elt));
+let resizeTimer;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => growAll(document), 100); });
+growAll(document);   // app.js is deferred: the page is parsed by now
+
 // Show/hide form fields declared with "x-hideIf" / "x-showIf" as the fields they depend on change.
 // The server renders the initial state and drops hidden fields on save; this only keeps the form in step.
 document.addEventListener("change", (e) => {
@@ -85,6 +101,7 @@ document.addEventListener("click", (e) => {
   const input = view.closest(".notes-field").querySelector("textarea");
   view.hidden = true;
   input.hidden = false;
+  grow(input);   // hidden until now, so it couldn't be measured
   input.focus();
 });
 document.addEventListener("focusout", (e) => {

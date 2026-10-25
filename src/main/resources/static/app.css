@@ -43,7 +43,8 @@ label { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; co
 label.check { flex-direction: row; align-items: center; color: var(--ink); }
 input, select, textarea, button { font: inherit; font-size: 1rem; }
 input, select, textarea { padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 4px; background: #fff; color: var(--ink); }
-textarea { resize: vertical; }
+/* Textareas grow with their text (app.js); rows= is the minimum height */
+textarea { resize: none; overflow-y: hidden; box-sizing: border-box; }
 button { padding: .35rem .9rem; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); border-radius: 4px; cursor: pointer; }
 button.danger { background: transparent; color: var(--blood); border-color: var(--blood); margin-left: auto; }
 fieldset { border: 1px solid var(--line); border-radius: 4px; display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
