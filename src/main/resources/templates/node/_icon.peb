@@ -1,0 +1,1 @@
+{# A node's type icon (variables type, code; uses module), shown on screen instead of its code; the tip says both, e.g. "Landmark L1". #}<span class="type-icon" role="img" title="{{ module.label(type) }} {{ code }}" aria-label="{{ module.label(type) }} {{ code }}"><svg aria-hidden="true"><use href="/static/icons.svg#{{ module.icon(type) }}"/></svg></span>

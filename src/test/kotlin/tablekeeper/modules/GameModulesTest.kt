@@ -580,4 +580,24 @@ class GameModulesTest {
         assertEquals(listOf("tier", "domains"), heart.linkedProps("heart.delve").map { it.prop }, "stress is the delve's own")
         assertTrue(heart.fillableFields().any { it.key == "heart.delve:events" }, "random tables can add events")
     }
+
+    @Test
+    fun `every type has an icon that is in the bundled sprite`() {
+        val sprite = File("src/main/resources/static/icons.svg").readText()
+        assertEquals("castle", heart.icon("heart.landmark"))
+        assertEquals("map-pin", heart.icon("heart.minor_location"), "inherited from core.place")
+        assertEquals("user", heart.icon("heart.pc"), "inherited from core.pc")
+        for (icon in ICONS) assertTrue("<symbol id=\"$icon\"" in sprite, "$icon is in icons.svg")
+        for (t in heart.nodeTypes) assertTrue(heart.icon(t.id) in ICONS, "${t.id}: ${heart.icon(t.id)}")
+    }
+
+    @Test
+    fun `an unknown icon fails to load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText("""{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.x", "label": "X", "codePrefix": "X", "icon": "unicorn"}]}""")
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
+        assertTrue("icon 'unicorn'" in e.message.orEmpty(), e.message)
+        dir.deleteRecursively()
+    }
 }

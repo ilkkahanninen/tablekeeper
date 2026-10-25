@@ -15,7 +15,7 @@ data class PropColumn(val prop: String, override val label: String) : OverviewCo
 data class LinkColumn(val options: List<LinkOption>, override val label: String) : OverviewColumn
 
 /** One node's row; [children] are nodes listed under it, e.g. a landmark's minor locations; [muted] greys it out (a dead NPC). */
-data class OverviewRow(val id: UUID, val code: String, val title: String, val cells: List<String>,
+data class OverviewRow(val id: UUID, val type: String, val code: String, val title: String, val cells: List<String>,
                        val children: List<OverviewRow> = emptyList(), val muted: Boolean = false)
 /** [creatable]: the type can be created (it isn't hidden by the game), so the table gets a Create button. */
 data class OverviewSection(val typeId: String, val label: String, val columns: List<OverviewColumn>, val rows: List<OverviewRow>,
@@ -31,7 +31,7 @@ object Overview {
         val parent = graph.nodes.mapNotNull { n -> m.parent(graph, n)?.let { n.id to it.id } }.toMap()
         val columns = graph.nodes.map { it.type }.distinct().associateWith { columns(m, it) }
         fun row(n: Node): OverviewRow = OverviewRow(
-            n.id, n.code, m.displayTitle(n),
+            n.id, n.type, n.code, m.displayTitle(n),
             cells(columns.getValue(n.type), m.fields(n.type, n.props)) { o -> graph.linkedNodes(n.id, o.edgeType, o.direction).map(m::displayTitle) },
             children = graph.nodes.filter { parent[it.id] == n.id }.map(::row),
             muted = m.overviewMuted(n.type)?.let { n.props[it] == true } == true,

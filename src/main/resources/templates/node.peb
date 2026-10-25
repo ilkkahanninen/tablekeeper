@@ -1,15 +1,15 @@
 {% extends "layout.peb" %}
 
-{% block title %}{{ node.code }} {{ displayTitle }}{% endblock %}
+{% block title %}{{ displayTitle }}{% endblock %}
 {% block crumbs %}
   <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
-  <span class="sep">/</span> {{ node.code }}
+  <span class="sep">/</span> {{ displayTitle }}
 {% endblock %}
 
 {% block content %}
 <div class="node-page">
   <div class="main-col">
-    <p class="muted small">{{ typeLabel }} · <span class="code">{{ node.code }}</span> · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
+    <p class="muted small">{% include "node/_icon.peb" with {"type": node.type, "code": node.code} %} {{ typeLabel }} · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
     {% include "node/_slots.peb" %}
     {% include "node/_checklists.peb" %}
     {% include "node/_linked_props.peb" %}

@@ -3,10 +3,10 @@
   "name": "Generic",
   "extends": [],
   "nodeTypes": [
-    { "id": "core.place",   "label": "Place",            "codePrefix": "P",  "mapShape": "circle" },
-    { "id": "core.pc",      "label": "Player character", "codePrefix": "PC",
+    { "id": "core.place", "icon": "map-pin",   "label": "Place",            "codePrefix": "P",  "mapShape": "circle" },
+    { "id": "core.pc", "icon": "user",      "label": "Player character", "codePrefix": "PC",
       "linkSlots": [{ "label": "Location", "rels": ["located_at:out"] }] },
-    { "id": "core.npc",     "label": "NPC",              "codePrefix": "N",
+    { "id": "core.npc", "icon": "drama",     "label": "NPC",              "codePrefix": "N",
       "linkSlots": [{ "label": "Location", "rels": ["located_at:out"] }],
       "overview": ["voice", "appearance", "dead"],
       "overviewMuted": "dead",
@@ -20,12 +20,12 @@
           "dead":       { "type": "boolean", "title": "Dead", "x-trueLabel": "dead" }
         }
       } },
-    { "id": "core.item",    "label": "Item",             "codePrefix": "I",
+    { "id": "core.item", "icon": "package",    "label": "Item",             "codePrefix": "I",
       "linkSlots": [{ "label": "Location / carried by", "rels": ["located_at:out", "carries:in"] }] },
-    { "id": "core.faction", "label": "Faction",          "codePrefix": "G" },
-    { "id": "core.fact",    "label": "Fact",             "codePrefix": "F" },
+    { "id": "core.faction", "icon": "flag", "label": "Faction",          "codePrefix": "G" },
+    { "id": "core.fact", "icon": "scroll-text",    "label": "Fact",             "codePrefix": "F" },
     {
-      "id": "core.session", "label": "Session", "codePrefix": "S",
+      "id": "core.session", "icon": "calendar", "label": "Session", "codePrefix": "S",
       "overviewSort": "date", "overview": ["date"],
       "props": {
         "type": "object",

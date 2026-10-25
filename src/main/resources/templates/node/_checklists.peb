@@ -8,7 +8,7 @@
         <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/check" hx-trigger="change" hx-target="#linked" hx-swap="outerHTML">
           <input type="hidden" name="rel" value="{{ cl.option.key }}">
           <input type="hidden" name="other" value="{{ it.id }}">
-          <label class="check"><input type="checkbox" name="checked"{% if it.checked %} checked{% endif %}> <span class="code">{{ it.code }}</span> {{ it.title }}</label>
+          <label class="check"><input type="checkbox" name="checked"{% if it.checked %} checked{% endif %}> {% include "node/_icon.peb" with {"type": it.type, "code": it.code} %} {{ it.title }}</label>
         </form>
       {% endfor %}
     </fieldset>

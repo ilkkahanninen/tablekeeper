@@ -1,2 +1,2 @@
 {# Choices for the [[ picker in notes; app.js inserts the clicked (or Enter-picked) node's title. #}
-{% for ch in choices %}<button type="button" class="menu-item mention-choice" role="option" data-title="{{ ch.title }}"><span class="code">{{ ch.code }}</span> {{ ch.label }}</button>{% endfor %}
+{% for ch in choices %}<button type="button" class="menu-item mention-choice" role="option" data-title="{{ ch.title }}">{% include "node/_icon.peb" with {"type": ch.type, "code": ch.code} %} {{ ch.label }}</button>{% endfor %}

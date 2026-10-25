@@ -20,7 +20,7 @@ data class ViewNode(val node: Node, val fields: Map<String, FormField>, val disp
 /** Nodes linked one way, under a heading: the linked type's print-summary group ("Fallouts"), or the link label. */
 data class ViewLinkGroup(val label: String, val items: List<ViewLinkItem>)
 /** [summary]: the linked node's print summary as HTML, formatted like notes (e.g. a fallout's description). */
-data class ViewLinkItem(val code: String, val title: String, val summary: String)
+data class ViewLinkItem(val type: String, val code: String, val title: String, val summary: String)
 
 /** View nodes sharing one value of a `groupBy` prop; [hint] is that value's "x-enumNotes" text, if any. */
 data class ViewGroup(val value: String, val label: String, val hint: String?, val nodes: List<ViewNode>)
@@ -54,7 +54,7 @@ object ModuleViews {
         if (others.isEmpty()) return null
         val sorted = others.sortedBy { it.title }
         val label = module.printSummary(sorted.first().type)?.group ?: option.label.replaceFirstChar(Char::uppercase)
-        return ViewLinkGroup(label, sorted.map { o -> ViewLinkItem(o.code, module.displayTitle(o), Notes.inline(module.summary(o.type, o.props), mentions)) })
+        return ViewLinkGroup(label, sorted.map { o -> ViewLinkItem(o.type, o.code, module.displayTitle(o), Notes.inline(module.summary(o.type, o.props), mentions)) })
     }
 
     /** [nodes] grouped by their value of [prop], in the prop's option order; nodes without one last, as "Not set". */

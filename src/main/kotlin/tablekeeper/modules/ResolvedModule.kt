@@ -155,6 +155,9 @@ class ResolvedModule(
 
     fun mapShape(typeId: String): String? = inherited(typeId) { it.mapShape }
 
+    /** The type's icon on screen, e.g. "castle" for a landmark (an id in static/icons.svg); "circle" if none is set. */
+    fun icon(typeId: String): String = inherited(typeId) { it.icon } ?: "circle"
+
     fun mapDepth(typeId: String): String? = inherited(typeId) { it.mapDepth }
 
     /**

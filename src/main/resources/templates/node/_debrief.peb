@@ -9,7 +9,7 @@
     {% for it in sec.items %}
       <div class="debrief-item{% if it.muted %} muted{% endif %}">
         <div class="debrief-head">
-          <span class="code">{{ it.node.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ it.node.id }}">{{ it.display }}</a>
+          {% include "node/_icon.peb" with {"type": it.node.type, "code": it.node.code} %} <a href="/c/{{ campaign.id }}/n/{{ it.node.id }}">{{ it.display }}</a>
           {% for s in it.slots %}
             <form class="debrief-slot" hx-post="/c/{{ campaign.id }}/n/{{ it.node.id }}/slot" hx-trigger="change"
                   hx-vals='{"quiet": "1"}' hx-swap="none">
@@ -25,7 +25,7 @@
             <h4>{{ l.label }}</h4>
             {% for li in l.items %}
               <div class="debrief-linked">
-                <span class="code">{{ li.node.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ li.node.id }}">{{ li.display }}</a>
+                {% include "node/_icon.peb" with {"type": li.node.type, "code": li.node.code} %} <a href="/c/{{ campaign.id }}/n/{{ li.node.id }}">{{ li.display }}</a>
                 {% for r in li.rows %}{% include "node/_debrief_row.peb" with {"target": li.node, "r": r} %}{% endfor %}
                 {% if l.remove %}<button class="unlink" aria-label="Remove {{ li.display }}" title="Remove"
                         hx-post="/c/{{ campaign.id }}/n/{{ li.node.id }}/delete" hx-vals='{"quiet": "1", "refresh": "1"}' hx-swap="none"

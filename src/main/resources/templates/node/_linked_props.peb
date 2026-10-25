@@ -6,7 +6,7 @@
       <ul class="plain">
         {% for s in lp.sources %}
           <li>
-            <span class="code">{{ s.code }}</span>
+            {% include "node/_icon.peb" with {"type": s.type, "code": s.code} %}
             <a href="/c/{{ campaign.id }}/n/{{ s.id }}">{{ s.title }}</a>:
             {% if s.values is empty %}<span class="muted">none set</span>{% else %}{{ s.values | join(", ") }}{% endif %}
           </li>

@@ -38,6 +38,8 @@ data class NodeTypeDef(
     val printNested: List<PrintNestedDef>? = null,
     /** Link whose far end is shown in brackets in pickers, e.g. "part_of:out" = a minor location's landmark. */
     val context: String? = null,
+    /** Shown for this type's nodes on screen (instead of their code): one of [ICONS]. Missing = inherit; none = a circle. */
+    val icon: String? = null,
     /** Drawn on the campaign map with this shape: one of [MAP_SHAPES]. Missing = inherit; none = not on the map. */
     val mapShape: String? = null,
     /**
@@ -118,6 +120,9 @@ data class BetweenDef(val type: String, val rel: String)
 data class MapDepth(val depth: Double, val label: String)
 
 val MAP_SHAPES = setOf("circle", "diamond", "dot")
+
+/** Icons bundled in static/icons.svg (from Lucide); a type's `icon` must be one of them. */
+val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem", "sword", "heart-crack", "flag", "scroll-text", "calendar", "circle")
 
 /**
  * On the card, under each node linked via [rel], list the nodes linked to *it* via [show].

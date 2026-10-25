@@ -22,12 +22,12 @@
         <tbody>
           {% for r in s.rows %}
             <tr class="overview-row{% if r.muted %} muted-row{% endif %}">
-              <td><span class="code">{{ r.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ r.id }}">{{ r.title }}</a></td>
+              <td>{% include "node/_icon.peb" with {"type": r.type, "code": r.code} %} <a href="/c/{{ campaign.id }}/n/{{ r.id }}">{{ r.title }}</a></td>
               {% for cell in r.cells %}<td>{{ cell }}</td>{% endfor %}
             </tr>
             {% for ch in r.children %}
               <tr class="overview-row child{% if ch.muted %} muted-row{% endif %}">
-                <td colspan="{{ (s.columns | length) + 1 }}"><span class="code">{{ ch.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ ch.id }}">{{ ch.title }}</a></td>
+                <td colspan="{{ (s.columns | length) + 1 }}">{% include "node/_icon.peb" with {"type": ch.type, "code": ch.code} %} <a href="/c/{{ campaign.id }}/n/{{ ch.id }}">{{ ch.title }}</a></td>
               </tr>
             {% endfor %}
           {% endfor %}

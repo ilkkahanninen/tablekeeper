@@ -27,7 +27,7 @@
       ]
     },
     {
-      "id": "core.npc",
+      "id": "core.npc", "icon": "drama",
       "quickCreate": [
         { "type": "heart.resource",  "rel": "carries:out" },
         { "type": "heart.equipment", "rel": "carries:out" },
@@ -37,7 +37,7 @@
   ],
   "nodeTypes": [
     {
-      "id": "heart.landmark",
+      "id": "heart.landmark", "icon": "castle",
       "overview": ["tier", "stress", "domains"],
       "extends": "core.place",
       "label": "Landmark",
@@ -85,7 +85,7 @@
       ]
     },
     {
-      "id": "heart.delve",
+      "id": "heart.delve", "icon": "route",
       "overview": ["@connects:out", "resistance"],
       "extends": "core.place",
       "label": "Delve",
@@ -156,7 +156,7 @@
       }
     },
     {
-      "id": "heart.equipment",
+      "id": "heart.equipment", "icon": "sword",
       "overview": ["category", "quality", "tags"],
       "extends": "core.item",
       "label": "Equipment",
@@ -224,7 +224,7 @@
       }
     },
     {
-      "id": "heart.fallout",
+      "id": "heart.fallout", "icon": "heart-crack",
       "label": "Fallout",
       "codePrefix": "FO",
       "linkSlots": [{ "label": "Character", "rels": ["suffers:in"] }],
@@ -241,7 +241,7 @@
       }
     },
     {
-      "id": "heart.resource",
+      "id": "heart.resource", "icon": "gem",
       "printSummary": { "parts": ["{die.value}", "{tags}"] },
       "overview": ["die", "tags"],
       "extends": "core.item",

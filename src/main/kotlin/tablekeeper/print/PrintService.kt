@@ -46,7 +46,7 @@ data class PrintRef(val code: String, val title: String, val typeLabel: String, 
                     val children: List<PrintRef> = emptyList())
 data class LinkGroup(val label: String, val items: List<PrintRef>)
 /** One linked node's values for a linked prop, e.g. Red Market (L1): Desolate, Occult. */
-data class LinkedPropSource(val id: UUID, val code: String, val title: String, val values: List<String>)
+data class LinkedPropSource(val id: UUID, val type: String, val code: String, val title: String, val values: List<String>)
 /** A linked prop, kept per linked node: a delve's domains shift from one landmark's to the other's. */
 data class LinkedPropValue(val name: String, val label: String, val via: String, val sources: List<LinkedPropSource>)
 /** [notes]: the fact's text as HTML (formatting and `[[mentions]]`, see [Notes.inline]). */
@@ -192,7 +192,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             val sources = links.filter { rule.option.matches(it) }.distinctBy { it.other.id }.map { link ->
                 val raw = all.byId[link.other.id]?.props?.get(rule.prop)
                 val values = (if (raw is List<*>) raw else listOf(raw)).mapNotNull { it?.toString()?.takeIf(String::isNotBlank) }
-                LinkedPropSource(link.other.id, link.other.code, names[link.other.id] ?: link.other.title, values)
+                LinkedPropSource(link.other.id, link.other.type, link.other.code, names[link.other.id] ?: link.other.title, values)
             }
             LinkedPropValue(rule.prop, rule.label, rule.option.label, sources)
         }

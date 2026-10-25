@@ -70,7 +70,7 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val n = call.node(c)
         val q = call.request.queryParameters
         val results = nodePage.search(c, m, n, q["rel"].orEmpty(), q["q"].orEmpty().trim())
-        call.html("node/_link_results.peb", mapOf("campaign" to c, "node" to n, "results" to results))
+        call.html("node/_link_results.peb", mapOf("campaign" to c, "module" to m, "node" to n, "results" to results))
     }
 
     post("/links") {
@@ -151,14 +151,14 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
     get("/mentions") {
         val (c, m) = call.game()
         val n = call.node(c)
-        call.html("node/_mentions.peb", mapOf("choices" to nodePage.mentionChoices(c, m, n, call.request.queryParameters["q"].orEmpty().trim())))
+        call.html("node/_mentions.peb", mapOf("module" to m, "choices" to nodePage.mentionChoices(c, m, n, call.request.queryParameters["q"].orEmpty().trim())))
     }
 
     // A session's debrief section, reloaded after something is added or done there
     get("/debrief") {
         val (c, m) = call.game()
         val n = call.node(c)
-        call.html("node/_debrief.peb", mapOf("campaign" to c, "node" to n, "debrief" to nodePage.debrief(c, m, n)))
+        call.html("node/_debrief.peb", mapOf("campaign" to c, "module" to m, "node" to n, "debrief" to nodePage.debrief(c, m, n)))
     }
 
     // Print preview in the browser (same HTML that becomes the PDF).

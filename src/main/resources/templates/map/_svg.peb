@@ -1,4 +1,4 @@
-{# The campaign map drawing. Variables: map (MapView), campaign, links (wrap places in links to their pages).
+{# The campaign map drawing. Variables: map (MapView), campaign, links (on screen: places link to their pages and labels leave out codes).
    Highlighted places (selected in a session packet) are filled red. #}
 <svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ map.width }} {{ map.height }}"{% if svgWidth is not null %} width="{{ svgWidth }}" height="{{ svgHeight }}"{% endif %} font-family="serif">
   {% for lv in map.levels %}
@@ -19,6 +19,8 @@
   {% for p in map.places %}
     {% if links %}<a href="/c/{{ campaign.id }}/n/{{ p.id }}">{% endif %}
     <g class="place place-{{ p.shape }}">
+      {# On screen: a hover tip with the type and code, which the label leaves out (prints show the code) #}
+      {% if links %}<title>{{ p.typeLabel }} {{ p.code }}</title>{% endif %}
       {% if p.shape == 'circle' %}
         <circle cx="{{ p.x }}" cy="{{ p.y }}" r="26" fill="{{ p.highlight ? '#8c1c13' : '#fffdf8' }}" stroke="#8c1c13" stroke-width="4"/>
         {% set labelY = p.y + 50 %}
@@ -31,7 +33,7 @@
       {% endif %}
       {# Each label twice: a paper-coloured outline first, so lines passing underneath don't cut through the text #}
       {% for halo in [true, false] %}
-      <text x="{{ p.x }}" y="{{ labelY }}" text-anchor="middle" font-size="{% if p.shape == 'dot' %}15{% else %}19{% endif %}" fill="#1d1a17"{% if halo %} stroke="#fffdf8" stroke-width="5" stroke-linejoin="round"{% endif %}><tspan font-family="monospace" font-size="{% if p.shape == 'dot' %}12{% else %}15{% endif %}"{% if not halo %} fill="#7a7166"{% endif %}>{{ p.code }}</tspan> {{ p.title }}</text>
+      <text x="{{ p.x }}" y="{{ labelY }}" text-anchor="middle" font-size="{% if p.shape == 'dot' %}15{% else %}19{% endif %}" fill="#1d1a17"{% if halo %} stroke="#fffdf8" stroke-width="5" stroke-linejoin="round"{% endif %}>{% if not links %}<tspan font-family="monospace" font-size="{% if p.shape == 'dot' %}12{% else %}15{% endif %}"{% if not halo %} fill="#7a7166"{% endif %}>{{ p.code }}</tspan> {% endif %}{{ p.title }}</text>
       {% endfor %}
     </g>
     {% if links %}</a>{% endif %}

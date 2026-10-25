@@ -144,6 +144,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 |---|---|---|
 | `props` | JSON Schema for fields; generates the form | landmark tier, domains… |
 | `plural` | Heading label (default: label + "s") | `"Equipment"` |
+| `icon` | Shown for the type's nodes on screen instead of their code (hover: "Landmark L1"); a name from `static/icons.svg` | landmark `castle`, NPC `drama` |
 | `displayTitle` | How the name is shown everywhere but its own title field | `["{title}", "({player})"]` → "Thonal (Jori)" |
 | `quickCreate` | Create choices in the **Link** box | landmark → Delve, NPC, Resource… |
 | `linkSlots` | "One of these" links as a dropdown, with a "— Pool —" choice | Location / carried by |
@@ -199,6 +200,6 @@ Unit tests cover module loading and settings, the map layout, campaign-page tabl
 
 ## License
 
-The code is released under the [MIT License](LICENSE).
+The code is released under the [MIT License](LICENSE). The type icons in `static/icons.svg` are from [Lucide](https://lucide.dev) (ISC License, included in the file).
 
 **Heart: The City Beneath** is © Rowan, Rook and Decard. The game text in `modules/heart/` (class inspiration texts, equipment and resource tag descriptions, resource die descriptions and similar) comes from the rule book. It belongs to its publisher and is **not** covered by the MIT License. Tablekeeper is an unofficial fan tool, not affiliated with or endorsed by Rowan, Rook and Decard.

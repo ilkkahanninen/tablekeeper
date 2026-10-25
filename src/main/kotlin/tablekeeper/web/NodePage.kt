@@ -18,14 +18,14 @@ import java.util.UUID
 
 // View models for the "Linked" sidebar
 /** [edgeId] null: not an edge, e.g. a node whose notes mention this one ("Mentioned in"), so it can't be unlinked here. */
-data class UiLink(val edgeId: UUID?, val otherId: UUID, val code: String, val title: String, val typeLabel: String, val visibility: String)
+data class UiLink(val edgeId: UUID?, val otherId: UUID, val type: String, val code: String, val title: String, val visibility: String)
 data class UiGroup(val label: String, val links: List<UiLink>)
 /** A relation the Link box offers for a search result; [blocked] says why it's disabled (a link limit), if it is. */
 data class RelationChoice(val option: LinkOption, val blocked: String?)
-data class SearchResult(val id: UUID, val code: String, val title: String, val choices: List<RelationChoice>)
+data class SearchResult(val id: UUID, val type: String, val code: String, val title: String, val choices: List<RelationChoice>)
 /** A checkbox list on a node page (module `checklists`): every node of some types, ticked when linked via [option]. */
 data class ChecklistView(val label: String, val option: LinkOption, val items: List<ChecklistItem>)
-data class ChecklistItem(val id: UUID, val code: String, val title: String, val checked: Boolean)
+data class ChecklistItem(val id: UUID, val type: String, val code: String, val title: String, val checked: Boolean)
 
 /** A create-row choice: [key] identifies the quick-create option, [label] is what the dropdown shows. */
 data class CreateChoice(val key: String, val label: String)
@@ -34,7 +34,7 @@ data class CreateChoice(val key: String, val label: String)
 data class Choice(val value: String, val label: String, val selected: Boolean)
 data class ChoiceGroup(val label: String, val choices: List<Choice>)
 /** A node offered after typing `[[` in notes: [label] as in pickers, [title] what gets inserted. */
-data class MentionChoice(val code: String, val label: String, val title: String)
+data class MentionChoice(val type: String, val code: String, val label: String, val title: String)
 /** Dropdown for a link slot, e.g. Location: places, then carriers. */
 data class SlotView(val index: Int, val label: String, val groups: List<ChoiceGroup>)
 
@@ -134,7 +134,7 @@ class NodePage(
             .take(20)
         val labels = pickerLabels(c, m, found)
         return found.map { other ->
-            SearchResult(other.id, other.code, labels.getValue(other.id),
+            SearchResult(other.id, other.type, other.code, labels.getValue(other.id),
                 options.filter { m.acceptsOther(it, other.type) }.take(3).map { o ->
                     // Far end already full (e.g. a delve with two landmarks) also disables the option
                     RelationChoice(o, ownFull[o] ?: linker.limitError(c.id, m, other.id, other.type, other.code, o.edgeType, o.direction.opposite))
@@ -146,7 +146,7 @@ class NodePage(
     fun mentionChoices(c: Campaign, m: ResolvedModule, n: Node, q: String): List<MentionChoice> {
         val found = graph.search(c.id, q, n.id, limit = 8)
         val labels = pickerLabels(c, m, found)
-        return found.map { MentionChoice(it.code, labels.getValue(it.id), it.title) }
+        return found.map { MentionChoice(it.type, it.code, labels.getValue(it.id), it.title) }
     }
 
     /** The campaign's nodes by the names a `[[mention]]` may use. */
@@ -198,7 +198,7 @@ class NodePage(
                 val current = links.filter(o::matches).map { it.other.id }.toSet()
                 ChoiceGroup(o.label.replaceFirstChar { it.uppercase() }, nodes
                     .filter { it.id != n.id && m.acceptsOther(o, it.type) }
-                    .map { Choice("${o.key}|${it.id}", "${it.code} ${labels.getValue(it.id)}", it.id in current) })
+                    .map { Choice("${o.key}|${it.id}", labels.getValue(it.id), it.id in current) })
             })
         }
     }
@@ -215,7 +215,7 @@ class NodePage(
             ChecklistView(
                 def.types.joinToString(", ") { m.label(it) }, option,
                 nodes.filter { other -> def.types.any { m.isA(other.type, it) } }.sortedBy { it.title }
-                    .map { ChecklistItem(it.id, it.code, names[it.id] ?: it.title, it.id in linked) },
+                    .map { ChecklistItem(it.id, it.type, it.code, names[it.id] ?: it.title, it.id in linked) },
             )
         }
     }
@@ -226,7 +226,7 @@ class NodePage(
      */
     private fun linkGroups(c: Campaign, m: ResolvedModule, n: Node): List<UiGroup> {
         val names = displayTitles(c, m)
-        fun ui(edgeId: UUID?, other: NodeRef) = UiLink(edgeId, other.id, other.code, names[other.id] ?: other.title, m.label(other.type), other.visibility)
+        fun ui(edgeId: UUID?, other: NodeRef) = UiLink(edgeId, other.id, other.type, other.code, names[other.id] ?: other.title, other.visibility)
         val mentionedIn = graph.mentioning(c.id, n.id, listOf(n.code, n.title, m.displayTitle(n))).sortedBy { names[it.id] ?: it.title }
         return m.groupLinks(graph.links(c.id, n.id)).map { (label, links) -> UiGroup(label, links.map { ui(it.edgeId, it.other) }) } +
             listOfNotNull(mentionedIn.takeIf { it.isNotEmpty() }?.let { refs -> UiGroup("Mentioned in", refs.map { ui(null, it) }) })

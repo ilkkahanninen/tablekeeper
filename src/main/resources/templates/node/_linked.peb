@@ -6,7 +6,7 @@
     <ul class="plain">
       {% for l in g.links %}
         <li>
-          <span class="code">{{ l.code }}</span>
+          {% include "node/_icon.peb" with {"type": l.type, "code": l.code} %}
           <a href="/c/{{ campaign.id }}/n/{{ l.otherId }}">{{ l.title }}</a>
           {% if l.edgeId is not null %}<button class="unlink" aria-label="Remove link"
                   hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links/{{ l.edgeId }}/delete"

@@ -9,7 +9,7 @@
         <h3 class="group-title">{{ g.label }}</h3>
         {% for c in g.nodes %}
           <div class="who">
-            <span class="code">{{ c.node.code }}</span>
+            {% include "node/_icon.peb" with {"type": c.node.type, "code": c.node.code} %}
             {% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.display }}</a>{% else %}{{ c.display }}{% endif %}
           </div>
           {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
@@ -20,7 +20,7 @@
           {% endif %}
           {% for lg in c.linked %}
             <div class="linked-label">{{ lg.label }}</div>
-            <ul class="beats">{% for i in lg.items %}<li><span class="code">{{ i.code }}</span> {{ i.title }}{% if i.summary is not empty %}: {{ i.summary | raw }}{% endif %}</li>{% endfor %}</ul>
+            <ul class="beats">{% for i in lg.items %}<li>{% include "node/_icon.peb" with {"type": i.type, "code": i.code} %} {{ i.title }}{% if i.summary is not empty %}: {{ i.summary | raw }}{% endif %}</li>{% endfor %}</ul>
           {% endfor %}
         {% endfor %}
       </div>

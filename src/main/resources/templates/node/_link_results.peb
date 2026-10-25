@@ -2,7 +2,7 @@
 <ul class="plain results">
   {% for r in results %}
     <li class="result">
-      <span><span class="code">{{ r.code }}</span> {{ r.title }}</span>
+      <span>{% include "node/_icon.peb" with {"type": r.type, "code": r.code} %} {{ r.title }}</span>
       <span class="rels">
         {% for ch in r.choices %}
           <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links" hx-target="#linked" hx-swap="outerHTML">
