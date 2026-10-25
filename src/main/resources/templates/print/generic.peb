@@ -4,7 +4,7 @@
   {% if props is not empty or linkedProps is not empty %}
   <table class="props">
     {% for p in props %}
-      {% if p.details is empty %}<tr><td class="k">{{ p.label }}</td><td>{{ p.value }}</td></tr>
+      {% if p.details is empty %}<tr><td class="k">{{ p.label }}</td><td>{% if p.track is not null %}{% include "print/_track.peb" %}{% elseif p.items is not empty %}{% include "print/_items.peb" %}{% else %}{{ p.value }}{% endif %}</td></tr>
       {% elseif not p.multi %}{% for t in p.details %}<tr><td class="k">{{ p.label }}</td><td><span class="t">{{ t.option }}</span>: {{ t.text }}</td></tr>{% endfor %}
       {% endif %}
     {% endfor %}

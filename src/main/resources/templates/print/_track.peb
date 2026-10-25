@@ -1,0 +1,2 @@
+{# An "x-track" prop (variable p: PropLine) as boxes numbered down to 1, to tick off at the table (e.g. a delve's resistance). #}
+<span class="track">{% for i in range(p.track, 1, -1) %}<span class="pip">{{ i }}</span>{% endfor %}</span>

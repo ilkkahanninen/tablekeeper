@@ -270,6 +270,7 @@ class GameModulesTest {
         assertEquals(null, heart.mapShape("heart.resource"))
         assertEquals("tier", heart.mapDepth("heart.landmark"))
         assertEquals(MapDepth(2.0, "Tier 2"), heart.depthOf("heart.landmark", mapOf("tier" to "Tier 2")))
+        assertEquals(MapDepth(4.0, "Tier 4"), heart.depthOf("heart.landmark", mapOf("tier" to "Tier 4")), "deepest of the numbered tiers")
         assertEquals(null, heart.depthOf("heart.landmark", mapOf("tier" to "Rogue")), "placed freely")
         assertEquals(MapDepth(1.0, "Tier 1"), heart.depthOf("heart.landmark", mapOf("tier" to 1)), "numbers still work for other modules")
         assertEquals(null, heart.mapDepth("heart.delve"))
@@ -564,5 +565,18 @@ class GameModulesTest {
         assertEquals(mapOf("player" to "Mia", "beat1" to "Sell the ledger", "beat2" to "Burn it"), Json.mapper.convertValue(props, Map::class.java))
         val (cleared) = PropsForm.parse(heart.propsSchema("heart.pc"), emptyMap(), setOf("beat1Type", "beat1"), stored)
         assertEquals(mapOf("player" to "Mia", "beat2" to "Burn it"), Json.mapper.convertValue(cleared, Map::class.java), "Done empties a beat")
+    }
+
+    @Test
+    fun `delves have a resistance track, a default stress die and events one per line`() {
+        val fields = PropsForm.fields(heart.propsSchema("heart.delve"), mapOf("resistance" to 8, "events" to "Floor gives way\n\n  The Hunger notices  \n")).associateBy { it.name }
+        assertTrue(fields.getValue("resistance").track)
+        assertEquals("lines", fields.getValue("events").kind)
+        assertEquals(listOf("Floor gives way", "The Hunger notices"), fields.getValue("events").lines)
+        assertEquals(listOf("d4", "d6", "d8", "d10", "d12"), fields.getValue("stress").options)
+        assertEquals(mapOf("d4" to "Tier 0-1", "d6" to "Tier 2-3", "d8" to "Tier 4"), fields.getValue("stress").hints)
+        assertEquals(fields.getValue("stress").hints, PropsForm.fields(heart.propsSchema("heart.landmark"), emptyMap()).single { it.name == "stress" }.hints)
+        assertEquals(listOf("tier", "domains"), heart.linkedProps("heart.delve").map { it.prop }, "stress is the delve's own")
+        assertTrue(heart.fillableFields().any { it.key == "heart.delve:events" }, "random tables can add events")
     }
 }

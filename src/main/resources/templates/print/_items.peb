@@ -1,0 +1,2 @@
+{# A "lines" prop (variable p: PropLine): one item per line, each with a tick box (e.g. a delve's events). #}
+{% for it in p.items %}<div class="item"><span class="box"></span>{{ it }}</div>{% endfor %}

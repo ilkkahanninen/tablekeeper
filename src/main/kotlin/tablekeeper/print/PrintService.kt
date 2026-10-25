@@ -30,9 +30,12 @@ import java.util.UUID
 /**
  * [details]: chosen options with their "x-enumDescriptions" text, e.g. Fragile → "The resource will be destroyed…".
  * [multi]: several options can be chosen (checkboxes), so cards list them in their own section.
+ * [items]: a "lines" field's items (e.g. a delve's events), printed as a list with tick boxes.
+ * [track]: an "x-track" field's number (e.g. resistance 12), printed as that many boxes to tick off.
  */
 data class PropLine(val name: String, val label: String, val value: String,
-                    val details: List<PropDetail> = emptyList(), val multi: Boolean = false)
+                    val details: List<PropDetail> = emptyList(), val multi: Boolean = false,
+                    val items: List<String> = emptyList(), val track: Int? = null)
 data class PropDetail(val option: String, val text: String)
 /**
  * [summary]: the type's `printSummary`, e.g. "Kill d8 · Brutal, Reload"; empty if it has none.
@@ -80,6 +83,9 @@ data class PrintModel(
         "audience" to audience, "notes" to notes,
     ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous) }.orEmpty()
 }
+
+/** Larger "x-track" values print as a plain number: a row that long wouldn't fit a card. */
+private const val MAX_TRACK = 40
 
 class PrintService(private val graph: GraphService, private val templates: Templates) {
 
@@ -251,7 +257,10 @@ class PrintService(private val graph: GraphService, private val templates: Templ
     private fun propLine(f: FormField): PropLine? {
         val chosen = (f.value as? List<*>)?.map { it.toString() } ?: listOf(f.value.toString())
         val details = chosen.mapNotNull { o -> f.hints[o]?.let { PropDetail(o, it) } }
-        return f.text.takeIf { it.isNotBlank() }?.let { PropLine(f.name, f.label, it, details, multi = f.kind == "multi") }
+        return f.text.takeIf { it.isNotBlank() }?.let {
+            PropLine(f.name, f.label, it, details, multi = f.kind == "multi", items = f.lines,
+                track = if (f.track) it.toIntOrNull()?.takeIf { n -> n in 1..MAX_TRACK } else null)
+        }
     }
 
     private fun ref(module: ResolvedModule, all: CampaignGraph, n: NodeRef, names: Map<UUID, String>): PrintRef =

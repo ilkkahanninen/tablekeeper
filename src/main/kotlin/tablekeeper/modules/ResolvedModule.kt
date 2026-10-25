@@ -222,7 +222,7 @@ class ResolvedModule(
     /** Fields a random table can fill: each creatable type's title, then its text fields (one-line or long), in schema order. */
     fun fillableFields(): List<FieldOption> = nodeTypes.flatMap { t ->
         listOf(FieldOption("${t.id}:title", "${t.label}: Title")) +
-            PropsForm.fields(propsSchema(t.id), emptyMap()).filter { it.kind == "text" || it.kind == "textarea" }
+            PropsForm.fields(propsSchema(t.id), emptyMap()).filter { it.kind in setOf("text", "textarea", "lines") }
                 .map { FieldOption("${t.id}:${it.name}", "${t.label}: ${it.label}") }
     }
 

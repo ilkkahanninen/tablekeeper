@@ -1,12 +1,12 @@
 {#
-  Landmark / delve body: props, linked props, notes, haunts/events, links (minor locations nested with their
+  Landmark / delve body: props (resistance as a track to tick off), linked props, notes, haunts / events (one tick box each), links (minor locations nested with their
   contents), facts with tick boxes. Model: a node print model (node, props, linkedProps, groups, facts, audience).
   Used by the A6 card (landmark.peb) and the session packet (session.peb), so both print the same content.
 #}
   <table class="props">
     {% for p in props %}
       {% if p.name != 'haunts' and p.name != 'events' %}
-      <tr><td class="k">{{ p.label }}</td><td>{{ p.value }}</td></tr>
+      <tr><td class="k">{{ p.label }}</td><td>{% if p.track is not null %}{% include "print/_track.peb" %}{% else %}{{ p.value }}{% endif %}</td></tr>
       {% endif %}
     {% endfor %}
     {% include "print/_linked_props.peb" %}
@@ -17,7 +17,7 @@
   {% for p in props %}
     {% if p.name == 'haunts' or p.name == 'events' %}
       <h4>{{ p.label }}</h4>
-      <div class="body">{{ p.value }}</div>
+      {% if p.items is not empty %}{% include "print/_items.peb" %}{% else %}<div class="long-text">{{ p.value }}</div>{% endif %}
     {% endif %}
   {% endfor %}
 

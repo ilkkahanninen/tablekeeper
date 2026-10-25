@@ -14,6 +14,7 @@ import tablekeeper.core.Json
  *   {"type":"array","items":{"enum":[...]}}            -> kind "multi" (checkboxes)
  *   {"type":"boolean"}                                 -> kind "bool"
  *   {"type":"string","x-widget":"textarea"}            -> kind "textarea"
+ *   {"type":"string","x-widget":"lines"}               -> kind "lines": a textarea, one item per line (e.g. a delve's events)
  *   {"type":"string"}                                  -> kind "text"
  *
  * "x-enumDescriptions": {"Fragile": "…"} on a select/multi field becomes a hover hint per option.
@@ -22,6 +23,7 @@ import tablekeeper.core.Json
  * "x-showIf": {"tags": ["Limited X"]} shows it only then. A hidden field is dropped on save and left off print cards.
  * "x-wide": true gives a field a full-width row of its own.
  * "x-trueLabel": "dead" is a checkbox's text when ticked (instead of "yes"), on cards and the campaign home.
+ * "x-track": true on an integer field prints it as that many numbered boxes to tick off (e.g. a delve's resistance).
  * "x-row": "Beat 1" puts consecutive fields with the same value on one line, labelled "Beat 1", on the page and on cards.
  *
  * Kinds are plain strings so Pebble templates can compare them directly.
@@ -49,6 +51,8 @@ data class FormField(
     val wide: Boolean = false,
     /** From "x-trueLabel": a ticked checkbox's text; null = "yes". */
     val trueLabel: String? = null,
+    /** From "x-track": print as a row of boxes to tick off, one per point. */
+    val track: Boolean = false,
     /** String for scalar kinds, List<String> for "multi", Boolean for "bool". */
     val value: Any?,
 ) {
@@ -57,6 +61,9 @@ data class FormField(
 
     /** [hideIf] and [showIf] as JSON, for the form's script to re-check on change. */
     val conditionsJson: String get() = Json.mapper.writeValueAsString(mapOf("hideIf" to hideIf, "showIf" to showIf))
+
+    /** A "lines" field's items: its non-empty lines, trimmed. */
+    val lines: List<String> get() = if (kind == "lines") value.toString().lines().map { it.trim() }.filter { it.isNotEmpty() } else emptyList()
 
     /** Current value as display text: labels applied, lists joined, true as "yes", unset as "". */
     val text: String get() = format { labels[it] ?: it }
@@ -87,7 +94,7 @@ object PropsForm {
             val showIf = condition("x-showIf")
             val hidden = matches(hideIf, props) || (showIf.isNotEmpty() && !matches(showIf, props))
             field(name, s, props).copy(hideIf = hideIf, showIf = showIf, hidden = hidden, row = s.get("x-row")?.asText(),
-                wide = s.get("x-wide")?.asBoolean() == true)
+                wide = s.get("x-wide")?.asBoolean() == true, track = s.get("x-track")?.asBoolean() == true)
         }.toList()
     }
 
@@ -123,7 +130,8 @@ object PropsForm {
                     value = current?.toString() ?: "")
             s.get("type")?.asText() == "boolean" ->
                 FormField(name, label, "bool", value = current == true, trueLabel = s.get("x-trueLabel")?.asText())
-            s.get("x-widget")?.asText() == "textarea" -> FormField(name, label, "textarea", value = current?.toString() ?: "")
+            s.get("x-widget")?.asText() in setOf("textarea", "lines") ->
+                FormField(name, label, s.get("x-widget").asText(), value = current?.toString() ?: "")
             else -> FormField(name, label, "text", value = current?.toString() ?: "")
         }
     }

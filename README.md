@@ -17,7 +17,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
   - **Links** lists everything connected, grouped by type (*NPCs*, *Resources*…).
 - **Heart:**
   - **Landmarks:** named tiers, domains and default stress.
-  - **Delves:** between two landmarks; tier and domains are shown from them.
+  - **Delves:** between two landmarks; tier and domains are shown from them; a default stress die of their own. Events are one per line (a random table adds one). Prints show resistance as numbered boxes to tick off, and each event with a tick box.
   - **Minor locations** inside landmarks.
   - **Characters:** class, calling and beats, shown as "Thonal (Jori)".
   - **NPCs:** voice, appearance and dead.
@@ -169,6 +169,8 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | Option | Effect |
 |---|---|
 | `"x-widget": "textarea"` | Multi-line text |
+| `"x-widget": "lines"` | One item per line; printed as a list with tick boxes; **Random** adds a line |
+| `"x-track": true` | On an integer: printed as that many numbered boxes to tick off (up to 40) |
 | `"x-wide": true` | Full-width row |
 | `"x-row": "Beat 1"` | Fields sharing a value sit on one labelled line, also on cards |
 | `"x-enumLabels"` | Show an option differently from its stored value (`"d8": "d8 Professional"`) |
