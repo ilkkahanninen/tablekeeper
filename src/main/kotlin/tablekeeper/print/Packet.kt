@@ -3,7 +3,7 @@ package tablekeeper.print
 import java.util.UUID
 
 /** One part of a session packet: the selected (or in-between) nodes of one type, each as its print model. */
-data class PacketSection(val typeId: String, val label: String, val items: List<Map<String, Any?>>)
+data class PacketSection(val typeId: String, val label: String, val items: List<PrintModel>)
 
 /** Pure selection rules for session packets. */
 object Packet {

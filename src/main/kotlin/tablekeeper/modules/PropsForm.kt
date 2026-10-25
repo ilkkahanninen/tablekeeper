@@ -3,6 +3,7 @@ package tablekeeper.modules
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
+import tablekeeper.core.Json
 
 /**
  * Generic edit form generated from a type's JSON Schema, so new game modules
@@ -55,7 +56,7 @@ data class FormField(
     val conditional: Boolean get() = hideIf.isNotEmpty() || showIf.isNotEmpty()
 
     /** [hideIf] and [showIf] as JSON, for the form's script to re-check on change. */
-    val conditionsJson: String get() = GameModules.mapper.writeValueAsString(mapOf("hideIf" to hideIf, "showIf" to showIf))
+    val conditionsJson: String get() = Json.mapper.writeValueAsString(mapOf("hideIf" to hideIf, "showIf" to showIf))
 
     /** Current value as display text: labels applied, lists joined, true as "yes", unset as "". */
     val text: String get() = format { labels[it] ?: it }
@@ -148,7 +149,7 @@ object PropsForm {
         }
         // Drop fields hidden by the submitted values (e.g. quality on Miscellaneous equipment).
         @Suppress("UNCHECKED_CAST")
-        val submitted = GameModules.mapper.convertValue(out, Map::class.java) as Map<String, Any?>
+        val submitted = Json.mapper.convertValue(out, Map::class.java) as Map<String, Any?>
         fields(schema, submitted).filter { it.hidden }.forEach { out.remove(it.name) }
         return out to errors
     }

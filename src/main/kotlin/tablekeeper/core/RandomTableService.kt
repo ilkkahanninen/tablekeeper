@@ -2,8 +2,6 @@ package tablekeeper.core
 
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
-import tablekeeper.modules.PropsForm
-import tablekeeper.modules.ResolvedModule
 import java.util.UUID
 import kotlin.random.Random
 
@@ -12,9 +10,6 @@ import kotlin.random.Random
 data class RandomTable(val id: UUID, val name: String, val items: String, val fields: List<String>, val mix: Boolean = false) {
     val list: List<String> get() = RandomTables.items(items)
 }
-
-/** A field a table can fill: [key] "core.npc:voice", [label] "NPC: Voice". */
-data class FieldOption(val key: String, val label: String)
 
 /** One table offered by a field's Random button: its [id], [name], [items] and whether it [mix]es lines. */
 data class RandomChoice(val id: UUID, val name: String, val items: List<String>, val mix: Boolean = false)
@@ -48,13 +43,6 @@ object RandomTables {
 
     /** One item per line; surrounding spaces trimmed, empty lines dropped. */
     fun items(text: String): List<String> = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
-
-    /** Fields a table can fill: each creatable type's title, then its text fields (one-line or long), in schema order. */
-    fun fieldOptions(module: ResolvedModule): List<FieldOption> = module.nodeTypes.flatMap { t ->
-        listOf(FieldOption("${t.id}:title", "${t.label}: Title")) +
-            PropsForm.fields(module.propsSchema(t.id), emptyMap()).filter { it.kind == "text" || it.kind == "textarea" }
-                .map { FieldOption("${t.id}:${it.name}", "${t.label}: ${it.label}") }
-    }
 }
 
 /**

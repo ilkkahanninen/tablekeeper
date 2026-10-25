@@ -1,15 +1,12 @@
 package tablekeeper.views
 
-import tablekeeper.core.Direction
-import tablekeeper.core.EdgeRef
+import tablekeeper.core.CampaignGraph
 import tablekeeper.core.Node
-import tablekeeper.modules.LinkOption
-import tablekeeper.modules.Parts
 import tablekeeper.modules.FormField
+import tablekeeper.modules.LinkOption
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.modules.ViewDef
-import java.util.UUID
 
 /**
  * A node on a module view, with its props as form fields (display text, labels, hints) by name, its display title,
@@ -34,35 +31,25 @@ data class ViewData(val view: ViewDef, val nodes: List<ViewNode>, val groups: Ma
  */
 object ModuleViews {
     /**
-     * [view] over those of [nodes] whose type it lists. [edges] and [allNodes] (the campaign's) give the view's `links`,
+     * [view] over those of [nodes] whose type it lists. [graph] (the campaign's) gives the view's `links`,
      * e.g. each character's fallouts with their print summary.
      */
-    fun build(module: ResolvedModule, view: ViewDef, nodes: List<Node>, edges: List<EdgeRef> = emptyList(), allNodes: List<Node> = nodes): ViewData {
-        val byId = allNodes.associateBy { it.id }
+    fun build(module: ResolvedModule, view: ViewDef, nodes: List<Node>, graph: CampaignGraph = CampaignGraph(nodes, emptyList())): ViewData {
         val viewNodes = nodes.filter { n -> view.types.any { module.isA(n.type, it) } }.map { n ->
             ViewNode(
-                n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }, module.displayTitle(n.type, n.title, n.props),
-                linked = view.links.mapNotNull { key -> module.linkOptions(n.type).firstOrNull { it.key == key } }
-                    .mapNotNull { option -> linkGroup(module, option, linkedTo(n.id, option, edges).mapNotNull { byId[it] }) },
+                n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }, module.displayTitle(n),
+                linked = view.links.mapNotNull { module.linkOption(n.type, it) }
+                    .mapNotNull { option -> linkGroup(module, option, graph.linkedNodes(n.id, option.edgeType, option.direction)) },
             )
         }
         return ViewData(view, viewNodes, view.groupBy.associateWith { groups(viewNodes, it) })
-    }
-
-    private fun linkedTo(id: UUID, option: LinkOption, edges: List<EdgeRef>): List<UUID> = edges.filter { it.type == option.edgeType }.mapNotNull { e ->
-        if (option.direction == Direction.OUT) e.toId.takeIf { e.fromId == id } else e.fromId.takeIf { e.toId == id }
     }
 
     private fun linkGroup(module: ResolvedModule, option: LinkOption, others: List<Node>): ViewLinkGroup? {
         if (others.isEmpty()) return null
         val sorted = others.sortedBy { it.title }
         val label = module.printSummary(sorted.first().type)?.group ?: option.label.replaceFirstChar(Char::uppercase)
-        return ViewLinkGroup(label, sorted.map { o ->
-            val summary = module.printSummary(o.type)?.parts?.let { parts ->
-                Parts.fill(parts, PropsForm.fields(module.propsSchema(o.type), o.props).filterNot { it.hidden }.associateBy { it.name }, " · ")
-            }.orEmpty()
-            ViewLinkItem(o.code, module.displayTitle(o.type, o.title, o.props), summary)
-        })
+        return ViewLinkGroup(label, sorted.map { o -> ViewLinkItem(o.code, module.displayTitle(o), module.summary(o.type, o.props)) })
     }
 
     /** [nodes] grouped by their value of [prop], in the prop's option order; nodes without one last, as "Not set". */

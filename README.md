@@ -100,12 +100,13 @@ modules/                  game modules (plain files)
   core/module.json        shared types: place, pc, npc, item, faction, fact, session + edge types
   heart/                  Heart: module.json, print/ (cards, session packet), views/ (Inspiration)
 src/main/kotlin/tablekeeper/
-  core/                   campaigns, graph (nodes/edges), random tables
-  modules/                module loader, settings, schema -> form, text parts
-  web/                    routes (htmx), campaign home tables
-  print/                  print model, session packets, imposition
-  map/                    map layout and model
+  core/                   campaigns, graph (nodes/edges, in-memory snapshot), random tables, errors
+  modules/                module.json shape, resolved module, startup checks, link rules, schema -> form, text parts
+  templates/              the Pebble engine (screen and print)
   views/                  module views (e.g. Inspiration)
+  map/                    map layout and model
+  print/                  print model, session packets, imposition
+  web/                    routes by area (htmx), node page and campaign home view models
 src/main/resources/       Flyway migrations, templates, static (htmx 2.0.11 vendored, app.css, app.js)
 ```
 

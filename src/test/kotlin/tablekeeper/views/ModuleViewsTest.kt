@@ -1,5 +1,6 @@
 package tablekeeper.views
 
+import tablekeeper.core.CampaignGraph
 import tablekeeper.core.EdgeRef
 import tablekeeper.core.Node
 import tablekeeper.modules.GameModules
@@ -21,7 +22,7 @@ class ModuleViewsTest {
         val other = node("heart.fallout", "FO3", "Someone else's", mapOf("type" to "Minor"))
         val edges = listOf(EdgeRef(ash.id, arm.id, "suffers"), EdgeRef(ash.id, dreams.id, "suffers"))
         val all = listOf(ash, arm, dreams, other)
-        val data = ModuleViews.build(heart, heart.view("inspiration")!!, listOf(ash), edges, all)
+        val data = ModuleViews.build(heart, heart.view("inspiration")!!, listOf(ash), CampaignGraph(all, edges))
         val viewNode = data.nodes.single()
         assertEquals("Ash (Mia)", viewNode.display)
         val group = viewNode.linked.single()

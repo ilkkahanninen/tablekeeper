@@ -11,18 +11,17 @@ import io.ktor.server.response.respondText
 import tablekeeper.auth.NotAuthenticated
 import tablekeeper.auth.currentUserPlugin
 import tablekeeper.auth.userResolverFor
+import tablekeeper.core.BadRequest
 import tablekeeper.core.CampaignService
 import tablekeeper.core.GraphService
+import tablekeeper.core.HiddenFromAudience
+import tablekeeper.core.NotFound
 import tablekeeper.core.RandomTableService
 import tablekeeper.db.Database
-import tablekeeper.map.MapService
 import tablekeeper.modules.GameModules
-import tablekeeper.print.HiddenFromAudience
 import tablekeeper.print.PrintService
-import tablekeeper.web.BadRequest
+import tablekeeper.templates.Templates
 import tablekeeper.web.Deps
-import tablekeeper.web.NotFound
-import tablekeeper.web.Templates
 import tablekeeper.web.routes
 
 fun main() {
@@ -32,8 +31,7 @@ fun main() {
     val campaigns = CampaignService(db)
     val graph = GraphService(db)
     val templates = Templates(config.modulesDir, cache = config.templateCache)
-    val map = MapService(graph)
-    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates, map), map, RandomTableService(db))
+    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates), RandomTableService(db))
     val resolver = userResolverFor(config.authMode, campaigns)
 
     embeddedServer(Netty, port = config.port, host = "0.0.0.0") {

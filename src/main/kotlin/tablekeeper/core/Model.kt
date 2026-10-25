@@ -43,6 +43,9 @@ enum class Direction {
     OUT, IN;
 
     val opposite: Direction get() = if (this == OUT) IN else OUT
+
+    /** A link option's key for an edge type in this direction, as written in module.json: "located_at:in". */
+    fun key(edgeType: String): String = "$edgeType:${name.lowercase()}"
 }
 
 /**
@@ -55,4 +58,7 @@ data class Link(
     val type: String,
     val direction: Direction,
     val other: NodeRef,
-)
+) {
+    /** "located_at:in", matching the link option this edge is seen through. */
+    val key: String get() = direction.key(type)
+}

@@ -1,9 +1,6 @@
 package tablekeeper.map
 
-import tablekeeper.core.Campaign
-import tablekeeper.core.Direction
-import tablekeeper.core.GraphService
-import tablekeeper.modules.LinkOption
+import tablekeeper.core.CampaignGraph
 import tablekeeper.modules.ResolvedModule
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -32,33 +29,27 @@ data class MapView(val width: Int, val height: Int, val places: List<MapPlace>, 
  * Places whose type has a `mapDepth` prop (Heart's tier) are drawn lower the higher it is; `mapBetween` types (delves)
  * take the average depth of what they link to. GM view.
  */
-class MapService(private val graph: GraphService) {
+object MapService {
 
-    fun view(campaign: Campaign, module: ResolvedModule, highlight: Set<UUID> = emptySet()): MapView {
-        val places = graph.listNodesWithProps(campaign.id).mapNotNull { n -> module.mapShape(n.type)?.let { n to it } }
+    fun view(graph: CampaignGraph, module: ResolvedModule, highlight: Set<UUID> = emptySet()): MapView {
+        val onMap = graph.filter { module.mapShape(it.type) != null }
+        val places = onMap.nodes.map { n -> n to module.mapShape(n.type)!! }
         val shapes = places.associate { (n, shape) -> n.id to shape }
-        val edges = graph.listEdges(campaign.id)
 
         // Undirected, deduplicated place-to-place links (delve–landmark, minor location–landmark, ...)
-        val lines = edges.filter { it.fromId in shapes && it.toId in shapes }
+        val lines = onMap.edges.filter { it.fromId in shapes && it.toId in shapes }
             .map { setOf(it.fromId, it.toId) }.distinct().filter { it.size == 2 }.map { it.toList() }
 
         // Depth = the type's mapDepth prop, e.g. a landmark's tier; unset tiers (and ones like Rogue) leave the place free
         val depths = places.mapNotNull { (n, _) -> module.depthOf(n.type, n.props)?.let { n.id to it } }.toMap()
-        fun linked(id: UUID, via: LinkOption): List<UUID> = edges.filter { it.type == via.edgeType }.mapNotNull { e ->
-            when (via.direction) {
-                Direction.OUT -> e.toId.takeIf { e.fromId == id }
-                Direction.IN -> e.fromId.takeIf { e.toId == id }
-            }
-        }.filter { it in shapes }
         // Delves are drawn between their landmarks (mapBetween); minor locations around theirs (context)
-        val between = places.mapNotNull { (n, _) -> module.mapBetween(n.type)?.let { n.id to linked(n.id, it) } }.toMap()
-        val satellites = places.mapNotNull { (n, _) -> module.context(n.type)?.let { c -> linked(n.id, c).firstOrNull()?.let { n.id to it } } }.toMap()
+        val between = places.mapNotNull { (n, _) -> module.mapBetween(n.type)?.let { n.id to onMap.linkedNodes(n.id, it.edgeType, it.direction).map { it.id } } }.toMap()
+        val satellites = places.mapNotNull { (n, _) -> module.parent(onMap, n)?.let { n.id to it.id } }.toMap()
 
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
                 MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.depth,
-                    labelWidth = labelWidth(n.code, module.displayTitle(n.type, n.title, n.props), shape), body = BODY.getValue(shape))
+                    labelWidth = labelWidth(n.code, module.displayTitle(n), shape), body = BODY.getValue(shape))
             },
             lines.map { (a, b) -> a.toString() to b.toString() },
             WIDTH.toDouble(), HEIGHT.toDouble(), MARGIN,
@@ -71,7 +62,7 @@ class MapService(private val graph: GraphService) {
             WIDTH, HEIGHT,
             places = places.map { (n, shape) ->
                 val p = at(n.id)
-                MapPlace(n.id, n.code, module.displayTitle(n.type, n.title, n.props), module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight)
+                MapPlace(n.id, n.code, module.displayTitle(n), module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight)
             },
             lines = lines.map { (a, b) ->
                 val p = at(a); val q = at(b)
@@ -92,14 +83,12 @@ class MapService(private val graph: GraphService) {
         return title.length * titleSize * 0.5 + (code.length + 1) * codeSize * 0.6
     }
 
-    companion object {
-        // A4 landscape proportions, so the same drawing fills the screen and the printed page.
-        const val WIDTH = 1400
-        const val HEIGHT = 990
-        private const val MARGIN = 130.0
-        /** How close a line may pass another place's centre before it's curved around it (a landmark's radius is 26). */
-        private const val CLEARANCE = 40.0
-        /** Half-size of each shape as drawn in map/_svg.peb. */
-        private val BODY = mapOf("circle" to 26.0, "diamond" to 17.0, "dot" to 7.0)
-    }
+    // A4 landscape proportions, so the same drawing fills the screen and the printed page.
+    const val WIDTH = 1400
+    const val HEIGHT = 990
+    private const val MARGIN = 130.0
+    /** How close a line may pass another place's centre before it's curved around it (a landmark's radius is 26). */
+    private const val CLEARANCE = 40.0
+    /** Half-size of each shape as drawn in map/_svg.peb. */
+    private val BODY = mapOf("circle" to 26.0, "diamond" to 17.0, "dot" to 7.0)
 }

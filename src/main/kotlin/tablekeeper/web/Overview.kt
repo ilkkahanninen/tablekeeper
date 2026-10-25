@@ -1,5 +1,7 @@
 package tablekeeper.web
 
+import tablekeeper.core.CampaignGraph
+import tablekeeper.core.Node
 import tablekeeper.modules.FormField
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.PropsForm
@@ -20,12 +22,32 @@ data class OverviewSection(val typeId: String, val label: String, val columns: L
 
 /** The campaign home's tables. Pure: callers pass fields and linked titles, so it is testable without a database. */
 object Overview {
+    /**
+     * The campaign home: a table per type, in the module's `overviewOrder`. A node whose type has a `context` link is
+     * listed under that node instead, e.g. a minor location under its landmark.
+     */
+    fun sections(m: ResolvedModule, graph: CampaignGraph): List<OverviewSection> {
+        val parent = graph.nodes.mapNotNull { n -> m.parent(graph, n)?.let { n.id to it.id } }.toMap()
+        val columns = graph.nodes.map { it.type }.distinct().associateWith { columns(m, it) }
+        fun row(n: Node): OverviewRow = OverviewRow(
+            n.id, n.code, m.displayTitle(n),
+            cells(columns.getValue(n.type), m.fields(n.type, n.props)) { o -> graph.linkedNodes(n.id, o.edgeType, o.direction).map(m::displayTitle) },
+            children = graph.nodes.filter { parent[it.id] == n.id }.map(::row),
+            muted = m.overviewMuted(n.type)?.let { n.props[it] == true } == true,
+        )
+        return graph.nodes.filter { it.id !in parent }.groupBy { it.type }
+            .map { (type, ofType) ->
+                val ordered = sorted(ofType, m.overviewSort(type), { it.props }, { it.title })
+                OverviewSection(type, m.plural(type), columns.getValue(type), ordered.map(::row), creatable = m.nodeTypes.any { it.id == type })
+            }
+            .sortedWith(compareBy({ m.overviewRank(it.typeId) }, { it.label }))
+    }
+
     /** The type's `overview` columns, then one column per link slot (e.g. Location). Header = schema title / link label. */
     fun columns(m: ResolvedModule, typeId: String): List<OverviewColumn> {
         val fields = PropsForm.fields(m.propsSchema(typeId), emptyMap()).associateBy { it.name }
-        val options = m.linkOptions(typeId)
         return m.overview(typeId).mapNotNull { spec ->
-            if (spec.startsWith("@")) options.firstOrNull { it.key == spec.drop(1) }
+            if (spec.startsWith("@")) m.linkOption(typeId, spec.drop(1))
                 ?.let { LinkColumn(listOf(it), it.label.replaceFirstChar(Char::uppercase)) }
             else fields[spec]?.let { PropColumn(spec, it.label) }
         } + m.linkSlots(typeId).map { LinkColumn(it.options, it.label) }
@@ -44,7 +66,7 @@ object Overview {
         return items.sortedWith(compareBy<T, Any?>(nullsLast(byValue)) { props(it)[prop]?.takeIf { v -> v.toString().isNotBlank() } }.thenBy(title))
     }
 
-    /** Cell text per column: a prop's display text (empty while hidden), or the linked titles joined. */
+    /** Cell text per column: a prop's display text (empty while hidden or not in [fields]), or the linked titles joined. */
     fun cells(columns: List<OverviewColumn>, fields: Map<String, FormField>, linked: (LinkOption) -> List<String>): List<String> =
         columns.map { col ->
             when (col) {

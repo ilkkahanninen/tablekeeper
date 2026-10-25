@@ -1,12 +1,21 @@
 package tablekeeper.modules
 
+import com.fasterxml.jackson.databind.node.ObjectNode
+import tablekeeper.core.CampaignGraph
 import tablekeeper.core.Direction
+import tablekeeper.core.EdgeRef
+import tablekeeper.core.Json
+import tablekeeper.core.Link
+import tablekeeper.core.Node
+import tablekeeper.core.NodeRef
 import java.io.File
 import java.nio.file.Files
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GameModulesTest {
@@ -37,9 +46,9 @@ class GameModulesTest {
 
     @Test
     fun `props schema rejects unknown tier and domain`() {
-        val bad = GameModules.mapper.readTree("""{"tier": 1, "domains": ["Moon"]}""")
+        val bad = Json.mapper.readTree("""{"tier": 1, "domains": ["Moon"]}""")
         assertTrue(heart.validateProps("heart.landmark", bad).size >= 2)
-        val ok = GameModules.mapper.readTree("""{"tier": "Tier 1", "domains": ["Occult", "Desolate"]}""")
+        val ok = Json.mapper.readTree("""{"tier": "Tier 1", "domains": ["Occult", "Desolate"]}""")
         assertTrue(heart.validateProps("heart.landmark", ok).isEmpty())
     }
 
@@ -126,8 +135,8 @@ class GameModulesTest {
         assertEquals("multi", tags.kind)
         assertEquals(9, tags.options.size)
         assertEquals("The resource may explode if mistreated.", tags.hints["Volatile"])
-        assertTrue(heart.validateProps("heart.resource", GameModules.mapper.readTree("""{"tags": ["Fragile", "Taboo"]}""")).isEmpty())
-        assertFalse(heart.validateProps("heart.resource", GameModules.mapper.readTree("""{"tags": ["Shiny"]}""")).isEmpty())
+        assertTrue(heart.validateProps("heart.resource", Json.mapper.readTree("""{"tags": ["Fragile", "Taboo"]}""")).isEmpty())
+        assertFalse(heart.validateProps("heart.resource", Json.mapper.readTree("""{"tags": ["Shiny"]}""")).isEmpty())
     }
 
     @Test
@@ -153,10 +162,10 @@ class GameModulesTest {
         assertEquals("multi", tags.kind)
         assertEquals(27, tags.options.size)
         assertTrue(tags.options.all { it in tags.hints }, "every equipment tag has a description")
-        assertTrue(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"tags": ["Brutal", "Limited X"]}""")).isEmpty())
+        assertTrue(heart.validateProps("heart.equipment", Json.mapper.readTree("""{"tags": ["Brutal", "Limited X"]}""")).isEmpty())
         assertEquals(listOf("{die.value}", "{tags}"), heart.printSummary("heart.resource")?.parts)
-        assertTrue(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"category": "Kill", "quality": "d10"}""")).isEmpty())
-        assertFalse(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"quality": "Exotic"}""")).isEmpty())
+        assertTrue(heart.validateProps("heart.equipment", Json.mapper.readTree("""{"category": "Kill", "quality": "d10"}""")).isEmpty())
+        assertFalse(heart.validateProps("heart.equipment", Json.mapper.readTree("""{"quality": "Exotic"}""")).isEmpty())
     }
 
     @Test
@@ -186,7 +195,7 @@ class GameModulesTest {
         assertEquals(3, with.get("limitedUses").asInt())
         val (without, _) = PropsForm.parse(schema, mapOf("prop.tags" to listOf("Brutal"), "prop.limitedUses" to listOf("3")))
         assertFalse(without.has("limitedUses"))
-        assertFalse(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"limitedUses": 0}""")).isEmpty())
+        assertFalse(heart.validateProps("heart.equipment", Json.mapper.readTree("""{"limitedUses": 0}""")).isEmpty())
     }
 
     @Test
@@ -226,9 +235,9 @@ class GameModulesTest {
         assertEquals(listOf("Beat 1", "Beat 2"), beatRows.map { it.label })
         assertEquals(listOf("beat1Type", "beat1"), beatRows.first().fields.map { it.name })
         val ok = """{"beat1": "Find the ledger", "beat1Type": "Major", "beat2": "Pay Silvia back", "beat2Type": "Minor"}"""
-        assertTrue(heart.validateProps("heart.pc", GameModules.mapper.readTree(ok)).isEmpty())
-        assertFalse(heart.validateProps("heart.pc", GameModules.mapper.readTree("""{"beat3": "x"}""")).isEmpty())
-        assertFalse(heart.validateProps("heart.pc", GameModules.mapper.readTree("""{"beat1Type": "Huge"}""")).isEmpty())
+        assertTrue(heart.validateProps("heart.pc", Json.mapper.readTree(ok)).isEmpty())
+        assertFalse(heart.validateProps("heart.pc", Json.mapper.readTree("""{"beat3": "x"}""")).isEmpty())
+        assertFalse(heart.validateProps("heart.pc", Json.mapper.readTree("""{"beat1Type": "Huge"}""")).isEmpty())
     }
 
     @Test
@@ -285,8 +294,8 @@ class GameModulesTest {
         val stress = PropsForm.fields(heart.propsSchema("heart.landmark"), emptyMap()).single { it.name == "stress" }
         assertEquals("select", stress.kind)
         assertEquals(listOf("d4", "d6", "d8", "d10", "d12"), stress.options)
-        assertTrue(heart.validateProps("heart.landmark", GameModules.mapper.readTree("""{"stress": "d6"}""")).isEmpty())
-        assertFalse(heart.validateProps("heart.landmark", GameModules.mapper.readTree("""{"stress": "6"}""")).isEmpty())
+        assertTrue(heart.validateProps("heart.landmark", Json.mapper.readTree("""{"stress": "d6"}""")).isEmpty())
+        assertFalse(heart.validateProps("heart.landmark", Json.mapper.readTree("""{"stress": "6"}""")).isEmpty())
     }
 
     @Test
@@ -349,7 +358,7 @@ class GameModulesTest {
         assertEquals(listOf("voice" to "text", "appearance" to "text", "dead" to "bool"), fields.map { it.name to it.kind })
         assertTrue(fields.filter { it.kind == "text" }.all { it.wide }, "each on its own full-width row")
         assertEquals("dead", heart.overviewMuted("core.npc"), "dead NPCs are greyed out on the campaign home")
-        assertTrue(heart.validateProps("core.npc", GameModules.mapper.readTree("""{"voice": "Hoarse whisper", "appearance": "Ash-grey robes"}""")).isEmpty())
+        assertTrue(heart.validateProps("core.npc", Json.mapper.readTree("""{"voice": "Hoarse whisper", "appearance": "Ash-grey robes"}""")).isEmpty())
     }
 
     @Test
@@ -459,5 +468,64 @@ class GameModulesTest {
         val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
         assertTrue("nope:in" in e.message.orEmpty())
         dir.deleteRecursively()
+    }
+
+    @Test
+    fun `fields a random table can fill are titles and text fields`() {
+        val options = heart.fillableFields().associate { it.key to it.label }
+        assertEquals("NPC: Title", options["core.npc:title"])
+        assertEquals("NPC: Voice", options["core.npc:voice"])
+        assertEquals("NPC: Appearance", options["core.npc:appearance"])
+        assertEquals("Landmark: Title", options["heart.landmark:title"])
+        assertEquals("Landmark: Haunts", options["heart.landmark:haunts"])
+        assertTrue("heart.pc:beat1" in options, "one-line fields inside rows count too")
+        // Dropdowns, checkboxes and numbers can't take free text
+        assertFalse("heart.landmark:tier" in options)
+        assertFalse("heart.landmark:domains" in options)
+        assertFalse("core.npc:dead" in options)
+        assertFalse("heart.delve:resistance" in options)
+    }
+
+    @Test
+    fun `a type patch replaces only the settings it gives`() {
+        val npc = heart.type("core.npc")!!
+        val patched = GameModules.patch(npc, Json.mapper.readTree("""{"id": "other", "plural": "Folk", "overviewSort": "-name"}""") as ObjectNode)
+        assertEquals("Folk", patched.plural)
+        assertEquals("-name", patched.overviewSort)
+        assertEquals(npc.copy(plural = "Folk", overviewSort = "-name"), patched, "id, props and every other setting stay")
+    }
+
+    @Test
+    fun `summary fills the type's print summary from visible fields`() {
+        assertEquals("Kill d8 · Brutal", heart.summary("heart.equipment", mapOf("category" to "Kill", "quality" to "d8", "tags" to listOf("Brutal"))))
+        // Quality is hidden on Miscellaneous equipment, so it drops out
+        assertEquals("Miscellaneous", heart.summary("heart.equipment", mapOf("category" to "Miscellaneous", "quality" to "d8")))
+        assertEquals("", heart.summary("heart.landmark", mapOf("tier" to "Tier 1")), "no printSummary")
+    }
+
+    @Test
+    fun `a minor location's parent is its landmark`() {
+        val c = UUID.randomUUID()
+        fun node(type: String, title: String) = Node(UUID.randomUUID(), c, type, title, title, "", emptyMap(), "gm")
+        val market = node("heart.landmark", "Red Market")
+        val row = node("heart.minor_location", "Butcher's Row")
+        val graph = CampaignGraph(listOf(market, row), listOf(EdgeRef(row.id, market.id, "part_of")))
+        assertEquals(market, heart.parent(graph, row))
+        assertNull(heart.parent(graph, market), "landmarks have no context link")
+    }
+
+    @Test
+    fun `links are grouped under headings in module order`() {
+        fun ref(type: String, title: String) = NodeRef(UUID.randomUUID(), type, title, title, "gm")
+        fun link(type: String, dir: Direction, other: NodeRef) = Link(UUID.randomUUID(), type, dir, other)
+        val links = listOf(
+            link("located_at", Direction.IN, ref("heart.resource", "Lamp")),
+            link("located_at", Direction.IN, ref("core.npc", "Silvia")),
+            link("connects", Direction.IN, ref("heart.delve", "Tunnel")),
+        )
+        val groups = heart.groupLinks(links)
+        assertEquals(listOf("Silvia"), groups["NPCs"]?.map { it.other.title })
+        assertEquals(listOf("Lamp"), groups["Resources"]?.map { it.other.title })
+        assertTrue(groups.keys.indexOf("NPCs") < groups.keys.indexOf("Resources"), "types in campaign-home order")
     }
 }

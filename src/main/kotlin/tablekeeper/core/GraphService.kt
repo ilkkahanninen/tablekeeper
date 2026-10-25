@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.impl.DSL
-import tablekeeper.modules.GameModules
 import java.util.UUID
 
 /**
@@ -13,7 +12,7 @@ import java.util.UUID
  * caller has already ownership-checked via CampaignService.get().
  */
 class GraphService(private val db: DSLContext) {
-    private val mapper = GameModules.mapper
+    private val mapper = Json.mapper
 
     private val nodeCols = "id, campaign_id, type, code, title, body, props::text as props, visibility"
     private val refCols = "n.id, n.type, n.code, n.title, n.visibility"
@@ -25,6 +24,9 @@ class GraphService(private val db: DSLContext) {
     /** Every node with its props, for whole-campaign views (home tables, map, module views). */
     fun listNodesWithProps(campaignId: UUID): List<Node> =
         db.fetch("select $nodeCols from nodes where campaign_id = ? order by type, title", campaignId).map(::toNode)
+
+    /** The whole campaign graph in memory, for pages and prints that walk it. */
+    fun snapshot(campaignId: UUID): CampaignGraph = CampaignGraph(listNodesWithProps(campaignId), listEdges(campaignId))
 
     fun getNode(campaignId: UUID, nodeId: UUID): Node? =
         db.fetchOne("select $nodeCols from nodes where campaign_id = ? and id = ?", campaignId, nodeId)
@@ -122,7 +124,7 @@ class GraphService(private val db: DSLContext) {
         db.execute("delete from edges where campaign_id = ? and $end = ? and type = ?", campaignId, nodeId, type)
     }
 
-    fun createEdge(campaignId: UUID, fromId: UUID, toId: UUID, type: String) {
+    private fun createEdge(campaignId: UUID, fromId: UUID, toId: UUID, type: String) {
         db.execute(
             """insert into edges (campaign_id, from_id, to_id, type)
                select ?, ?, ?, ?
@@ -133,9 +135,14 @@ class GraphService(private val db: DSLContext) {
         )
     }
 
-    /** Removes the [type] edge [fromId] → [toId], if there is one. */
-    fun deleteEdgeBetween(campaignId: UUID, fromId: UUID, toId: UUID, type: String) {
-        db.execute("delete from edges where campaign_id = ? and from_id = ? and to_id = ? and type = ?", campaignId, fromId, toId, type)
+    /** Links [nodeId] to [otherId] with a [type] edge leaving ([Direction.OUT]) or entering ([Direction.IN]) the node. */
+    fun createLink(campaignId: UUID, nodeId: UUID, type: String, direction: Direction, otherId: UUID) =
+        if (direction == Direction.OUT) createEdge(campaignId, nodeId, otherId, type) else createEdge(campaignId, otherId, nodeId, type)
+
+    /** Removes the [type] edge between [nodeId] and [otherId] in [direction], if there is one. */
+    fun deleteLink(campaignId: UUID, nodeId: UUID, type: String, direction: Direction, otherId: UUID) {
+        val (from, to) = if (direction == Direction.OUT) nodeId to otherId else otherId to nodeId
+        db.execute("delete from edges where campaign_id = ? and from_id = ? and to_id = ? and type = ?", campaignId, from, to, type)
     }
 
     fun deleteEdge(campaignId: UUID, edgeId: UUID) {

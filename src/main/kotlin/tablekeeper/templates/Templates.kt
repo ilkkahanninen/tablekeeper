@@ -1,4 +1,4 @@
-package tablekeeper.web
+package tablekeeper.templates
 
 import io.pebbletemplates.pebble.PebbleEngine
 import io.pebbletemplates.pebble.loader.Loader
