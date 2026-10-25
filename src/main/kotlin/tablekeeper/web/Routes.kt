@@ -88,6 +88,15 @@ class Deps(
         html("node/_links_changed.peb", nodePage.model(g.campaign, g.module, n))
     }
 
+    /**
+     * Done, for a change made from another node's page (a session's debrief), so there are no page parts to swap.
+     * "refresh" in [p] reloads that debrief, e.g. after adding a fallout.
+     */
+    suspend fun ApplicationCall.quiet(p: Parameters) {
+        if (p["refresh"] == "1") response.header("HX-Trigger", DEBRIEF_CHANGED)
+        respondText("")
+    }
+
     /** A PDF shown in the browser, saved as "<fileName>.pdf". Rendered off the request thread. */
     suspend fun ApplicationCall.pdf(fileName: String, render: () -> ByteArray) {
         val pdf = withContext(Dispatchers.IO) { render() }
@@ -101,6 +110,9 @@ class Deps(
     fun newTitle(c: Campaign, typeId: String, typeLabel: String, given: String?): String =
         given?.trim()?.takeIf { it.isNotEmpty() } ?: tables.rollTitle(c.id, typeId) ?: "New $typeLabel"
 }
+
+/** Event that reloads a session page's debrief (`node/_debrief.peb`). */
+const val DEBRIEF_CHANGED = "debrief-changed"
 
 private fun String?.toUuid(): UUID? = this?.let { runCatching { UUID.fromString(it) }.getOrNull() }
 

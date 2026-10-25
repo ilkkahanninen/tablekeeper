@@ -30,14 +30,14 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
   - *Mix first and last words* turns 20 "First Last" names into 400.
 - **Map:** an automatic, repeatable layout. Landmarks sit by tier, delves between them, and minor locations around them. Available on screen and as an A4 PDF.
 - **Inspiration:** what the party wants from play. Beats by calling, the rule book's class texts, and each character's fallouts.
-- **Session packet:** see below.
+- **Session packet** and **debrief:** see below.
 - **Print cards:** an A6 GM card for any node.
 
 ## Session packet
 
 Add a **Session** and tick the landmarks likely to come up and the characters taking part. **Print** then gives one landscape A4 PDF with the text in three columns:
 
-- **Page 1:** the session's title, date and notes, and the whole map with the selected landmarks highlighted.
+- **Page 1:** the session's title, date and notes, and the whole map with the selected landmarks highlighted. Beside it, under **Last time**, the previous session's "What happened".
 - **Characters:** one block per character, with calling · class, notes, beats, fallouts and their class's inspiration points (once per class).
 - **Landmarks:** in tier order, with props, notes, haunts, who and what is there, minor locations with their contents, and facts with tick boxes.
 - **Delves:** those between selected landmarks.
@@ -70,6 +70,12 @@ docker compose up --build
 | `MODULES_DIR` | `modules` | Game module folders |
 | `TEMPLATE_CACHE` | `true` | `false` reloads templates on every request (module print templates included) |
 | `PORT` | `8080` | |
+
+After the session, write **What happened** on the session, and use the **Debrief** box below its form to bring the campaign up to date. Every change saves to its own node at once:
+
+- **Characters** (the ticked ones): edit beats, press **Done** on a finished one to clear it for the next, and add, edit or remove (×) fallouts.
+- **NPCs** at the session's landmarks: move them or mark them dead.
+- **Equipment** and **resources** there, or carried by anyone in the packet: move them or hand them to someone.
 
 ## A quick tour
 
@@ -146,7 +152,8 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `overview`, `overviewSort`, `overviewMuted` | Campaign page columns (props or `@rel`), row order, greyed rows | sessions by `date`, dead NPCs |
 | `printTemplate`, `printSummary`, `printNested` | Print card template; how it's listed on other cards (`group` + parts); nested lists | equipment "Kill d8 · Brutal" |
 | `mapShape`, `mapDepth`, `mapBetween` | Map shape; depth from a prop; drawn between linked places | landmarks by tier, delves between |
-| `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`) | Heart session |
+| `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time") | Heart session |
+| `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
 
 **Edge type settings:** `label` / `inverseLabel`, allowed `from` / `to` types, and `groupByType`, which lists the `to` side by type: *NPCs*, *Resources*…
 

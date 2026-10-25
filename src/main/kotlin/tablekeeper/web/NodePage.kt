@@ -10,6 +10,7 @@ import tablekeeper.modules.LinkOption
 import tablekeeper.modules.Linker
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
+import tablekeeper.print.Packet
 import tablekeeper.print.PrintService
 import java.util.UUID
 
@@ -62,8 +63,48 @@ class NodePage(
         },
         "linkedProps" to print.linkedProps(c, m, n),
         "groups" to linkGroups(c, m, n),
+        "debrief" to debrief(c, m, n),
         "errors" to errors,
     )
+
+    /**
+     * The node's debrief (module `debrief`, e.g. a session's): its packet's characters, NPCs and items with the
+     * listed fields, link slots and linked nodes, to update after play. Empty without a debrief or packet.
+     */
+    fun debrief(c: Campaign, m: ResolvedModule, n: Node): List<DebriefSection> {
+        val defs = m.debrief(n.type)
+        val packet = m.packet(n.type) ?: return emptyList()
+        if (defs.isEmpty()) return emptyList()
+        val graph = graph.snapshot(c.id)
+        val selection = Packet.select(m, n, packet, graph)
+        fun fields(node: Node, names: List<String>) = PropsForm.fields(m.propsSchema(node.type), node.props).filter { it.name in names }
+        return defs.flatMap { def ->
+            Debrief.members(m, def, selection, graph).groupBy { it.type }.entries
+                .sortedBy { m.overviewRank(it.key) }
+                .map { (type, nodes) ->
+                    DebriefSection(m.plural(type), nodes.sortedBy { it.title }.map { node ->
+                        val quick = m.quickCreate(node.type)
+                        DebriefItem(
+                            node, m.displayTitle(node), Debrief.rows(fields(node, def.fields), def.done),
+                            slots = if (def.slots) slots(c, m, node) else emptyList(),
+                            links = def.links.mapNotNull { l ->
+                                val option = m.linkOption(node.type, l.rel) ?: return@mapNotNull null
+                                val linked = graph.linkedNodes(node.id, option.edgeType, option.direction).sortedBy { it.title }
+                                val labelType = l.create ?: linked.firstOrNull()?.type
+                                DebriefLinks(
+                                    labelType?.let { m.linkGroupLabel(option.edgeType, option.direction, it) } ?: option.label,
+                                    option,
+                                    quick.firstOrNull { it.type.id == l.create && it.option == option }?.key,
+                                    linked.map { DebriefLinked(it, m.displayTitle(it), Debrief.rows(fields(it, l.fields), done = false)) },
+                                    remove = l.remove,
+                                )
+                            },
+                            muted = m.overviewMuted(node.type)?.let { node.props[it] == true } == true,
+                        )
+                    })
+                }
+        }
+    }
 
     /**
      * Link box results for [q] through [rel] (empty = Any: every relation this node can take, most useful first),
@@ -121,7 +162,7 @@ class NodePage(
     }
 
     /** Dropdowns for this node's link slots: one option group per link option, listing every allowed far end. */
-    private fun slots(c: Campaign, m: ResolvedModule, n: Node): List<SlotView> {
+    fun slots(c: Campaign, m: ResolvedModule, n: Node): List<SlotView> {
         val slots = m.linkSlots(n.type)
         if (slots.isEmpty()) return emptyList()
         val links = graph.links(c.id, n.id)

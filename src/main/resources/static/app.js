@@ -60,3 +60,15 @@ document.addEventListener("click", (e) => {
     .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
     .then((value) => { field.value = value; field.dispatchEvent(new Event("change", { bubbles: true })); });
 });
+
+// Debrief: controls save to other nodes with no swap, so show a refused change (e.g. a full link limit) in its status.
+document.addEventListener("htmx:responseError", (e) => {
+  const status = e.detail.elt.closest("#debrief")?.querySelector("#debrief-status");
+  if (!status) return;
+  const item = document.createElement("li");
+  item.textContent = e.detail.xhr.responseText;
+  const list = document.createElement("ul");
+  list.className = "errors";
+  list.append(item);
+  status.replaceChildren(list);
+});

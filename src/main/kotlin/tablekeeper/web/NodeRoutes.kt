@@ -1,7 +1,9 @@
 package tablekeeper.web
 
 import io.ktor.http.ContentType
+import io.ktor.http.Parameters
 import io.ktor.server.request.receiveParameters
+import io.ktor.server.response.header
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -24,7 +26,9 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val (c, m) = call.game()
         val n = call.node(c)
         val p = call.receiveParameters()
-        val (props, parseErrors) = PropsForm.parse(m.propsSchema(n.type), p.asMap())
+        // "only": a few fields posted on their own (a session's debrief), merged over the stored props; "clear" empties them (Done)
+        val posted = if (p["clear"] == "1") emptyMap() else p.asMap()
+        val (props, parseErrors) = PropsForm.parse(m.propsSchema(n.type), posted, p.getAll("only")?.toSet(), n.props)
         val errors = parseErrors + m.validateProps(n.type, props)
         val title = p["title"]?.trim().orEmpty().ifEmpty { n.title }
         val body = p["body"].orEmpty()
@@ -38,6 +42,7 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
                         props = Json.mapper.convertValue(props, Map::class.java) as Map<String, Any?>)
         val model = nodePage.model(c, m, shown, errors)
         // Autosave swaps only the status (errors, or nothing), so focus and typed text stay put
+        if (p["refresh"] == "1") call.response.header("HX-Trigger", DEBRIEF_CHANGED)
         when {
             p["autosave"] == "1" -> call.html("node/_save_status.peb", model)
             call.isHtmx() -> call.html("node/_form.peb", model)
@@ -47,8 +52,10 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
 
     post("/delete") {
         val (c, _) = call.game()
+        // A Delete button may post no form at all; "quiet" comes from a session's debrief (removing a fallout)
+        val p = runCatching { call.receiveParameters() }.getOrDefault(Parameters.Empty)
         graph.deleteNode(c.id, call.node(c).id)
-        call.redirect("/c/${c.id}")
+        if (p["quiet"] == "1") call.quiet(p) else call.redirect("/c/${c.id}")
     }
 
     // Link box: results for the chosen link type, filtered by the module's endpoint rules.
@@ -96,7 +103,7 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
             val option = slot.options.firstOrNull { it.key == rel } ?: throw BadRequest("'$rel' is not in slot ${slot.label}")
             linker.link(g.campaign.id, g.module, n, option, otherNode(g, value.substringAfter("|"), option))
         }
-        call.linksChanged(g, n)
+        if (p["quiet"] == "1") call.quiet(p) else call.linksChanged(g, n)
     }
 
     // "Add new…": create a node, link it to this one, then open it.
@@ -113,7 +120,8 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val created = graph.createNode(c.id, q.type.id, q.type.codePrefix, newTitle(c, q.type.id, q.type.label, p["title"] ?: p["q"]))
         linker.link(c.id, m, n, q.option, created)
         // "stay": create without opening, refreshing this page's links, ready for the next one
-        if (p["stay"] == "1") call.linksChanged(g, n)
+        if (p["quiet"] == "1") call.quiet(p)
+        else if (p["stay"] == "1") call.linksChanged(g, n)
         else call.redirect("/c/${c.id}/n/${created.id}")
     }
 
@@ -122,6 +130,13 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val n = call.node(g.campaign)
         graph.deleteEdge(g.campaign.id, call.uuid("eid"))
         call.linksChanged(g, n)
+    }
+
+    // A session's debrief section, reloaded after something is added or done there
+    get("/debrief") {
+        val (c, m) = call.game()
+        val n = call.node(c)
+        call.html("node/_debrief.peb", mapOf("campaign" to c, "node" to n, "debrief" to nodePage.debrief(c, m, n)))
     }
 
     // Print preview in the browser (same HTML that becomes the PDF).

@@ -6,6 +6,7 @@ import tablekeeper.modules.FormField
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
+import tablekeeper.modules.sortedByProp
 import java.util.UUID
 
 /** A column of a type's table on the campaign home: a prop, or links (an "@rel" column or a link slot). */
@@ -37,7 +38,7 @@ object Overview {
         )
         return graph.nodes.filter { it.id !in parent }.groupBy { it.type }
             .map { (type, ofType) ->
-                val ordered = sorted(ofType, m.overviewSort(type), { it.props }, { it.title })
+                val ordered = sortedByProp(ofType, m.overviewSort(type), { it.props }, { it.title })
                 OverviewSection(type, m.plural(type), columns.getValue(type), ordered.map(::row), creatable = m.nodeTypes.any { it.id == type })
             }
             .sortedWith(compareBy({ m.overviewRank(it.typeId) }, { it.label }))
@@ -51,19 +52,6 @@ object Overview {
                 ?.let { LinkColumn(listOf(it), it.label.replaceFirstChar(Char::uppercase)) }
             else fields[spec]?.let { PropColumn(spec, it.label) }
         } + m.linkSlots(typeId).map { LinkColumn(it.options, it.label) }
-    }
-
-    /**
-     * Orders a type's rows by its `overviewSort` prop: stored values compared as numbers when both are, else as text
-     * (ISO dates sort right), rows without a value last; ties and unsorted types by title.
-     */
-    fun <T> sorted(items: List<T>, sort: Pair<String, Boolean>?, props: (T) -> Map<String, Any?>, title: (T) -> String): List<T> {
-        if (sort == null) return items.sortedBy(title)
-        val (prop, descending) = sort
-        val byValue = Comparator<Any> { a, b ->
-            if (a is Number && b is Number) a.toDouble().compareTo(b.toDouble()) else a.toString().compareTo(b.toString())
-        }.let { if (descending) it.reversed() else it }
-        return items.sortedWith(compareBy<T, Any?>(nullsLast(byValue)) { props(it)[prop]?.takeIf { v -> v.toString().isNotBlank() } }.thenBy(title))
     }
 
     /** Cell text per column: a prop's display text (empty while hidden or not in [fields]), or the linked titles joined. */

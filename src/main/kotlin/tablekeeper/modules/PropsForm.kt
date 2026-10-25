@@ -131,11 +131,13 @@ object PropsForm {
     /**
      * Builds the props JSON from posted form params (`prop.tier=2`, `prop.domains=Occult&prop.domains=Wild`).
      * Type coercion only; constraints (min/max, enums) are checked by the module's schema afterwards.
+     * [only]: just these fields were posted (e.g. one beat edited on a session's debrief); the others keep their [stored] values.
      */
-    fun parse(schema: JsonNode?, params: Map<String, List<String>>): Pair<ObjectNode, List<String>> {
-        val out = json.objectNode()
+    fun parse(schema: JsonNode?, params: Map<String, List<String>>, only: Set<String>? = null,
+              stored: Map<String, Any?> = emptyMap()): Pair<ObjectNode, List<String>> {
+        val out: ObjectNode = if (only == null) json.objectNode() else Json.mapper.valueToTree<ObjectNode>(stored).apply { remove(only) }
         val errors = mutableListOf<String>()
-        for (field in fields(schema, emptyMap())) {
+        for (field in fields(schema, emptyMap()).filter { only == null || it.name in only }) {
             val raw = params[field.inputName].orEmpty()
             val first = raw.firstOrNull()?.trim().orEmpty()
             when (field.kind) {

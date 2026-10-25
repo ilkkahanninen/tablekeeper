@@ -19,7 +19,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GameModulesTest {
-    private val heart = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("heart")
+    private val modulesDir = System.getProperty("modulesDir") ?: "modules"
+    private val heart = GameModules.load(modulesDir).get("heart")
 
     @Test
     fun `landmark is a place through inheritance`() {
@@ -527,5 +528,41 @@ class GameModulesTest {
         assertEquals(listOf("Silvia"), groups["NPCs"]?.map { it.other.title })
         assertEquals(listOf("Lamp"), groups["Resources"]?.map { it.other.title })
         assertTrue(groups.keys.indexOf("NPCs") < groups.keys.indexOf("Resources"), "types in campaign-home order")
+    }
+
+    @Test
+    fun `sessions debrief characters, npcs and items, and recap the previous session`() {
+        val (pcs, npcs, items) = heart.debrief("core.session")
+        assertEquals(listOf("heart.pc"), pcs.types)
+        assertTrue(pcs.done && "beat1" in pcs.fields)
+        assertEquals("heart.fallout", pcs.links.single().create)
+        assertTrue(pcs.links.single().remove, "healed fallouts can be removed")
+        assertEquals(listOf("dead"), npcs.fields)
+        assertTrue(npcs.slots && items.slots)
+        assertEquals("recap", heart.packet("core.session")?.recap)
+    }
+
+    @Test
+    fun `a debrief naming a missing field or an impossible create fails to load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "core").mkdirs()
+        File(modulesDir, "core/module.json").copyTo(File(dir, "core/module.json"))
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText("""{"id": "bad", "name": "Bad", "extends": ["core"], "patchTypes": [{"id": "core.session",
+            "debrief": [{"types": ["core.npc"], "fields": ["mood"], "links": [{"rel": "carries:out", "create": "core.item"}]}]}]}""")
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
+        assertTrue("debrief field 'mood'" in e.message.orEmpty(), e.message)
+        assertTrue("debrief create 'core.item'" in e.message.orEmpty(), e.message)
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `a partial save changes only the posted fields`() {
+        val stored = mapOf("player" to "Mia", "beat1" to "Find the ledger", "beat2" to "Burn it")
+        val (props, errors) = PropsForm.parse(heart.propsSchema("heart.pc"), mapOf("prop.beat1" to listOf("Sell the ledger")), setOf("beat1"), stored)
+        assertTrue(errors.isEmpty())
+        assertEquals(mapOf("player" to "Mia", "beat1" to "Sell the ledger", "beat2" to "Burn it"), Json.mapper.convertValue(props, Map::class.java))
+        val (cleared) = PropsForm.parse(heart.propsSchema("heart.pc"), emptyMap(), setOf("beat1Type", "beat1"), stored)
+        assertEquals(mapOf("player" to "Mia", "beat2" to "Burn it"), Json.mapper.convertValue(cleared, Map::class.java), "Done empties a beat")
     }
 }

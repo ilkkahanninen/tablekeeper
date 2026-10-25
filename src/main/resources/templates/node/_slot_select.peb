@@ -1,0 +1,9 @@
+{# A link slot's dropdown (variable s: SlotView): "— Pool —", then every allowed far end grouped by relation. #}
+<select name="value"{% if label %} aria-label="{{ s.label }}"{% endif %}>
+  <option value="">— Pool —</option>
+  {% for g in s.groups %}
+    <optgroup label="{{ g.label }}">
+      {% for ch in g.choices %}<option value="{{ ch.value }}"{% if ch.selected %} selected{% endif %}>{{ ch.label }}</option>{% endfor %}
+    </optgroup>
+  {% endfor %}
+</select>

@@ -18,7 +18,13 @@
       ],
       "packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }],
                   "around": [{ "type": "core.npc", "rel": "located_at:out" }, { "type": "core.faction", "rel": "located_at:out" }],
-                  "related": [{ "type": "core.faction", "rel": "member_of:in" }], "columns": 3 }
+                  "related": [{ "type": "core.faction", "rel": "member_of:in" }], "columns": 3, "recap": "recap" },
+      "debrief": [
+        { "types": ["heart.pc"], "fields": ["beat1Type", "beat1", "beat2Type", "beat2"], "done": true,
+          "links": [{ "rel": "suffers:out", "fields": ["type", "resistance"], "create": "heart.fallout", "remove": true }] },
+        { "types": ["core.npc"], "fields": ["dead"], "slots": true },
+        { "types": ["core.item"], "slots": true }
+      ]
     },
     {
       "id": "core.npc",

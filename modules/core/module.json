@@ -32,7 +32,8 @@
         "additionalProperties": false,
         "properties": {
           "number": { "type": "integer", "title": "Session #", "minimum": 0 },
-          "date":   { "type": "string",  "title": "Date", "format": "date" }
+          "date":   { "type": "string",  "title": "Date", "format": "date" },
+          "recap":  { "type": "string",  "title": "What happened", "x-widget": "textarea", "x-wide": true }
         }
       }
     }

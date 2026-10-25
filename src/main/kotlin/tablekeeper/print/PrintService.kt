@@ -18,6 +18,7 @@ import tablekeeper.modules.FormField
 import tablekeeper.modules.PacketDef
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
+import tablekeeper.modules.sortedByProp
 import tablekeeper.templates.Templates
 import tablekeeper.views.ModuleViews
 import tablekeeper.views.ViewData
@@ -44,8 +45,11 @@ data class LinkedPropSource(val id: UUID, val code: String, val title: String, v
 data class LinkedPropValue(val name: String, val label: String, val via: String, val sources: List<LinkedPropSource>)
 data class PrintFact(val code: String, val title: String, val body: String, val visibility: String)
 
+/** The previous node's recap on a packet cover ("Last time"), e.g. S1's "What happened". */
+data class PacketRecap(val code: String, val title: String, val text: String)
+
 /** A session packet's extra template variables (the type's `packet` setting). */
-data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>)
+data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>, val previous: PacketRecap? = null)
 
 /**
  * Everything a print template may use, already filtered for the audience. Section items in a packet are these too,
@@ -69,7 +73,7 @@ data class PrintModel(
         "campaign" to campaign, "node" to node, "typeLabel" to typeLabel, "displayTitle" to displayTitle,
         "props" to props, "flags" to flags, "linkedProps" to linkedProps, "groups" to groups, "facts" to facts,
         "audience" to audience,
-    ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections) }.orEmpty()
+    ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous) }.orEmpty()
 }
 
 class PrintService(private val graph: GraphService, private val templates: Templates) {
@@ -125,23 +129,11 @@ class PrintService(private val graph: GraphService, private val templates: Templ
      */
     private fun packet(campaign: Campaign, module: ResolvedModule, node: Node, def: PacketDef, audience: Audience, all: CampaignGraph): PacketModel {
         val g = all.filter { audience.canSee(it.visibility) }
-        fun linked(id: UUID, typeId: String, rel: String): List<UUID> =
-            module.linkOption(typeId, rel)!!.let { o -> g.linkedNodes(id, o.edgeType, o.direction).map { it.id } }
-        fun ofType(type: String) = g.nodes.filter { module.isA(it.type, type) }.map { it.id }
-
-        val selected = linked(node.id, node.type, def.rel).mapNotNull { g.byId[it] }
-        val selectedIds = selected.map { it.id }.toSet()
-        val between = def.between.flatMap { b -> Packet.between(selectedIds, ofType(b.type)) { linked(it, b.type, b.rel) } }
-        // A node "inside" another via its type's context link, e.g. a minor location inside its landmark
-        val around = def.around.flatMap { a ->
-            Packet.around(selectedIds, ofType(a.type), { linked(it, a.type, a.rel) }, { id -> g.byId[id]?.let { module.parent(g, it)?.id } })
-        }
-
+        val selection = Packet.select(module, node, def, g)
+        val selected = selection.selected
         val views = module.views.map { ModuleViews.build(module, it, selected, g) }.filter { it.nodes.isNotEmpty() }
         val inViews = views.flatMap { v -> v.nodes.map { it.node.id } }.toSet()
-        val included = selectedIds + between + around
-        val related = def.related.flatMap { r -> Packet.related(included, ofType(r.type)) { linked(it, r.type, r.rel) } }
-        val sections = (selected.filter { it.id !in inViews } + (between + around + related).mapNotNull { g.byId[it] }).distinctBy { it.id }
+        val sections = selection.all.filter { it.id !in inViews }
             .groupBy { it.type }.entries
             .sortedWith(compareBy({ module.overviewRank(it.key) }, { module.label(it.key) }))
             .map { (type, ofType) ->
@@ -157,7 +149,20 @@ class PrintService(private val graph: GraphService, private val templates: Templ
                         .filter { grp -> grp.items.isNotEmpty() && !grp.items.all { it.code in shown } })
                 })
             }
-        return PacketModel(MapService.view(all, module, highlight = selectedIds), views, sections)
+        return PacketModel(MapService.view(all, module, highlight = selected.map { it.id }.toSet()), views, sections,
+            previous = def.recap?.let { recap(module, node, it, g) })
+    }
+
+    /**
+     * The [prop] text (e.g. "recap") of the node of [node]'s type just before it, in its `overviewSort` order read
+     * oldest first (sessions by date); null if there's none or it's empty.
+     */
+    private fun recap(module: ResolvedModule, node: Node, prop: String, g: CampaignGraph): PacketRecap? {
+        val sort = module.overviewSort(node.type)?.let { it.first to false }
+        val ordered = sortedByProp(g.nodes.filter { it.type == node.type }, sort, { it.props }, { it.title })
+        val previous = ordered.getOrNull(ordered.indexOfFirst { it.id == node.id } - 1) ?: return null
+        val text = previous.props[prop]?.toString()?.trim().orEmpty().ifEmpty { return null }
+        return PacketRecap(previous.code, module.displayTitle(previous), text)
     }
 
     /** Module `linkedProps` for [node], for its page: a prop's values per linked node, as the GM sees them. */

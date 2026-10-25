@@ -1,0 +1,48 @@
+{# After play (module "debrief"): the packet's characters, NPCs and items, editable in place. Every control saves to its
+   own node; adding something or pressing Done reloads this section (event "debrief-changed"). Errors land in #debrief-status. #}
+<section id="debrief" class="card debrief" hx-get="/c/{{ campaign.id }}/n/{{ node.id }}/debrief"
+         hx-trigger="debrief-changed from:body" hx-swap="outerHTML">
+  <h2>Debrief</h2>
+  <div id="debrief-status" aria-live="polite"></div>
+  {% for sec in debrief %}
+    <h3>{{ sec.label }}</h3>
+    {% for it in sec.items %}
+      <div class="debrief-item{% if it.muted %} muted{% endif %}">
+        <div class="debrief-head">
+          <span class="code">{{ it.node.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ it.node.id }}">{{ it.display }}</a>
+          {% for s in it.slots %}
+            <form class="debrief-slot" hx-post="/c/{{ campaign.id }}/n/{{ it.node.id }}/slot" hx-trigger="change"
+                  hx-vals='{"quiet": "1"}' hx-swap="none">
+              <input type="hidden" name="slot" value="{{ s.index }}">
+              {% include "node/_slot_select.peb" with {"s": s, "label": true} %}
+            </form>
+          {% endfor %}
+          {% for r in it.rows %}{% if r.label is null %}{% include "node/_debrief_row.peb" with {"target": it.node, "r": r} %}{% endif %}{% endfor %}
+        </div>
+        {% for r in it.rows %}{% if r.label is not null %}{% include "node/_debrief_row.peb" with {"target": it.node, "r": r} %}{% endif %}{% endfor %}
+        {% for l in it.links %}
+          <div class="debrief-links">
+            <h4>{{ l.label }}</h4>
+            {% for li in l.items %}
+              <div class="debrief-linked">
+                <span class="code">{{ li.node.code }}</span> <a href="/c/{{ campaign.id }}/n/{{ li.node.id }}">{{ li.display }}</a>
+                {% for r in li.rows %}{% include "node/_debrief_row.peb" with {"target": li.node, "r": r} %}{% endfor %}
+                {% if l.remove %}<button class="unlink" aria-label="Remove {{ li.display }}" title="Remove"
+                        hx-post="/c/{{ campaign.id }}/n/{{ li.node.id }}/delete" hx-vals='{"quiet": "1", "refresh": "1"}' hx-swap="none"
+                        hx-confirm="Remove {{ li.node.code }} {{ li.display }}?">×</button>{% endif %}
+              </div>
+            {% endfor %}
+            {% if l.createKey is not null %}
+              <form class="create-row" hx-post="/c/{{ campaign.id }}/n/{{ it.node.id }}/quick-create"
+                    hx-vals='{"quiet": "1", "refresh": "1"}' hx-swap="none">
+                <input type="hidden" name="choice" value="{{ l.createKey }}">
+                <input name="title" aria-label="New {{ l.label }}" autocomplete="off">
+                <button>Add</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+</section>

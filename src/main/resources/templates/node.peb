@@ -14,6 +14,7 @@
     {% include "node/_checklists.peb" %}
     {% include "node/_linked_props.peb" %}
     {% include "node/_form.peb" %}
+    {% if debrief is not empty %}{% include "node/_debrief.peb" %}{% endif %}
   </div>
 
   <aside class="side-col">

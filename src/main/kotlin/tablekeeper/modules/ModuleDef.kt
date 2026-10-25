@@ -60,6 +60,8 @@ data class NodeTypeDef(
     val checklists: List<ChecklistDef>? = null,
     /** Printing a node of this type builds a session packet from what it links. Missing = inherit. */
     val packet: PacketDef? = null,
+    /** After play: what this type's page lets you update on the packet's nodes, e.g. a session's characters and NPCs. Missing = inherit. */
+    val debrief: List<DebriefDef>? = null,
 )
 
 /** A checkbox list of every node of [types]; ticked = linked via [rel], e.g. a session's featured landmarks. */
@@ -73,6 +75,7 @@ data class ChecklistDef(val rel: String, val types: List<String>)
  * e.g. NPCs located at a selected landmark or its minor locations.
  * [related] then adds nodes with a link of a kind to anything already in the packet, e.g. the factions its NPCs are members of.
  * [columns] > 1 prints the text on landscape A4 in that many columns (after the template's cover part).
+ * [recap]: a prop of this type, e.g. "recap"; the cover then shows the previous node's (by `overviewSort`), "Last time".
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PacketDef(
@@ -81,7 +84,31 @@ data class PacketDef(
     val around: List<BetweenDef> = emptyList(),
     val related: List<BetweenDef> = emptyList(),
     val columns: Int = 1,
+    val recap: String? = null,
 )
+
+/**
+ * One list in a node's debrief: the packet's nodes of [types], each with its [fields] editable in place.
+ * [done]: each "x-row" among the fields (e.g. a beat) gets a Done button that clears it.
+ * [slots]: show the type's link slots (Location) as dropdowns, and also list nodes whose slot points into the packet,
+ * e.g. resources at a selected landmark or carried by an NPC there.
+ * [links]: linked nodes listed under each, e.g. a character's fallouts.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class DebriefDef(
+    val types: List<String>,
+    val fields: List<String> = emptyList(),
+    val done: Boolean = false,
+    val slots: Boolean = false,
+    val links: List<DebriefLinkDef> = emptyList(),
+)
+
+/**
+ * Nodes linked via [rel], with their [fields] editable in place; [create] = a type you can add a new one of, e.g. "heart.fallout";
+ * [remove]: each gets a button that deletes it (a healed fallout).
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class DebriefLinkDef(val rel: String, val fields: List<String> = emptyList(), val create: String? = null, val remove: Boolean = false)
 
 /** Nodes of [type] included when each of their [rel] links ends at a selected node (and there is at least one). */
 @JsonIgnoreProperties(ignoreUnknown = true)

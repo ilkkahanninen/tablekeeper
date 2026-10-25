@@ -4,14 +4,7 @@
     <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/slot" hx-trigger="change" hx-target="#linked" hx-swap="outerHTML">
       <input type="hidden" name="slot" value="{{ s.index }}">
       <label>{{ s.label }}
-        <select name="value">
-          <option value="">— Pool —</option>
-          {% for g in s.groups %}
-            <optgroup label="{{ g.label }}">
-              {% for ch in g.choices %}<option value="{{ ch.value }}"{% if ch.selected %} selected{% endif %}>{{ ch.label }}</option>{% endfor %}
-            </optgroup>
-          {% endfor %}
-        </select>
+        {% include "node/_slot_select.peb" with {"s": s, "label": false} %}
       </label>
     </form>
   {% endfor %}

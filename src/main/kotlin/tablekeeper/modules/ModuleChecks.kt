@@ -54,9 +54,34 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
                     else "$t: packet $kind rel '${b.rel}' is not a link option of ${b.type}".takeIf { linkOption(b.type, b.rel) == null }
                 }
         }.orEmpty() +
+        prop("packet recap", def.packet?.recap) +
+        def.debrief.orEmpty().flatMap { g -> debriefErrors(t, g) } +
         def.displayTitle?.let { Parts.names(it) }.orEmpty().filter { it != "title" }.map { prop("displayTitle", it) } +
         prop("overviewSort", def.overviewSort?.removePrefix("-"))
 }.filterNotNull()
+
+/** Problems with one `debrief` list of type [t]: unknown types, and fields or links none of its types have. */
+private fun ResolvedModule.debriefErrors(t: String, g: DebriefDef): List<String?> {
+    val known = g.types.filter { it in types }
+    fun hasProp(types: List<String>, f: String) = types.any { propSchema(it, f) != null }
+    return g.types.filter { it !in types }.map { "$t: debrief type '$it' is unknown" } +
+        g.fields.filterNot { hasProp(known, it) }.map { "$t: debrief field '$it' is not a prop of ${g.types.joinToString()}" } +
+        g.links.flatMap { l ->
+            val options = known.mapNotNull { linkOption(it, l.rel) }
+            listOf(
+                "$t: debrief link '${l.rel}' is not a link option of ${g.types.joinToString()}".takeIf { options.isEmpty() },
+                l.create?.let { c ->
+                    when {
+                        c !in types -> "$t: debrief create type '$c' is unknown"
+                        known.none { k -> quickCreate(k).any { it.type.id == c && it.option.key == l.rel } } ->
+                            "$t: debrief create '$c' via '${l.rel}' is not a quickCreate choice of ${g.types.joinToString()}"
+                        else -> null
+                    }
+                },
+            ) + l.fields.filter { f -> l.create != null && l.create in types && !hasProp(listOf(l.create), f) }
+                .map { "$t: debrief link field '$it' is not a prop of ${l.create}" }
+        }
+}
 
 /** Problems with declared views and the overview order; empty list = valid. */
 internal fun ResolvedModule.viewErrors(): List<String> =

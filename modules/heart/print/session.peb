@@ -2,6 +2,7 @@
 {#
   Heart session packet: one brief landscape A4 document for the next session, in two parts (variable `part`):
   - "cover": the session's title and notes, and the whole map with the selected places filled red;
+    with a previous session's recap (packet "recap"), that recap beside the map, "Last time";
   - "columns": the selected characters' Inspiration, then a section per selected landmark and delve between them.
     Laid out as one column on narrow pages, which the app places three to a sheet (packet "columns": 3).
   No part (the HTML preview) shows both. Model: the session's print model plus map, views, sections.
@@ -50,6 +51,12 @@
   .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 1.5mm 0 0.3mm; }
   .character { page-break-inside: avoid; margin-bottom: 3mm; }
   .role { color: #555; font-size: 8.5pt; margin: 0 0 0.5mm; }
+
+  /* Cover with the previous session's recap ("Last time") beside the map */
+  table.cover { border-collapse: collapse; width: 100%; }
+  .cover td { vertical-align: top; padding: 0; }
+  .last-time { padding-left: 5mm; }
+  .last-time h2 { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -59,7 +66,17 @@
       <h1><span class="code">{{ node.code }}</span> {{ node.title }}{% for p in props %}{% if p.name == 'date' %}<span class="date">{{ p.value }}</span>{% endif %}{% endfor %}</h1>
       {% if node.body is not empty %}<div class="notes">{{ node.body }}</div>{% endif %}
     </header>
-    {% if map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 1000, "svgHeight": 640} %}{% endif %}
+    {% if previous is not null %}
+      {# The previous session's recap beside a smaller map, so the cover stays one page #}
+      <table class="cover"><tr>
+        <td class="cover-map">{% if map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 760, "svgHeight": 537} %}{% endif %}</td>
+        <td class="last-time">
+          <h2>Last time</h2>
+          <div class="ref">{{ previous.code }} {{ previous.title }}</div>
+          <div class="notes">{{ previous.text }}</div>
+        </td>
+      </tr></table>
+    {% elseif map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 1000, "svgHeight": 640} %}{% endif %}
   </div>
   {% endif %}
 

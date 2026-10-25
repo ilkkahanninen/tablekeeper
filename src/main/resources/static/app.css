@@ -130,3 +130,24 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 .map-card { padding: .5rem; }
 .map-card svg { display: block; width: 100%; height: auto; }
 .map-card a:hover text { fill: var(--blood); }
+
+/* Debrief (session page): one compact block per character / NPC / item, every control saving on its own */
+.debrief h3 { margin-top: 1rem; }
+.debrief-item { padding: .5rem 0; border-bottom: 1px dotted var(--line); }
+.debrief-item.muted .debrief-head a { color: var(--muted); }
+.debrief-head, .debrief-row, .debrief-linked { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.debrief-row { margin: .35rem 0 0; }
+.debrief-row .field { display: contents; }
+.debrief-row label { flex-direction: row; align-items: center; gap: .3rem; }
+.debrief-row .grow { flex: 1; min-width: 12rem; }
+.debrief-row .grow .with-random { flex: 1; }
+.debrief .row-label { font-size: .85rem; color: var(--muted); min-width: 3.5rem; }
+.debrief-slot { margin: 0 0 0 auto; }
+.debrief-slot select { max-width: 16rem; }
+.debrief-links { margin: .4rem 0 0 1rem; }
+.debrief-links h4 { margin: .3rem 0 .1rem; font-size: .8rem; font-weight: normal; color: var(--muted); }
+.debrief-linked .debrief-row { margin: 0; }
+.debrief-linked .unlink { margin-left: auto; font-size: 1rem; }
+.debrief .create-row { margin-top: .35rem; }
+button.done { font-size: .8rem; padding: .1rem .6rem; background: transparent; color: var(--blood); border: 1px solid var(--line); }
+button.done:hover { border-color: var(--blood); }

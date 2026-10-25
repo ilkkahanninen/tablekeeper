@@ -207,6 +207,8 @@ class ResolvedModule(
 
     fun packet(typeId: String): PacketDef? = inherited(typeId) { it.packet }
 
+    fun debrief(typeId: String): List<DebriefDef> = inherited(typeId) { it.debrief }.orEmpty()
+
     /** The type's `overviewSort`: the prop, and whether newest/largest first ("-date"). */
     fun overviewSort(typeId: String): Pair<String, Boolean>? =
         inherited(typeId) { it.overviewSort }?.let { if (it.startsWith("-")) it.drop(1) to true else it to false }
@@ -230,4 +232,17 @@ class ResolvedModule(
         val schema = schemaCache.computeIfAbsent(typeId) { schemaFactory.getSchema(def) }
         return schema.validate(props).map { it.message }
     }
+}
+
+/**
+ * Orders items by a prop, e.g. a type's `overviewSort` ("date", true = descending): stored values compared as numbers
+ * when both are, else as text (ISO dates sort right), items without a value last; ties and unsorted ([sort] null) by title.
+ */
+fun <T> sortedByProp(items: List<T>, sort: Pair<String, Boolean>?, props: (T) -> Map<String, Any?>, title: (T) -> String): List<T> {
+    if (sort == null) return items.sortedBy(title)
+    val (prop, descending) = sort
+    val byValue = Comparator<Any> { a, b ->
+        if (a is Number && b is Number) a.toDouble().compareTo(b.toDouble()) else a.toString().compareTo(b.toString())
+    }.let { if (descending) it.reversed() else it }
+    return items.sortedWith(compareBy<T, Any?>(nullsLast(byValue)) { props(it)[prop]?.takeIf { v -> v.toString().isNotBlank() } }.thenBy(title))
 }
