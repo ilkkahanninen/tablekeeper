@@ -265,7 +265,7 @@ fun Application.routes(d: Deps) {
                     muted = m.overviewMuted(n.type)?.let { n.props[it] == true } == true,
                 )
                 val sections = nodes.filter { it.id !in parent }.groupBy { it.type }
-                    .map { (type, ofType) -> OverviewSection(type, m.label(type), columns.getValue(type), ofType.map(::row)) }
+                    .map { (type, ofType) -> OverviewSection(type, m.plural(type), columns.getValue(type), ofType.map(::row)) }
                     .sortedWith(compareBy({ m.overviewRank(it.typeId) }, { it.label }))
                 call.html("campaign.peb", mapOf("campaign" to c, "module" to m, "sections" to sections))
             }
