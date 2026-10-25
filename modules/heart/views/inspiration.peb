@@ -13,43 +13,6 @@
 {% block content %}
 <h1>Inspiration</h1>
 {% if nodes is not empty %}
-<div class="inspiration">
-  <section>
-    <h2>Callings</h2>
-    {% for g in groups["calling"] %}
-      <div class="card">
-        <h3 class="group-title">{{ g.label }}</h3>
-        {% for c in g.nodes %}
-          <div class="who">
-            <span class="code">{{ c.node.code }}</span>
-            <a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.node.title }}</a>
-            {% if c.fields.player.text is not empty %}<span class="muted small">{{ c.fields.player.text }}</span>{% endif %}
-          </div>
-          {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
-            <ul class="beats">
-              {% if c.fields.beat1.text is not empty %}<li>{% if c.fields.beat1Type.text is not empty %}<span class="beat-type">{{ c.fields.beat1Type.text }}</span> {% endif %}{{ c.fields.beat1.text }}</li>{% endif %}
-              {% if c.fields.beat2.text is not empty %}<li>{% if c.fields.beat2Type.text is not empty %}<span class="beat-type">{{ c.fields.beat2Type.text }}</span> {% endif %}{{ c.fields.beat2.text }}</li>{% endif %}
-            </ul>
-          {% endif %}
-        {% endfor %}
-      </div>
-    {% endfor %}
-  </section>
-
-  <section>
-    <h2>Classes</h2>
-    {% for g in groups["class"] %}
-      <div class="card">
-        <h3 class="group-title">{{ g.label }}</h3>
-        <p class="who">
-          {% for c in g.nodes %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.node.title }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
-        </p>
-        {% if g.hint is not null %}
-          <ul class="wants">{% for w in g.hint | split('; ') %}<li>{{ w }}</li>{% endfor %}</ul>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </section>
-</div>
+{% include "heart/views/_inspiration.peb" with {"links": true} %}
 {% endif %}
 {% endblock %}

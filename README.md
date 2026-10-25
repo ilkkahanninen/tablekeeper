@@ -123,6 +123,33 @@ One table per type, in the order of the module's `overviewOrder` (types not list
 
 An unknown prop, relation or type stops the app at startup.
 
+## Session packet
+
+One brief landscape A4 document for the next session, with the text in three columns. Add a **Session** (S1, S2…). On its page, tick the landmarks likely to come up and the characters taking part, then **Print**. For Heart the packet has:
+- **page 1:** the session's title, date and notes, and the whole map with the selected landmarks filled red
+- **Characters:** Inspiration for the ticked characters only
+- **Landmarks:** each selected landmark, by tier, with its props, notes, haunts, who and what is there (NPC voice and appearance, resources' die and tags), minor locations with their contents, and facts with tick boxes
+- **Delves:** only those between selected landmarks
+
+Module settings (Heart sets them on `core.session` via `patchTypes`):
+
+```json
+"checklists": [{ "rel": "features:out", "types": ["heart.landmark"] }, { "rel": "features:out", "types": ["heart.pc"] }],
+"packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }], "columns": 3 },
+"printTemplate": "heart/print/session.peb"
+```
+
+- `checklists` puts checkbox lists on the page; ticking links via `rel`.
+- `packet` gives the print template:
+  - `map`: the whole map, selected places highlighted
+  - `views`: the module views over the selected nodes, e.g. Inspiration
+  - `sections`: print models of the other selected nodes, plus the `between` ones, i.e. nodes whose every `rel` link ends at a selected node
+- With `columns` > 1, the print template is rendered twice:
+  - `part = "cover"` (the map page), as is
+  - `part = "columns"`, the text, laid out as one column on narrow pages; the app places these side by side on landscape sheets
+- The landmark card and the packet share `heart/print/_place.peb`; the Inspiration page and the packet share `heart/views/_inspiration.peb`.
+- `"x-trueLabel": "dead"` on a checkbox makes a ticked box read "dead" instead of "yes".
+
 ## Module views
 
 A module can ship extra campaign pages. Heart's *Inspiration* page shows the GM what the party wants from play: beats grouped by calling, and the rule book's class texts for each class in play. The class texts are `x-enumDescriptions` on the class field, so they also show as hover hints on the character form.
@@ -188,7 +215,6 @@ Schema → form widgets: `integer` → number, `enum` → select, `array` of `en
 ## Known gaps / next steps
 
 - **Compiles, barely tested.** `./gradlew build` passes (Kotlin 2.1, JDK 21), including the 5 `GameModulesTest` unit tests. The SQL and module schemas were tested against Postgres 16 and a JSON Schema validator. Nothing that needs a database has tests yet, and the app (routes, Pebble templates, PDF output) has not been run end to end.
-- Session packets: one PDF for a session plus everything it `features`, with A6 cards tiled 4 per A4.
 - `[[wikilinks]]` in notes → edges, and markdown rendering.
 - `AUTH_MODE=session`: login page, Ktor Sessions, Argon2, CSRF tokens.
 - PDF fonts: the built-in PDF fonts cover Latin-1 (ä, ö, å fine) but not symbols like →. Embed a TTF via `PdfRendererBuilder.useFont` for wider coverage.

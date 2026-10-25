@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
  * "x-hideIf": {"category": ["Miscellaneous"]} hides a field while another field has one of those values;
  * "x-showIf": {"tags": ["Limited X"]} shows it only then. A hidden field is dropped on save and left off print cards.
  * "x-wide": true gives a field a full-width row of its own.
+ * "x-trueLabel": "dead" is a checkbox's text when ticked (instead of "yes"), on cards and the campaign home.
  * "x-row": "Beat 1" puts consecutive fields with the same value on one line, labelled "Beat 1", on the page and on cards.
  *
  * Kinds are plain strings so Pebble templates can compare them directly.
@@ -45,6 +46,8 @@ data class FormField(
     val row: String? = null,
     /** From "x-wide": spans the whole form width, on its own row. */
     val wide: Boolean = false,
+    /** From "x-trueLabel": a ticked checkbox's text; null = "yes". */
+    val trueLabel: String? = null,
     /** String for scalar kinds, List<String> for "multi", Boolean for "bool". */
     val value: Any?,
 ) {
@@ -62,7 +65,7 @@ data class FormField(
 
     private fun format(show: (String) -> String): String = when (val v = value) {
         is List<*> -> v.joinToString(", ") { show(it.toString()) }
-        is Boolean -> if (v) "yes" else ""
+        is Boolean -> if (v) trueLabel ?: "yes" else ""
         else -> v?.toString().orEmpty().let { if (it.isEmpty()) it else show(it) }
     }
 }
@@ -117,7 +120,8 @@ object PropsForm {
             s.get("type")?.asText() in setOf("integer", "number") ->
                 FormField(name, label, "int", min = s.get("minimum")?.asInt(), max = s.get("maximum")?.asInt(),
                     value = current?.toString() ?: "")
-            s.get("type")?.asText() == "boolean" -> FormField(name, label, "bool", value = current == true)
+            s.get("type")?.asText() == "boolean" ->
+                FormField(name, label, "bool", value = current == true, trueLabel = s.get("x-trueLabel")?.asText())
             s.get("x-widget")?.asText() == "textarea" -> FormField(name, label, "textarea", value = current?.toString() ?: "")
             else -> FormField(name, label, "text", value = current?.toString() ?: "")
         }

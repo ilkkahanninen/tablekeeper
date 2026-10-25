@@ -7,10 +7,10 @@ import tablekeeper.modules.ResolvedModule
 import java.util.UUID
 import kotlin.math.roundToInt
 
-/** A place on the map. */
+/** A place on the map; [highlight] marks it as selected, e.g. a landmark featured in a session packet. */
 data class MapPlace(
     val id: UUID, val code: String, val title: String, val typeLabel: String,
-    val shape: String, val x: Int, val y: Int,
+    val shape: String, val x: Int, val y: Int, val highlight: Boolean = false,
 )
 
 /**
@@ -33,7 +33,7 @@ data class MapView(val width: Int, val height: Int, val places: List<MapPlace>, 
  */
 class MapService(private val graph: GraphService) {
 
-    fun view(campaign: Campaign, module: ResolvedModule): MapView {
+    fun view(campaign: Campaign, module: ResolvedModule, highlight: Set<UUID> = emptySet()): MapView {
         val places = graph.listNodesWithProps(campaign.id).mapNotNull { n -> module.mapShape(n.type)?.let { n to it } }
         val shapes = places.associate { (n, shape) -> n.id to shape }
         val edges = graph.listEdges(campaign.id)
@@ -62,7 +62,8 @@ class MapService(private val graph: GraphService) {
 
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
-                MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.second ?: derivedDepths[n.id])
+                MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.second ?: derivedDepths[n.id],
+                    labelWidth = labelWidth(n.code, n.title, shape), body = BODY.getValue(shape))
             },
             lines.map { (a, b) -> a.toString() to b.toString() },
             WIDTH.toDouble(), HEIGHT.toDouble(), MARGIN,
@@ -73,7 +74,7 @@ class MapService(private val graph: GraphService) {
             WIDTH, HEIGHT,
             places = places.map { (n, shape) ->
                 val p = at(n.id)
-                MapPlace(n.id, n.code, n.title, module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt())
+                MapPlace(n.id, n.code, n.title, module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight)
             },
             lines = lines.map { (a, b) ->
                 val p = at(a); val q = at(b)
@@ -91,6 +92,12 @@ class MapService(private val graph: GraphService) {
         )
     }
 
+    /** Rough label width in drawing units, matching map/_svg.peb's font sizes (code in a smaller monospace, then the title). */
+    private fun labelWidth(code: String, title: String, shape: String): Double {
+        val (titleSize, codeSize) = if (shape == "dot") 15.0 to 12.0 else 19.0 to 15.0
+        return title.length * titleSize * 0.5 + (code.length + 1) * codeSize * 0.6
+    }
+
     companion object {
         // A4 landscape proportions, so the same drawing fills the screen and the printed page.
         const val WIDTH = 1400
@@ -98,5 +105,7 @@ class MapService(private val graph: GraphService) {
         private const val MARGIN = 130.0
         /** How close a line may pass another place's centre before it's curved around it (a landmark's radius is 26). */
         private const val CLEARANCE = 40.0
+        /** Half-size of each shape as drawn in map/_svg.peb. */
+        private val BODY = mapOf("circle" to 26.0, "diamond" to 17.0, "dot" to 7.0)
     }
 }

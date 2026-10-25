@@ -154,7 +154,7 @@ class GameModulesTest {
         assertEquals(27, tags.options.size)
         assertTrue(tags.options.all { it in tags.hints }, "every equipment tag has a description")
         assertTrue(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"tags": ["Brutal", "Limited X"]}""")).isEmpty())
-        assertEquals(null, heart.printSummary("heart.resource"))
+        assertEquals(listOf("{die.value}", "{tags}"), heart.printSummary("heart.resource")?.parts)
         assertTrue(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"category": "Kill", "quality": "d10"}""")).isEmpty())
         assertFalse(heart.validateProps("heart.equipment", GameModules.mapper.readTree("""{"quality": "Exotic"}""")).isEmpty())
     }
@@ -347,6 +347,47 @@ class GameModulesTest {
         assertTrue(fields.filter { it.kind == "text" }.all { it.wide }, "each on its own full-width row")
         assertEquals("dead", heart.overviewMuted("core.npc"), "dead NPCs are greyed out on the campaign home")
         assertTrue(heart.validateProps("core.npc", GameModules.mapper.readTree("""{"voice": "Hoarse whisper", "appearance": "Ash-grey robes"}""")).isEmpty())
+    }
+
+    @Test
+    fun `heart sessions pick landmarks and characters, and print a packet`() {
+        val lists = heart.checklists("core.session")
+        assertEquals(listOf(listOf("heart.landmark"), listOf("heart.pc")), lists.map { it.first.types })
+        assertTrue(lists.all { it.second.key == "features:out" })
+        val packet = heart.packet("core.session")!!
+        assertEquals("features:out", packet.rel)
+        assertEquals(listOf(BetweenDef("heart.delve", "connects:out")), packet.between)
+        assertEquals("heart/print/session.peb", heart.printTemplate("core.session"))
+        // A plain core campaign keeps a plain session
+        val core = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("core")
+        assertEquals(null, core.packet("core.session"))
+    }
+
+    @Test
+    fun `npc lines on cards carry voice, appearance and death`() {
+        val dead = PropsForm.fields(heart.propsSchema("core.npc"), mapOf("dead" to true)).single { it.name == "dead" }
+        assertEquals("dead", dead.text)
+        assertEquals(listOf("{voice}", "{appearance}", "{dead}"), heart.printSummary("core.npc")?.parts)
+    }
+
+    @Test
+    fun `bad checklist or packet settings fail module load`() {
+        for ((settings, expected) in listOf(
+            """"checklists": [{"rel": "nope:out", "types": ["bad.place"]}]""" to "nope:out",
+            """"checklists": [{"rel": "near:out", "types": ["nope.type"]}]""" to "nope.type",
+            """"packet": {"rel": "near:out", "between": [{"type": "nope.type", "rel": "near:out"}]}""" to "nope.type",
+        )) {
+            val dir = Files.createTempDirectory("modules").toFile()
+            File(dir, "bad").mkdirs()
+            File(dir, "bad/module.json").writeText(
+                """{"id": "bad", "name": "Bad",
+                    "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", $settings}],
+                    "edgeTypes": [{"id": "near", "label": "near", "inverseLabel": "near of", "from": ["bad.place"], "to": ["bad.place"]}]}"""
+            )
+            val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
+            assertTrue(expected in e.message.orEmpty(), e.message)
+            dir.deleteRecursively()
+        }
     }
 
     @Test

@@ -1,0 +1,16 @@
+{# Checklists (module "checklists"), e.g. a session's landmarks and characters: ticking links, unticking unlinks.
+   Sent out-of-band after link changes, so unlinking under Links unticks the box. #}
+<div id="checklists"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% for cl in checklists %}
+    <fieldset class="checklist">
+      <legend>{{ cl.label }}</legend>
+      {% for it in cl.items %}
+        <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/check" hx-trigger="change" hx-target="#linked" hx-swap="outerHTML">
+          <input type="hidden" name="rel" value="{{ cl.option.key }}">
+          <input type="hidden" name="other" value="{{ it.id }}">
+          <label class="check"><input type="checkbox" name="checked"{% if it.checked %} checked{% endif %}> <span class="code">{{ it.code }}</span> {{ it.title }}</label>
+        </form>
+      {% endfor %}
+    </fieldset>
+  {% endfor %}
+</div>

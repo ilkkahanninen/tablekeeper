@@ -1,4 +1,5 @@
-{# The campaign map drawing. Variables: map (MapView), campaign, links (wrap places in links to their pages). #}
+{# The campaign map drawing. Variables: map (MapView), campaign, links (wrap places in links to their pages).
+   Highlighted places (selected in a session packet) are filled red. #}
 <svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{ map.width }} {{ map.height }}"{% if svgWidth is not null %} width="{{ svgWidth }}" height="{{ svgHeight }}"{% endif %} font-family="serif">
   {% for lv in map.levels %}
     <line x1="0" y1="{{ lv.y }}" x2="{{ map.width }}" y2="{{ lv.y }}" stroke="#d9d0c2" stroke-width="1.5" stroke-dasharray="2 8"/>
@@ -19,10 +20,10 @@
     {% if links %}<a href="/c/{{ campaign.id }}/n/{{ p.id }}">{% endif %}
     <g class="place place-{{ p.shape }}">
       {% if p.shape == 'circle' %}
-        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="26" fill="#fffdf8" stroke="#8c1c13" stroke-width="4"/>
+        <circle cx="{{ p.x }}" cy="{{ p.y }}" r="26" fill="{{ p.highlight ? '#8c1c13' : '#fffdf8' }}" stroke="#8c1c13" stroke-width="4"/>
         {% set labelY = p.y + 50 %}
       {% elseif p.shape == 'diamond' %}
-        <polygon points="{{ p.x }},{{ p.y - 17 }} {{ p.x + 17 }},{{ p.y }} {{ p.x }},{{ p.y + 17 }} {{ p.x - 17 }},{{ p.y }}" fill="#1d1a17"/>
+        <polygon points="{{ p.x }},{{ p.y - 17 }} {{ p.x + 17 }},{{ p.y }} {{ p.x }},{{ p.y + 17 }} {{ p.x - 17 }},{{ p.y }}" fill="{{ p.highlight ? '#8c1c13' : '#1d1a17' }}"/>
         {% set labelY = p.y + 38 %}
       {% else %}
         <circle cx="{{ p.x }}" cy="{{ p.y }}" r="7" fill="#7a7166"/>

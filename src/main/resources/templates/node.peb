@@ -11,6 +11,7 @@
   <div class="main-col">
     <p class="muted small">{{ typeLabel }} · <span class="code">{{ node.code }}</span> · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
     {% include "node/_slots.peb" %}
+    {% include "node/_checklists.peb" %}
     {% include "node/_linked_props.peb" %}
     {% include "node/_form.peb" %}
   </div>

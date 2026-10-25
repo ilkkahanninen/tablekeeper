@@ -1,5 +1,6 @@
-{# Response to link/unlink: the Linked card, plus linked-prop values and link slot dropdowns and create choices that may have changed. #}
+{# Response to link/unlink: the Linked card, plus linked-prop values and link slot dropdowns, create choices and checklists that may have changed. #}
 {% include "node/_linked.peb" %}
 {% include "node/_linked_props.peb" with {"oob": true} %}
 {% include "node/_slots.peb" with {"oob": true} %}
 {% include "node/_create.peb" with {"oob": true} %}
+{% include "node/_checklists.peb" with {"oob": true} %}

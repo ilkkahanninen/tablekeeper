@@ -31,7 +31,8 @@ fun main() {
     val campaigns = CampaignService(db)
     val graph = GraphService(db)
     val templates = Templates(config.modulesDir, cache = config.templateCache)
-    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates), MapService(graph))
+    val map = MapService(graph)
+    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates, map), map)
     val resolver = userResolverFor(config.authMode, campaigns)
 
     embeddedServer(Netty, port = config.port, host = "0.0.0.0") {

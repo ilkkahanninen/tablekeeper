@@ -10,6 +10,15 @@
   ],
   "patchTypes": [
     {
+      "id": "core.session",
+      "printTemplate": "heart/print/session.peb",
+      "checklists": [
+        { "rel": "features:out", "types": ["heart.landmark"] },
+        { "rel": "features:out", "types": ["heart.pc"] }
+      ],
+      "packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }], "columns": 3 }
+    },
+    {
       "id": "core.npc",
       "quickCreate": [
         { "type": "heart.resource",  "rel": "carries:out" },
@@ -200,6 +209,7 @@
     },
     {
       "id": "heart.resource",
+      "printSummary": { "parts": ["{die.value}", "{tags}"] },
       "overview": ["die", "tags"],
       "extends": "core.item",
       "label": "Resource",

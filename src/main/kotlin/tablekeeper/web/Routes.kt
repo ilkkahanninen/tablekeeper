@@ -27,13 +27,13 @@ import tablekeeper.core.GraphService
 import tablekeeper.core.Node
 import tablekeeper.core.NodeRef
 import tablekeeper.core.Visibility
-import tablekeeper.modules.FormField
 import tablekeeper.modules.GameModules
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.map.MapService
 import tablekeeper.print.PrintService
+import tablekeeper.views.ModuleViews
 import java.util.UUID
 
 class NotFound(what: String) : RuntimeException("$what not found")
@@ -54,15 +54,15 @@ data class UiGroup(val label: String, val links: List<UiLink>)
 /** A relation the Link box offers for a search result; [blocked] says why it's disabled (a link limit), if it is. */
 data class RelationChoice(val option: LinkOption, val blocked: String?)
 data class SearchResult(val id: UUID, val code: String, val title: String, val choices: List<RelationChoice>)
+/** A checkbox list on a node page (module `checklists`): every node of some types, ticked when linked via [option]. */
+data class ChecklistView(val label: String, val option: LinkOption, val items: List<ChecklistItem>)
+data class ChecklistItem(val id: UUID, val code: String, val title: String, val checked: Boolean)
+
 /** One dropdown entry; [value] is "<rel>|<node id>". */
 data class Choice(val value: String, val label: String, val selected: Boolean)
 data class ChoiceGroup(val label: String, val choices: List<Choice>)
 /** Dropdown for a link slot, e.g. Location: places, then carriers. */
 data class SlotView(val index: Int, val label: String, val groups: List<ChoiceGroup>)
-/** A node on a module view, with its props as form fields (display text, labels, hints) by name. */
-data class ViewNode(val node: Node, val fields: Map<String, FormField>)
-/** View nodes sharing one value of a `groupBy` prop; [hint] is that value's "x-enumDescriptions" text, if any. */
-data class ViewGroup(val value: String, val label: String, val hint: String?, val nodes: List<ViewNode>)
 
 fun Application.routes(d: Deps) {
 
@@ -160,6 +160,22 @@ fun Application.routes(d: Deps) {
         }
     }
 
+    /** The node's checklists, e.g. a session's landmarks and characters, ticked where already linked. */
+    fun checklists(c: Campaign, m: ResolvedModule, n: Node): List<ChecklistView> {
+        val lists = m.checklists(n.type)
+        if (lists.isEmpty()) return emptyList()
+        val links = d.graph.links(c.id, n.id)
+        val nodes = d.graph.listNodes(c.id)
+        return lists.map { (def, option) ->
+            val linked = links.filter { it.type == option.edgeType && it.direction == option.direction }.map { it.other.id }.toSet()
+            ChecklistView(
+                def.types.joinToString(", ") { m.label(it) }, option,
+                nodes.filter { other -> def.types.any { m.isA(other.type, it) } }.sortedBy { it.title }
+                    .map { ChecklistItem(it.id, it.code, it.title, it.id in linked) },
+            )
+        }
+    }
+
     /** Links for the sidebar, slot links included so the place or carrier is one click away. */
     fun linkGroups(c: Campaign, m: ResolvedModule, n: Node): List<UiGroup> =
         d.graph.links(c.id, n.id)
@@ -185,26 +201,12 @@ fun Application.routes(d: Deps) {
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
+        "checklists" to checklists(c, m, n),
         "quickCreate" to quickCreateOptions(c, m, n),
         "linkedProps" to d.print.linkedProps(c, m, n, Audience.GM),
         "groups" to linkGroups(c, m, n),
         "errors" to errors,
     )
-
-    /** [nodes] grouped by their value of [prop], in the prop's option order; nodes without one last, as "Not set". */
-    fun viewGroups(nodes: List<ViewNode>, prop: String): List<ViewGroup> {
-        fun values(n: ViewNode): List<String> = when (val v = n.fields[prop]?.value) {
-            is List<*> -> v.map { it.toString() }
-            else -> listOfNotNull(v?.toString()?.takeIf { it.isNotBlank() })
-        }
-        val field = nodes.firstNotNullOfOrNull { it.fields[prop] } ?: return emptyList()
-        val order = field.options.withIndex().associate { (i, o) -> o to i }
-        val groups = nodes.flatMap(::values).distinct().sortedBy { order[it] ?: Int.MAX_VALUE }.map { value ->
-            ViewGroup(value, field.labels[value] ?: value, field.hints[value], nodes.filter { value in values(it) })
-        }
-        val unset = nodes.filter { values(it).isEmpty() }
-        return groups + listOfNotNull(unset.takeIf { it.isNotEmpty() }?.let { ViewGroup("", "Not set", null, it) })
-    }
 
     fun parseOption(m: ResolvedModule, n: Node, key: String?): LinkOption {
         val parts = key?.split(":") ?: throw BadRequest("Missing link type")
@@ -276,12 +278,9 @@ fun Application.routes(d: Deps) {
                 val c = call.campaign()
                 val m = d.modules.get(c.gameModule)
                 val view = m.view(call.parameters["view"].orEmpty()) ?: throw NotFound("View")
-                val nodes = d.graph.listNodesWithProps(c.id)
-                    .filter { n -> view.types.any { m.isA(n.type, it) } }
-                    .map { n -> ViewNode(n, PropsForm.fields(m.propsSchema(n.type), n.props).associateBy { it.name }) }
+                val data = ModuleViews.build(m, view, d.graph.listNodesWithProps(c.id))
                 call.html(view.template, mapOf(
-                    "campaign" to c, "module" to m, "view" to view, "nodes" to nodes,
-                    "groups" to view.groupBy.associateWith { viewGroups(nodes, it) },
+                    "campaign" to c, "module" to m, "view" to view, "nodes" to data.nodes, "groups" to data.groups,
                 ))
             }
 
@@ -381,6 +380,26 @@ fun Application.routes(d: Deps) {
                 call.html("node/_links_changed.peb", nodeModel(c, m, n))
             }
 
+            // Checklist box (e.g. a session's landmarks): ticked = link via the list's relation, unticked = unlink.
+            post("/n/{nid}/check") {
+                val c = call.campaign()
+                val m = d.modules.get(c.gameModule)
+                val n = call.node(c)
+                val p = call.receiveParameters()
+                val option = m.checklists(n.type).map { it.second }.firstOrNull { it.key == p["rel"] }
+                    ?: throw BadRequest("'${p["rel"]}' is not a checklist of ${n.type}")
+                val other = p["other"]?.let { runCatching { UUID.fromString(it) }.getOrNull() }
+                    ?.let { d.graph.getNode(c.id, it) } ?: throw NotFound("Node")
+                if (!m.acceptsOther(option, other.type)) throw BadRequest("Can't link ${m.label(other.type)} that way")
+                when {
+                    p["checked"] != null -> link(c, m, n, option, other)
+                    option.direction == Direction.OUT -> d.graph.deleteEdgeBetween(c.id, n.id, other.id, option.edgeType)
+                    else -> d.graph.deleteEdgeBetween(c.id, other.id, n.id, option.edgeType)
+                }
+                call.response.header("HX-Trigger", "links-changed")
+                call.html("node/_links_changed.peb", nodeModel(c, m, n))
+            }
+
             // Link slot dropdown (e.g. Location). Value "<rel>|<node id>"; empty = unlinked, "in the pool".
             post("/n/{nid}/slot") {
                 val c = call.campaign()
@@ -449,8 +468,7 @@ fun Application.routes(d: Deps) {
                 val m = d.modules.get(c.gameModule)
                 val n = call.node(c)
                 val audience = Audience.of(call.request.queryParameters["audience"])
-                val html = d.print.html(c, m, n, audience)
-                val pdf = withContext(Dispatchers.IO) { d.print.pdf(html) }
+                val pdf = withContext(Dispatchers.IO) { d.print.pdf(c, m, n, audience) }
                 val fileName = "${n.code}-${n.title.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')}.pdf"
                 call.response.header(HttpHeaders.ContentDisposition, "inline; filename=\"$fileName\"")
                 call.respondBytes(pdf, ContentType.Application.Pdf, HttpStatusCode.OK)

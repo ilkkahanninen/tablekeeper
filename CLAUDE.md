@@ -41,10 +41,12 @@ Prefer adding game-specific behaviour to module JSON/templates over adding Kotli
 
 **Map** (`map/`): `MapService` builds the campaign map from module `mapShape`/`mapDepth` settings, and `MapLayout` is a deterministic, server-side force layout. It runs on the server so the same SVG (`templates/map/_svg.peb`) serves the screen page and the PDF; openhtmltopdf renders inline SVG through Batik.
 
+**Session packet** (`PrintService.packet`, `print/Packet.kt`): when a node's type has a module `packet` setting (Heart: `core.session`), its print model also gets `map`, `views` (built by `views/ModuleViews.kt`, the same code as the `/v/{view}` pages) and `sections` (print models of the selected nodes and the `between` ones). Selection is the session's `checklists` (links via `features`). The Heart template is `modules/heart/print/session.peb`, which reuses `_place.peb` and `_inspiration.peb`. Multi-column text (`packet.columns`) is done by imposition (`print/Imposition.kt`): the template's `columns` part is rendered as one column on narrow pages, and PDFBox places those pages side by side on landscape sheets. Don't switch to CSS `column-count`: openhtmltopdf 1.0.10 squeezes blocks to one word per line and moves nested first children into other columns.
+
 **Templates** (`web/Templates.kt`): one Pebble engine (auto-escaping on) for screen and print. Names resolve against the classpath (`src/main/resources/templates/`) first, then the modules directory, so module templates are referenced like `heart/print/landmark.peb`. Screen UI is server-rendered with htmx partials (`templates/node/_*.peb`); htmx is vendored in `static/`.
 
 **Wiring:** `App.kt` builds everything by hand (no DI) and passes a `Deps` bag to `Application.routes`. Domain errors are exceptions mapped to HTTP status in `StatusPages` (`NotFound`, `BadRequest`, `HiddenFromAudience`, `NotAuthenticated`).
 
 ## Known gaps
 
-From README: session packets (A6 cards tiled 4 per A4), `[[wikilinks]]` → edges and markdown rendering, `AUTH_MODE=session`, embedded TTF for PDF symbols beyond Latin-1 (e.g. →), graph view. The build passes, but only module resolution has tests; routes, templates and PDF output haven't been run end to end.
+From README: `[[wikilinks]]` → edges and markdown rendering, `AUTH_MODE=session`, embedded TTF for PDF symbols beyond Latin-1 (e.g. →), graph view. The build passes, but only module resolution has tests; routes, templates and PDF output haven't been run end to end.

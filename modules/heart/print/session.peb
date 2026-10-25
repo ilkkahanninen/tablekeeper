@@ -1,0 +1,85 @@
+<!doctype html>
+{#
+  Heart session packet: one brief landscape A4 document for the next session, in two parts (variable `part`):
+  - "cover": the session's title and notes, and the whole map with the selected places filled red;
+  - "columns": the selected characters' Inspiration, then a section per selected landmark and delve between them.
+    Laid out as one column on narrow pages, which the app places three to a sheet (packet "columns": 3).
+  No part (the HTML preview) shows both. Model: the session's print model plus map, views, sections.
+#}
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{ node.code }} {{ node.title }}</title>
+<style>
+  @page { size: A4 landscape; margin: 10mm; }
+  body { font-family: serif; font-size: 9.5pt; color: #111; margin: 0; line-height: 1.3; }
+  header { border-bottom: 0.6mm solid #111; margin-bottom: 2mm; }
+  h1 { font-size: 15pt; margin: 0 0 1mm; }
+  .date { font-size: 9pt; color: #555; margin-left: 2mm; font-weight: normal; }
+  .notes { white-space: pre-wrap; margin: 1mm 0 2mm; }
+  .code, .ref { font-family: monospace; font-size: 8pt; color: #555; }
+  h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: 0.6pt; color: #8c1c13; border-bottom: 0.3mm solid #8c1c13; margin: 4mm 0 2mm; padding-bottom: 0.5mm; page-break-after: avoid; }
+  .text > h2:first-child { margin-top: 0; }
+  h3 { font-size: 12pt; margin: 4mm 0 1mm; page-break-after: avoid; }
+  .place { page-break-inside: avoid; margin-bottom: 3mm; }
+
+  /* Place body (shared _place.peb), as on the cards but on A4 */
+  .props { border-collapse: collapse; margin-bottom: 1.5mm; }
+  .props td { padding: 0.4mm 3mm 0.4mm 0; vertical-align: top; }
+  .props td.k { color: #555; font-size: 7.5pt; text-transform: uppercase; white-space: nowrap; }
+  .props .t, .detail .t, .fact .t { font-weight: bold; }
+  .body { white-space: pre-wrap; margin: 1mm 0; }
+  h4 { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; margin: 2mm 0 0.5mm; }
+  ul { margin: 0; padding-left: 0; list-style: none; }
+  li { margin: 0 0 0.6mm 0; }
+  ul.nested { padding-left: 5mm; margin-top: 0.6mm; }
+  .fact, .detail { margin: 0 0 1mm 0; }
+  .box { display: inline-block; width: 2.6mm; height: 2.6mm; border: 0.3mm solid #111; margin-right: 1mm; vertical-align: -0.3mm; }
+
+  /* Inspiration body (shared _inspiration.peb) */
+  .inspiration section { margin: 0; }
+  .inspiration h2 { font-size: 8pt; color: #555; border-bottom: none; margin: 3mm 0 1mm; }
+  .card { page-break-inside: avoid; margin: 0 0 2mm; }
+  .group-title { font-size: 10.5pt; margin: 1.5mm 0 0.5mm; }
+  .who { margin: 0.5mm 0; }
+  .muted, .small { color: #555; font-size: 8.5pt; }
+  .beats { padding-left: 5mm; margin: 0 0 1mm; }
+  .beat-type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #8c1c13; margin-right: 1mm; }
+  .wants { padding-left: 5mm; list-style: disc; margin: 0.5mm 0 0 3mm; }
+</style>
+</head>
+<body>
+  {% if part != 'columns' %}
+  <div class="map-page">
+    <header>
+      <h1><span class="code">{{ node.code }}</span> {{ node.title }}{% for p in props %}{% if p.name == 'date' %}<span class="date">{{ p.value }}</span>{% endif %}{% endfor %}</h1>
+      {% if node.body is not empty %}<div class="notes">{{ node.body }}</div>{% endif %}
+    </header>
+    {% if map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 1000, "svgHeight": 640} %}{% endif %}
+  </div>
+  {% endif %}
+
+  {% if part != 'cover' %}
+  <div class="text">
+  {% for v in views %}
+    {% if v.view.id == 'inspiration' %}
+      <h2>Characters</h2>
+      {% include "heart/views/_inspiration.peb" with {"groups": v.groups, "links": false} %}
+    {% endif %}
+  {% endfor %}
+
+  {% for s in sections %}
+    <h2>{{ s.label }}</h2>
+    {% for item in s.items %}
+      <div class="place">
+        <h3><span class="code">{{ item.node.code }}</span> {{ item.node.title }}</h3>
+        {# Pebble's include takes a literal map: pass the place's print model through #}
+        {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedProps": item.linkedProps,
+            "groups": item.groups, "facts": item.facts, "audience": item.audience} %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+  </div>
+  {% endif %}
+</body>
+</html>

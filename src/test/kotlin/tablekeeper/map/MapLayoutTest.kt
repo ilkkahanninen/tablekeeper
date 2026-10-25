@@ -96,6 +96,20 @@ class MapLayoutTest {
     }
 
     @Test
+    fun `places on one row keep room for their labels`() {
+        // Two linked landmarks on the same tier with long names, which the force layout alone puts too close
+        val items = listOf(
+            MapLayout.Item("L1", depth = 1.0, labelWidth = 220.0, body = 26.0), MapLayout.Item("L2", depth = 1.0, labelWidth = 200.0, body = 26.0),
+            MapLayout.Item("L3", depth = 2.0, labelWidth = 120.0, body = 26.0), MapLayout.Item("D1", depth = 1.5, labelWidth = 80.0, body = 17.0),
+            MapLayout.Item("D2", depth = 1.5, labelWidth = 80.0, body = 17.0),
+        )
+        val p = MapLayout.layout(items, listOf("D1" to "L1", "D1" to "L3", "D2" to "L2", "D2" to "L3"), 1400.0, 990.0, 130.0)
+        val gap = kotlin.math.abs(p.getValue("L1").x - p.getValue("L2").x)
+        assertTrue(gap >= (220.0 + 200.0) / 2, "labels need ${(220 + 200) / 2}, got $gap")
+        p.values.forEach { assertTrue(it.x in 129.9..1270.1, "$it inside the margins") }
+    }
+
+    @Test
     fun `a single place sits in the middle`() {
         assertEquals(MapLayout.Point(700.0, 495.0), MapLayout.layout(listOf(MapLayout.Item("L1")), emptyList(), 1400.0, 990.0, 130.0)["L1"])
     }

@@ -12,11 +12,16 @@ import tablekeeper.core.Link
 import tablekeeper.core.Node
 import tablekeeper.core.NodeRef
 import tablekeeper.modules.FormField
+import tablekeeper.map.MapService
+import tablekeeper.modules.LinkOption
+import tablekeeper.modules.PacketDef
 import tablekeeper.modules.PrintSummaryDef
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
+import tablekeeper.views.ModuleViews
 import tablekeeper.web.Templates
 import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 class HiddenFromAudience : RuntimeException("This node is GM-only and can't be printed for players")
 
@@ -38,13 +43,13 @@ data class LinkedPropSource(val id: java.util.UUID, val code: String, val title:
 data class LinkedPropValue(val name: String, val label: String, val via: String, val sources: List<LinkedPropSource>)
 data class PrintFact(val code: String, val title: String, val body: String, val visibility: String)
 
-class PrintService(private val graph: GraphService, private val templates: Templates) {
+class PrintService(private val graph: GraphService, private val templates: Templates, private val maps: MapService) {
 
     /**
      * Everything a print template may use. Audience filtering happens HERE,
      * so templates can't accidentally leak GM-only material onto player handouts.
      */
-    fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): Map<String, Any?> {
+    fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience, withPacket: Boolean = true): Map<String, Any?> {
         if (!audience.canSee(node.visibility)) throw HiddenFromAudience()
 
         val fields = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
@@ -85,7 +90,53 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             "groups" to groups,
             "facts" to facts,
             "audience" to audience.name.lowercase(),
-        )
+        ) + (module.packet(node.type)?.takeIf { withPacket }?.let { packet(campaign, module, node, it, audience) } ?: emptyMap())
+    }
+
+    /**
+     * A session packet (the type's `packet` setting): the whole map with the selected places highlighted, module views
+     * over the selected nodes (e.g. Inspiration for the selected characters), and print models of the other selected
+     * nodes plus the `between` ones (delves between selected landmarks), grouped by type in the campaign-home order.
+     */
+    private fun packet(campaign: Campaign, module: ResolvedModule, node: Node, def: PacketDef, audience: Audience): Map<String, Any?> {
+        val nodes = graph.listNodesWithProps(campaign.id).filter { audience.canSee(it.visibility) }
+        val byId = nodes.associateBy { it.id }
+        val edges = graph.listEdges(campaign.id)
+        fun linked(id: UUID, option: LinkOption): List<UUID> = edges.filter { it.type == option.edgeType }.mapNotNull { e ->
+            if (option.direction == Direction.OUT) e.toId.takeIf { e.fromId == id } else e.fromId.takeIf { e.toId == id }
+        }.filter { it in byId }
+
+        val rel = module.linkOptions(node.type).first { it.key == def.rel }
+        val selected = linked(node.id, rel).mapNotNull { byId[it] }
+        val selectedIds = selected.map { it.id }.toSet()
+        val between = def.between.flatMap { b ->
+            val via = module.linkOptions(b.type).first { it.key == b.rel }
+            Packet.between(selectedIds, nodes.filter { module.isA(it.type, b.type) }.map { it.id }) { linked(it, via) }
+        }.mapNotNull { byId[it] }
+
+        val views = module.views.map { ModuleViews.build(module, it, selected) }.filter { it.nodes.isNotEmpty() }
+        val inViews = views.flatMap { v -> v.nodes.map { it.node.id } }.toSet()
+        val sections = (selected.filter { it.id !in inViews } + between).distinctBy { it.id }
+            .groupBy { it.type }.entries
+            .sortedWith(compareBy({ module.overviewRank(it.key) }, { module.label(it.key) }))
+            .map { (type, ofType) ->
+                // Deepest last, e.g. landmarks by tier (the way down to the Heart), then by title
+                val depth = module.mapDepth(type)
+                val ordered = ofType.sortedWith(compareBy({ depth?.let { p -> (it.props[p] as? Number)?.toDouble() } ?: 0.0 }, { it.title }))
+                PacketSection(type, module.label(type), ordered.map { place ->
+                    val m = model(campaign, module, place, audience, withPacket = false)
+                    // Links back to this session ("featured in S1") say nothing inside its own packet, and a list whose
+                    // nodes the linked props already name (a delve's landmarks, in its Tier and Domains rows) repeats them
+                    @Suppress("UNCHECKED_CAST")
+                    val shown = (m["linkedProps"] as List<LinkedPropValue>).flatMap { lp -> lp.sources.map { it.code } }.toSet()
+                    @Suppress("UNCHECKED_CAST")
+                    val groups = (m["groups"] as List<LinkGroup>)
+                        .map { g -> g.copy(items = g.items.filter { it.code != node.code }) }
+                        .filter { g -> g.items.isNotEmpty() && !g.items.all { it.code in shown } }
+                    m + ("groups" to groups)
+                })
+            }
+        return mapOf("map" to maps.view(campaign, module, highlight = selectedIds), "views" to views, "sections" to sections)
     }
 
     /** Module `linkedProps` for [node]: a prop's values per linked node the audience can see. */
@@ -109,9 +160,33 @@ class PrintService(private val graph: GraphService, private val templates: Templ
     fun html(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): String =
         templates.render(module.printTemplate(node.type) ?: "print/generic.peb", model(campaign, module, node, audience))
 
-    /** HTML -> PDF. jsoup tidies Pebble output into a DOM, so templates don't need to be strict XHTML. */
-    fun pdf(html: String): ByteArray {
-        val doc = W3CDom().fromJsoup(Jsoup.parse(html))
+    /**
+     * A node's print as PDF. A packet with `columns` > 1 renders its template twice: `part = "cover"` as is
+     * (e.g. the map page), and `part = "columns"` as one long column on narrow pages, which [Imposition] then
+     * places side by side on landscape sheets.
+     */
+    fun pdf(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): ByteArray {
+        val columns = module.packet(node.type)?.columns ?: 1
+        if (columns <= 1) return pdf(html(campaign, module, node, audience))
+        val template = module.printTemplate(node.type) ?: "print/generic.peb"
+        val model = model(campaign, module, node, audience)
+        val cover = pdf(templates.render(template, model + ("part" to "cover")))
+        val hasText = listOf("views", "sections").any { (model[it] as? List<*>)?.isNotEmpty() == true }
+        val text = if (!hasText) null else pdf(
+            templates.render(template, model + ("part" to "columns")),
+            pageCss = "@page { size: ${Imposition.columnWidthMm(columns)}mm ${Imposition.columnHeightMm()}mm; margin: 0; }",
+        )
+        return Imposition.columns(cover, text, columns)
+    }
+
+    /**
+     * HTML -> PDF. jsoup tidies Pebble output into a DOM, so templates don't need to be strict XHTML.
+     * [pageCss] is appended last, so it overrides the template's own `@page` (used for narrow column pages).
+     */
+    fun pdf(html: String, pageCss: String? = null): ByteArray {
+        val parsed = Jsoup.parse(html)
+        pageCss?.let { parsed.head().appendElement("style").appendText(it) }
+        val doc = W3CDom().fromJsoup(parsed)
         return ByteArrayOutputStream().use { out ->
             PdfRendererBuilder()
                 .useFastMode()

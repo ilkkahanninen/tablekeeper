@@ -39,6 +39,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.18.1")
     implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
     implementation("com.openhtmltopdf:openhtmltopdf-svg-support:1.0.10")  // inline <svg>, e.g. the campaign map
+    implementation("org.apache.pdfbox:pdfbox:2.0.24")  // same version openhtmltopdf uses; multi-column imposition
 
     implementation("ch.qos.logback:logback-classic:1.5.12")
 

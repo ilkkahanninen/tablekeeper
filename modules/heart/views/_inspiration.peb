@@ -1,0 +1,41 @@
+{# Inspiration body: callings with the characters' beats, classes with the rule book's text.
+   Variables: campaign, groups["calling"], groups["class"] (ViewGroup lists), links (link names to their pages).
+   Used by the Inspiration page and the session packet, so both show the same thing. #}
+<div class="inspiration">
+  <section>
+    <h2>Callings</h2>
+    {% for g in groups["calling"] %}
+      <div class="card">
+        <h3 class="group-title">{{ g.label }}</h3>
+        {% for c in g.nodes %}
+          <div class="who">
+            <span class="code">{{ c.node.code }}</span>
+            {% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.node.title }}</a>{% else %}{{ c.node.title }}{% endif %}
+            {% if c.fields.player.text is not empty %}<span class="muted small">{{ c.fields.player.text }}</span>{% endif %}
+          </div>
+          {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
+            <ul class="beats">
+              {% if c.fields.beat1.text is not empty %}<li>{% if c.fields.beat1Type.text is not empty %}<span class="beat-type">{{ c.fields.beat1Type.text }}</span> {% endif %}{{ c.fields.beat1.text }}</li>{% endif %}
+              {% if c.fields.beat2.text is not empty %}<li>{% if c.fields.beat2Type.text is not empty %}<span class="beat-type">{{ c.fields.beat2Type.text }}</span> {% endif %}{{ c.fields.beat2.text }}</li>{% endif %}
+            </ul>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </section>
+
+  <section>
+    <h2>Classes</h2>
+    {% for g in groups["class"] %}
+      <div class="card">
+        <h3 class="group-title">{{ g.label }}</h3>
+        <p class="who">
+          {% for c in g.nodes %}{% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.node.title }}</a>{% else %}{{ c.node.title }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+        </p>
+        {% if g.hint is not null %}
+          <ul class="wants">{% for w in g.hint | split('; ') %}<li>{{ w }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </section>
+</div>

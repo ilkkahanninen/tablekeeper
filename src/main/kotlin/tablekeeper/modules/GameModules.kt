@@ -49,7 +49,27 @@ data class NodeTypeDef(
     val overview: List<String>? = null,
     /** Boolean prop that greys out this type's rows on the campaign home when true, e.g. an NPC's "dead". Missing = inherit. */
     val overviewMuted: String? = null,
+    /** Checkbox lists on this type's page; ticking links the node via the list's rel. Missing = inherit. */
+    val checklists: List<ChecklistDef>? = null,
+    /** Printing a node of this type builds a session packet from what it links. Missing = inherit. */
+    val packet: PacketDef? = null,
 )
+
+/** A checkbox list of every node of [types]; ticked = linked via [rel], e.g. a session's featured landmarks. */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class ChecklistDef(val rel: String, val types: List<String>)
+
+/**
+ * A printed packet of the nodes linked via [rel] (e.g. a session's "features"), plus [between] nodes:
+ * those whose every link of a kind points at a selected node, e.g. delves between selected landmarks.
+ * [columns] > 1 prints the text on landscape A4 in that many columns (after the template's cover part).
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PacketDef(val rel: String, val between: List<BetweenDef> = emptyList(), val columns: Int = 1)
+
+/** Nodes of [type] included when each of their [rel] links ends at a selected node (and there is at least one). */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BetweenDef(val type: String, val rel: String)
 
 val MAP_SHAPES = setOf("circle", "diamond", "dot")
 
@@ -152,6 +172,8 @@ data class TypePatch(
     val mapDepthFrom: String? = null,
     val overview: List<String>? = null,
     val overviewMuted: String? = null,
+    val checklists: List<ChecklistDef>? = null,
+    val packet: PacketDef? = null,
 ) {
     fun applyTo(def: NodeTypeDef) = def.copy(
         label = label ?: def.label,
@@ -169,6 +191,8 @@ data class TypePatch(
         mapDepthFrom = mapDepthFrom ?: def.mapDepthFrom,
         overview = overview ?: def.overview,
         overviewMuted = overviewMuted ?: def.overviewMuted,
+        checklists = checklists ?: def.checklists,
+        packet = packet ?: def.packet,
     )
 }
 
@@ -355,13 +379,31 @@ class ResolvedModule(
         }
         val muted = listOfNotNull(def.overviewMuted?.takeIf { schemaProps?.get(it)?.get("type")?.asText() != "boolean" }
             ?.let { "${def.id}: overviewMuted '$it' is not a boolean prop in its props schema" })
-        quick + linked + limits + slots + summary + nested + context + map + overview + muted
+        val checklists = def.checklists.orEmpty().flatMap { c ->
+            listOfNotNull("${def.id}: checklist rel '${c.rel}' is not a link option of ${def.id}".takeIf { options.none { it.key == c.rel } }) +
+                c.types.filter { it !in types }.map { "${def.id}: checklist type '$it' is unknown" }
+        }
+        val packet = def.packet?.let { pk ->
+            listOfNotNull("${def.id}: packet rel '${pk.rel}' is not a link option of ${def.id}".takeIf { options.none { it.key == pk.rel } }) +
+                pk.between.flatMap { b ->
+                    if (b.type !in types) listOf("${def.id}: packet between type '${b.type}' is unknown")
+                    else listOfNotNull("${def.id}: packet between rel '${b.rel}' is not a link option of ${b.type}"
+                        .takeIf { linkOptions(b.type).none { it.key == b.rel } })
+                }
+        }.orEmpty()
+        quick + linked + limits + slots + summary + nested + context + map + overview + muted + checklists + packet
     }
 
     fun view(id: String): ViewDef? = views.firstOrNull { it.id == id }
 
     /** Overview column specs for a type: prop names and "@rel" link columns. */
     fun overview(typeId: String): List<String> = inherited(typeId) { it.overview }.orEmpty()
+
+    /** Checkbox lists on a type's page, with their link option resolved. */
+    fun checklists(typeId: String): List<Pair<ChecklistDef, LinkOption>> = inherited(typeId) { it.checklists }.orEmpty()
+        .mapNotNull { c -> linkOptions(typeId).firstOrNull { it.key == c.rel }?.let { c to it } }
+
+    fun packet(typeId: String): PacketDef? = inherited(typeId) { it.packet }
 
     /** The boolean prop that greys out a type's overview rows, if any. */
     fun overviewMuted(typeId: String): String? = inherited(typeId) { it.overviewMuted }

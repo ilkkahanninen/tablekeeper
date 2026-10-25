@@ -10,13 +10,14 @@
       "linkSlots": [{ "label": "Location", "rels": ["located_at:out"] }],
       "overview": ["voice", "appearance", "dead"],
       "overviewMuted": "dead",
+      "printSummary": { "parts": ["{voice}", "{appearance}", "{dead}"] },
       "props": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "voice":      { "type": "string", "title": "Voice", "x-wide": true },
           "appearance": { "type": "string", "title": "Appearance", "x-wide": true },
-          "dead":       { "type": "boolean", "title": "Dead" }
+          "dead":       { "type": "boolean", "title": "Dead", "x-trueLabel": "dead" }
         }
       } },
     { "id": "core.item",    "label": "Item",             "codePrefix": "I",

@@ -25,8 +25,11 @@ object MapLayout {
     /**
      * [small] nodes (e.g. minor locations) sit on short springs, so they cluster around what they link to.
      * [depth]: vertical level, higher = lower on the map; null = free to go anywhere.
+     * [labelWidth]: estimated width of its label, and [body] the half-size of its shape, in output units; labels
+     * (centred below the shape) are kept clear of other places' labels and shapes.
      */
-    data class Item(val id: String, val small: Boolean = false, val depth: Double? = null)
+    data class Item(val id: String, val small: Boolean = false, val depth: Double? = null,
+                    val labelWidth: Double = 0.0, val body: Double = 0.0)
     data class Point(val x: Double, val y: Double)
 
     private const val ITERATIONS = 400
@@ -38,6 +41,10 @@ object MapLayout {
     private const val MIN_GAP = K * 1.2
     /** Roughly half a place label's width, for keeping minor locations off other places' labels. */
     private const val LABEL_HALF_WIDTH = K * 0.75
+    /** Output units: a label's height below its shape. */
+    private const val LABEL_HEIGHT = 28.0
+    /** Output units between neighbouring labels on a row. */
+    private const val LABEL_PADDING = 16.0
 
     /** Positions inside a [width] × [height] box, keeping [margin] free on every side for labels. */
     fun layout(items: List<Item>, edges: List<Pair<String, String>>, width: Double, height: Double, margin: Double): Map<String, Point> {
@@ -51,7 +58,49 @@ object MapLayout {
             .map { group -> place(group, links.filter { it.first in group }, small, depth) }
             .sortedWith(compareByDescending<Map<String, Point>> { it.size }.thenBy { it.keys.min() })
         val (layered, free) = groups.partition { g -> g.keys.any { it in depth } }
-        return fit(pack(layered, free, width / height), width, height, margin)
+        val placed = fit(pack(layered, free, width / height), width, height, margin)
+        return declutter(placed, items.associateBy { it.id }, width, margin)
+    }
+
+    /**
+     * Labels sit centred below places, so a long label can run into a neighbour's label or shape. Where a place's
+     * label or shape overlaps another's, push the two apart sideways, then squeeze the map back into the box if it
+     * grew; a few rounds settle it. Works in output units, where label widths and shape sizes are known.
+     */
+    private fun declutter(points: Map<String, Point>, items: Map<String, Item>, width: Double, margin: Double): Map<String, Point> {
+        if (items.values.all { it.labelWidth <= 0.0 }) return points
+        val ids = points.keys.toList()
+        val xs = DoubleArray(ids.size) { points.getValue(ids[it]).x }
+        val ys = DoubleArray(ids.size) { points.getValue(ids[it]).y }
+        // Boxes around a place: its shape, and its label below it (left, top, right, bottom)
+        fun boxes(i: Int): List<DoubleArray> {
+            val item = items.getValue(ids[i])
+            val b = item.body
+            val half = item.labelWidth / 2
+            return listOf(
+                doubleArrayOf(xs[i] - b, ys[i] - b, xs[i] + b, ys[i] + b),
+                doubleArrayOf(xs[i] - half, ys[i] + b + 6, xs[i] + half, ys[i] + b + LABEL_HEIGHT),
+            )
+        }
+        repeat(12) {
+            var moved = false
+            for (i in ids.indices) for (j in ids.indices) {
+                if (i == j || xs[i] > xs[j] || (xs[i] == xs[j] && i > j)) continue
+                // i is the left one: how far its boxes reach into j's, horizontally, where they also overlap vertically
+                val overlap = boxes(i).flatMap { a -> boxes(j).map { c -> a to c } }
+                    .filter { (a, c) -> a[1] < c[3] && c[1] < a[3] }
+                    .maxOfOrNull { (a, c) -> a[2] - c[0] + LABEL_PADDING } ?: 0.0
+                if (overlap > 0.5) { xs[i] -= overlap / 2; xs[j] += overlap / 2; moved = true }
+            }
+            // Back inside the box, keeping order; only x was changed
+            val minX = xs.min(); val maxX = xs.max()
+            val room = width - 2 * margin
+            val scale = if (maxX - minX > room) room / (maxX - minX) else 1.0
+            val shift = if (scale < 1.0) margin - minX * scale else maxOf(0.0, margin - minX) - maxOf(0.0, maxX - (width - margin))
+            for (i in ids.indices) xs[i] = xs[i] * scale + shift
+            if (!moved) return ids.indices.associate { ids[it] to Point(xs[it], ys[it]) }
+        }
+        return ids.indices.associate { ids[it] to Point(xs[it], ys[it]) }
     }
 
     /** Connected groups, each in the input order, so results don't depend on hash ordering. */

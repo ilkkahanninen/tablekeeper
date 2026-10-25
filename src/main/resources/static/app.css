@@ -67,6 +67,8 @@ legend { font-size: .85rem; color: var(--muted); }
 .errors { color: var(--blood); border: 1px solid var(--blood); border-radius: 4px; padding: .5rem 1.5rem; margin: 0; }
 
 .link-slots form { margin: 0 0 .9rem; max-width: 24rem; }
+.checklist { margin: 0 0 .9rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .2rem .9rem; }
+.checklist form { margin: 0; }
 .linked-prop { margin: 0 0 .75rem; }
 .linked-prop .k { font-size: .85rem; color: var(--muted); margin-right: .4rem; }
 .link-picker { display: flex; gap: .4rem; margin-bottom: .5rem; }

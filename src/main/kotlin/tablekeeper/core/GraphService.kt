@@ -133,6 +133,11 @@ class GraphService(private val db: DSLContext) {
         )
     }
 
+    /** Removes the [type] edge [fromId] → [toId], if there is one. */
+    fun deleteEdgeBetween(campaignId: UUID, fromId: UUID, toId: UUID, type: String) {
+        db.execute("delete from edges where campaign_id = ? and from_id = ? and to_id = ? and type = ?", campaignId, fromId, toId, type)
+    }
+
     fun deleteEdge(campaignId: UUID, edgeId: UUID) {
         db.execute("delete from edges where campaign_id = ? and id = ?", campaignId, edgeId)
     }

@@ -1,0 +1,34 @@
+{#
+  Landmark / delve body: props, linked props, notes, haunts/events, links (minor locations nested with their
+  contents), facts with tick boxes. Model: a node print model (node, props, linkedProps, groups, facts, audience).
+  Used by the A6 card (landmark.peb) and the session packet (session.peb), so both print the same content.
+#}
+  <table class="props">
+    {% for p in props %}
+      {% if p.name != 'haunts' and p.name != 'events' %}
+      <tr><td class="k">{{ p.label }}</td><td>{{ p.value }}</td></tr>
+      {% endif %}
+    {% endfor %}
+    {% include "print/_linked_props.peb" %}
+  </table>
+
+  {% if node.body is not empty %}<div class="body">{{ node.body }}</div>{% endif %}
+
+  {% for p in props %}
+    {% if p.name == 'haunts' or p.name == 'events' %}
+      <h4>{{ p.label }}</h4>
+      <div class="body">{{ p.value }}</div>
+    {% endif %}
+  {% endfor %}
+
+  {% for g in groups %}
+    <h4>{{ g.label }}</h4>
+    <ul>{% for i in g.items %}<li>{{ i.title }} <span class="ref">({{ i.code }})</span>{% if i.summary is not empty %}: {{ i.summary }}{% endif %}{% if i.children is not empty %}<ul class="nested">{% for c in i.children %}<li>{{ c.title }} <span class="ref">({{ c.code }})</span>{% if c.summary is not empty %}: {{ c.summary }}{% endif %}</li>{% endfor %}</ul>{% endif %}</li>{% endfor %}</ul>
+  {% endfor %}
+
+  {% if facts is not empty %}
+    <h4>{% if audience == 'gm' %}Secrets &amp; facts{% else %}What you know{% endif %}</h4>
+    {% for f in facts %}
+      <div class="fact">{% if audience == 'gm' %}<span class="box"></span>{% endif %}<span class="t">{{ f.title }}</span>{% if f.body is not empty %}: {{ f.body }}{% endif %}</div>
+    {% endfor %}
+  {% endif %}
