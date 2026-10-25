@@ -49,6 +49,13 @@ class GraphService(private val db: DSLContext) {
             toNode(r)
         }
 
+    /** A copy of [node] as a new node of the same type, titled [title]: its props, notes and visibility, no links. */
+    fun duplicateNode(node: Node, codePrefix: String, title: String): Node {
+        val copy = createNode(node.campaignId, node.type, codePrefix, title)
+        updateNode(node.campaignId, copy.id, title, node.body, Visibility.of(node.visibility), mapper.valueToTree(node.props))
+        return copy
+    }
+
     fun updateNode(campaignId: UUID, nodeId: UUID, title: String, body: String, visibility: Visibility, props: JsonNode) {
         db.execute(
             """update nodes set title = ?, body = ?, visibility = ?, props = ?::jsonb, updated_at = now()

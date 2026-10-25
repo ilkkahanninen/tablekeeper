@@ -47,6 +47,9 @@ input, select, textarea { padding: .35rem .5rem; border: 1px solid var(--line); 
 textarea { resize: none; overflow-y: hidden; box-sizing: border-box; }
 button { padding: .35rem .9rem; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); border-radius: 4px; cursor: pointer; }
 button.danger { background: transparent; color: var(--blood); border-color: var(--blood); margin-left: auto; }
+button.secondary { background: transparent; color: var(--ink); border-color: var(--line); margin-left: auto; }
+button.secondary:hover { border-color: var(--ink); }
+button.secondary + button.danger { margin-left: 0; }
 fieldset { border: 1px solid var(--line); border-radius: 4px; display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
 legend { font-size: .85rem; color: var(--muted); }
 

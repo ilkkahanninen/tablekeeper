@@ -37,6 +37,8 @@
   </div>
 
   <div class="actions">
+    {# Waits for an autosave still on its way (hx-sync), so the copy has the last edit #}
+    <button type="button" class="secondary" hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/duplicate" hx-sync="closest form:queue all">Duplicate</button>
     <button type="button" class="danger"
             hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/delete"
             hx-confirm="Delete {{ node.code }} {{ node.title }} and all its links?">Delete</button>

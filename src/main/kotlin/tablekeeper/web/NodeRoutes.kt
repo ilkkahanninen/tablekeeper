@@ -138,6 +138,15 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         call.linksChanged(g, n)
     }
 
+    // Duplicate: a copy with the same fields and notes but no links, then open it
+    post("/duplicate") {
+        val (c, m) = call.game()
+        val n = call.node(c)
+        val type = m.type(n.type) ?: throw BadRequest("Unknown type ${n.type}")
+        val copy = graph.duplicateNode(n, type.codePrefix, "${n.title} (copy)")
+        call.redirect("/c/${c.id}/n/${copy.id}")
+    }
+
     // The [[ picker in notes: nodes whose title or code matches what's typed after [[
     get("/mentions") {
         val (c, m) = call.game()
