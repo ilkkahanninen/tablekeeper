@@ -11,6 +11,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
 - **Campaign page:** one table per type (Sessions, Landmarks, Delves, Characters, NPCs, Fallouts, Equipment, Resources, Factions…), with key columns, a filter box and a **Create** button under each table. Minor locations sit under their landmark, sessions are in date order, and dead NPCs are greyed out.
 - **Node pages:**
   - Fields save as you leave them.
+  - **Notes** show formatted until you click them: `**bold**`, `*italic*`, `- ` lists, and `[[Red Market]]` (or `[[L3]]`) as a link. Typing `[[` offers matching nodes; renaming a node updates its mentions. A mentioned node lists who mentions it under **Mentioned in**. Prints show the same formatting, mentions in bold.
   - The **Link** box finds something to link, with a button per possible relation, or creates it.
   - Dropdowns like **Location** or **Location / carried by** handle "one of these" links.
   - **Links** lists everything connected, grouped by type (*NPCs*, *Resources*…).
@@ -192,7 +193,6 @@ Unit tests cover module loading and settings, the map layout, campaign-page tabl
 - **No login yet:** `AUTH_MODE=session` (login page, sessions, Argon2, CSRF) is still to come. Data is already per user, so turning it on needs no migration.
 - **Player handouts:** the data model and the `…/print.pdf?audience=players` route exist, but node visibility is hidden from the UI for now.
 - **PDF fonts:** the built-in fonts cover Latin-1 (ä, ö, å) but not symbols like →. Embed a TTF via `PdfRendererBuilder.useFont` for more.
-- **Notes formatting:** notes are plain text. `[[wikilinks]]` to edges and markdown would be nice.
 
 ## License
 

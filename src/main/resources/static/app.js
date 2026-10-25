@@ -72,3 +72,77 @@ document.addEventListener("htmx:responseError", (e) => {
   list.append(item);
   status.replaceChildren(list);
 });
+
+// Notes: the formatted view until clicked (links still work), then the text to edit; leaving non-empty text shows the
+// view again, which the autosave refreshes (out-of-band #notes-view).
+document.addEventListener("click", (e) => {
+  const view = e.target.closest(".notes-view");
+  if (!view || e.target.closest("a")) return;
+  const input = view.closest(".notes-field").querySelector("textarea");
+  view.hidden = true;
+  input.hidden = false;
+  input.focus();
+});
+document.addEventListener("focusout", (e) => {
+  if (!e.target.matches(".notes-field textarea")) return;
+  const field = e.target.closest(".notes-field");
+  field.querySelector(".mention-menu").hidden = true;
+  if (e.target.value.trim() !== "") {
+    e.target.hidden = true;
+    field.querySelector(".notes-view").hidden = false;
+  }
+});
+
+// Typing [[ in notes offers matching nodes (found on the server); picking one inserts [[Title]].
+const mentionQuery = (input) => input.value.slice(0, input.selectionStart).match(/\[\[([^[\]\n]{0,40})$/)?.[1] ?? null;
+const mentionMenu = (input) => input.closest(".notes-field").querySelector(".mention-menu");
+let mentionTimer;
+document.addEventListener("input", (e) => {
+  const input = e.target;
+  if (!input.matches("textarea[data-mentions]")) return;
+  const menu = mentionMenu(input);
+  const q = mentionQuery(input);
+  clearTimeout(mentionTimer);
+  if (q === null) { menu.hidden = true; return; }
+  mentionTimer = setTimeout(() => {
+    fetch(`${input.dataset.mentions}?q=${encodeURIComponent(q)}`).then((r) => r.text()).then((html) => {
+      menu.innerHTML = html;
+      menu.querySelector(".mention-choice")?.classList.add("active");
+      menu.hidden = menu.children.length === 0;
+    });
+  }, 120);
+});
+function insertMention(input, title) {
+  const before = input.value.slice(0, input.selectionStart).replace(/\[\[[^[\]\n]*$/, `[[${title}]]`);
+  const after = input.value.slice(input.selectionStart).replace(/^\]\]/, "");
+  input.value = before + after;
+  input.selectionStart = input.selectionEnd = before.length;
+  mentionMenu(input).hidden = true;
+  input.dispatchEvent(new Event("change", { bubbles: true }));   // autosave
+}
+document.addEventListener("keydown", (e) => {
+  if (!e.target.matches("textarea[data-mentions]")) return;
+  const menu = mentionMenu(e.target);
+  if (menu.hidden) return;
+  const choices = [...menu.querySelectorAll(".mention-choice")];
+  const active = menu.querySelector(".mention-choice.active");
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    const step = e.key === "ArrowDown" ? 1 : -1;
+    const next = choices[(choices.indexOf(active) + step + choices.length) % choices.length];
+    active?.classList.remove("active");
+    next.classList.add("active");
+    next.scrollIntoView({ block: "nearest" });
+  } else if ((e.key === "Enter" || e.key === "Tab") && active) {
+    insertMention(e.target, active.dataset.title);
+  } else if (e.key === "Escape") {
+    menu.hidden = true;
+  } else return;
+  e.preventDefault();
+});
+// mousedown, not click: the textarea keeps focus (and stays in edit mode)
+document.addEventListener("mousedown", (e) => {
+  const choice = e.target.closest(".mention-choice");
+  if (!choice) return;
+  e.preventDefault();
+  insertMention(choice.closest(".notes-field").querySelector("textarea"), choice.dataset.title);
+});

@@ -8,9 +8,9 @@
         <li>
           <span class="code">{{ l.code }}</span>
           <a href="/c/{{ campaign.id }}/n/{{ l.otherId }}">{{ l.title }}</a>
-          <button class="unlink" aria-label="Remove link"
+          {% if l.edgeId is not null %}<button class="unlink" aria-label="Remove link"
                   hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links/{{ l.edgeId }}/delete"
-                  hx-target="#linked" hx-swap="outerHTML">×</button>
+                  hx-target="#linked" hx-swap="outerHTML">×</button>{% endif %}
         </li>
       {% endfor %}
     </ul>

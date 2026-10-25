@@ -18,7 +18,11 @@
   .props { width: 100%; border-collapse: collapse; margin-bottom: 2mm; }
   .props td { padding: 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
   .props td.k { width: 25mm; color: #555; font-size: 7.5pt; text-transform: uppercase; }
-  .body { white-space: pre-wrap; margin: 2mm 0; }
+  .body { margin: 2mm 0; }
+  /* Formatted notes (Notes.html): paragraphs and lists; [[mentions]] in bold */
+  .body p, .notes p { margin: 0 0 1.5mm; }
+  .body ul, .notes ul { margin: 0 0 1.5mm; padding-left: 4.5mm; }
+  .body > :last-child, .notes > :last-child { margin-bottom: 0; }
   h4 { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5pt; margin: 3mm 0 1mm; color: #555; }
   ul { margin: 0; padding-left: 4mm; list-style: disc; }
   li { margin: 0 0 0.8mm 0; }

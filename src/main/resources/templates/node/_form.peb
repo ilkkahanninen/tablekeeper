@@ -28,9 +28,13 @@
     {% endfor %}
   </div>
 
-  <label class="wide">Notes
-    <textarea name="body" rows="10">{{ node.body }}</textarea>
-  </label>
+  {# Notes: formatted (bold, italic, lists, [[mentions]] as links) until clicked, then the text to edit; typing [[ offers nodes. See app.js #}
+  <div class="wide notes-field">
+    <label for="notes-input">Notes</label>
+    <div id="notes-view" class="notes-view"{% if node.body is empty %} hidden{% endif %}>{{ notes | raw }}</div>
+    <textarea id="notes-input" name="body" rows="10" data-mentions="/c/{{ campaign.id }}/n/{{ node.id }}/mentions"{% if node.body is not empty %} hidden{% endif %}>{{ node.body }}</textarea>
+    <div class="mention-menu" role="listbox" hidden></div>
+  </div>
 
   <div class="actions">
     <button type="button" class="danger"

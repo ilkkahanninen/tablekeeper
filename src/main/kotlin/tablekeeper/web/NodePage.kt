@@ -3,8 +3,10 @@ package tablekeeper.web
 import tablekeeper.core.BadRequest
 import tablekeeper.core.Campaign
 import tablekeeper.core.GraphService
+import tablekeeper.core.Mentions
 import tablekeeper.core.Node
 import tablekeeper.core.NodeRef
+import tablekeeper.core.Notes
 import tablekeeper.core.RandomTableService
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.Linker
@@ -15,7 +17,8 @@ import tablekeeper.print.PrintService
 import java.util.UUID
 
 // View models for the "Linked" sidebar
-data class UiLink(val edgeId: UUID, val otherId: UUID, val code: String, val title: String, val typeLabel: String, val visibility: String)
+/** [edgeId] null: not an edge, e.g. a node whose notes mention this one ("Mentioned in"), so it can't be unlinked here. */
+data class UiLink(val edgeId: UUID?, val otherId: UUID, val code: String, val title: String, val typeLabel: String, val visibility: String)
 data class UiGroup(val label: String, val links: List<UiLink>)
 /** A relation the Link box offers for a search result; [blocked] says why it's disabled (a link limit), if it is. */
 data class RelationChoice(val option: LinkOption, val blocked: String?)
@@ -30,6 +33,8 @@ data class CreateChoice(val key: String, val label: String)
 /** One dropdown entry; [value] is "<rel>|<node id>". */
 data class Choice(val value: String, val label: String, val selected: Boolean)
 data class ChoiceGroup(val label: String, val choices: List<Choice>)
+/** A node offered after typing `[[` in notes: [label] as in pickers, [title] what gets inserted. */
+data class MentionChoice(val code: String, val label: String, val title: String)
 /** Dropdown for a link slot, e.g. Location: places, then carriers. */
 data class SlotView(val index: Int, val label: String, val groups: List<ChoiceGroup>)
 
@@ -50,6 +55,8 @@ class NodePage(
         "node" to n,
         "typeLabel" to m.label(n.type),
         "displayTitle" to m.displayTitle(n),
+        // Notes as shown when not editing: formatting, and [[mentions]] as links to the nodes
+        "notes" to Notes.html(n.body, mentions(c, m)) { "/c/${c.id}/n/${it.id}" },
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
@@ -127,6 +134,16 @@ class NodePage(
         }
     }
 
+    /** Nodes for the `[[` picker in notes: title or code matches, labelled as in other pickers. */
+    fun mentionChoices(c: Campaign, m: ResolvedModule, n: Node, q: String): List<MentionChoice> {
+        val found = graph.search(c.id, q, n.id, limit = 8)
+        val labels = pickerLabels(c, m, found)
+        return found.map { MentionChoice(it.code, labels.getValue(it.id), it.title) }
+    }
+
+    /** The campaign's nodes by the names a `[[mention]]` may use. */
+    private fun mentions(c: Campaign, m: ResolvedModule): Mentions = Mentions.of(graph.listNodesWithProps(c.id), m::displayTitle)
+
     /** Display titles of all the campaign's nodes, e.g. "Thonal (Jori)" (module `displayTitle`). */
     private fun displayTitles(c: Campaign, m: ResolvedModule): Map<UUID, String> = m.displayTitles(graph.listNodesWithProps(c.id))
 
@@ -195,13 +212,15 @@ class NodePage(
         }
     }
 
-    /** Links for the sidebar, slot links included so the place or carrier is one click away. */
+    /**
+     * Links for the sidebar, slot links included so the place or carrier is one click away; then "Mentioned in":
+     * nodes whose notes mention this one as `[[code]]`, `[[title]]` or `[[display title]]`.
+     */
     private fun linkGroups(c: Campaign, m: ResolvedModule, n: Node): List<UiGroup> {
         val names = displayTitles(c, m)
-        return m.groupLinks(graph.links(c.id, n.id)).map { (label, links) ->
-            UiGroup(label, links.map {
-                UiLink(it.edgeId, it.other.id, it.other.code, names[it.other.id] ?: it.other.title, m.label(it.other.type), it.other.visibility)
-            })
-        }
+        fun ui(edgeId: UUID?, other: NodeRef) = UiLink(edgeId, other.id, other.code, names[other.id] ?: other.title, m.label(other.type), other.visibility)
+        val mentionedIn = graph.mentioning(c.id, n.id, listOf(n.code, n.title, m.displayTitle(n))).sortedBy { names[it.id] ?: it.title }
+        return m.groupLinks(graph.links(c.id, n.id)).map { (label, links) -> UiGroup(label, links.map { ui(it.edgeId, it.other) }) } +
+            listOfNotNull(mentionedIn.takeIf { it.isNotEmpty() }?.let { refs -> UiGroup("Mentioned in", refs.map { ui(null, it) }) })
     }
 }

@@ -10,8 +10,10 @@ import tablekeeper.core.CampaignGraph
 import tablekeeper.core.GraphService
 import tablekeeper.core.HiddenFromAudience
 import tablekeeper.core.Link
+import tablekeeper.core.Mentions
 import tablekeeper.core.Node
 import tablekeeper.core.NodeRef
+import tablekeeper.core.Notes
 import tablekeeper.map.MapService
 import tablekeeper.map.MapView
 import tablekeeper.modules.FormField
@@ -43,10 +45,11 @@ data class LinkGroup(val label: String, val items: List<PrintRef>)
 data class LinkedPropSource(val id: UUID, val code: String, val title: String, val values: List<String>)
 /** A linked prop, kept per linked node: a delve's domains shift from one landmark's to the other's. */
 data class LinkedPropValue(val name: String, val label: String, val via: String, val sources: List<LinkedPropSource>)
-data class PrintFact(val code: String, val title: String, val body: String, val visibility: String)
+/** [notes]: the fact's text as HTML (formatting and `[[mentions]]`, see [Notes.inline]). */
+data class PrintFact(val code: String, val title: String, val body: String, val visibility: String, val notes: String = "")
 
 /** The previous node's recap on a packet cover ("Last time"), e.g. S1's "What happened". */
-data class PacketRecap(val code: String, val title: String, val text: String)
+data class PacketRecap(val code: String, val title: String, val text: String, val notes: String)
 
 /** A session packet's extra template variables (the type's `packet` setting). */
 data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>, val previous: PacketRecap? = null)
@@ -55,6 +58,7 @@ data class PacketModel(val map: MapView, val views: List<ViewData>, val sections
  * Everything a print template may use, already filtered for the audience. Section items in a packet are these too,
  * so templates read `item.props`, `item.groups`…; a node's own print gets them as top-level variables ([asMap]).
  * [flags]: ticked checkboxes with an "x-trueLabel" (e.g. "dead"), shown next to the title instead of as rows.
+ * [notes]: the node's notes as HTML: formatting, and `[[mentions]]` of nodes the audience may see in bold ([Notes.html]).
  */
 data class PrintModel(
     val campaign: Campaign,
@@ -67,12 +71,13 @@ data class PrintModel(
     val groups: List<LinkGroup>,
     val facts: List<PrintFact>,
     val audience: String,
+    val notes: String = "",
     val packet: PacketModel? = null,
 ) {
     fun asMap(): Map<String, Any?> = mapOf(
         "campaign" to campaign, "node" to node, "typeLabel" to typeLabel, "displayTitle" to displayTitle,
         "props" to props, "flags" to flags, "linkedProps" to linkedProps, "groups" to groups, "facts" to facts,
-        "audience" to audience,
+        "audience" to audience, "notes" to notes,
     ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous) }.orEmpty()
 }
 
@@ -90,6 +95,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         if (!audience.canSee(node.visibility)) throw HiddenFromAudience()
         // Names as shown everywhere, e.g. "Thonal (Jori)"
         val names = module.displayTitles(all.nodes)
+        val mentions = Mentions.of(all.nodes.filter { audience.canSee(it.visibility) }, module::displayTitle)
 
         val fields = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
         val (flagFields, rowFields) = fields.partition { it.kind == "bool" && it.trueLabel != null }
@@ -108,7 +114,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             }.distinctBy { it.code })
         }
         val facts = factLinks.map { it.other }.distinctBy { it.id }.mapNotNull { all.byId[it.id] }
-            .map { PrintFact(it.code, names[it.id] ?: it.title, it.body, it.visibility) }
+            .map { PrintFact(it.code, names[it.id] ?: it.title, it.body, it.visibility, Notes.inline(it.body, mentions)) }
 
         return PrintModel(
             campaign, node, module.label(node.type), module.displayTitle(node),
@@ -118,6 +124,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             groups = groups,
             facts = facts,
             audience = audience.name.lowercase(),
+            notes = Notes.html(node.body, mentions),
             packet = module.packet(node.type)?.takeIf { withPacket }?.let { packet(campaign, module, node, it, audience, all) },
         )
     }
@@ -162,7 +169,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val ordered = sortedByProp(g.nodes.filter { it.type == node.type }, sort, { it.props }, { it.title })
         val previous = ordered.getOrNull(ordered.indexOfFirst { it.id == node.id } - 1) ?: return null
         val text = previous.props[prop]?.toString()?.trim().orEmpty().ifEmpty { return null }
-        return PacketRecap(previous.code, module.displayTitle(previous), text)
+        return PacketRecap(previous.code, module.displayTitle(previous), text, Notes.html(text, Mentions.of(g.nodes, module::displayTitle)))
     }
 
     /** Module `linkedProps` for [node], for its page: a prop's values per linked node, as the GM sees them. */

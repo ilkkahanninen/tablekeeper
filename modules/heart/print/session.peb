@@ -17,7 +17,7 @@
   header { border-bottom: 0.6mm solid #111; margin-bottom: 2mm; }
   h1 { font-size: 15pt; margin: 0 0 1mm; }
   .date { font-size: 9pt; color: #555; margin-left: 2mm; font-weight: normal; }
-  .notes { white-space: pre-wrap; margin: 1mm 0 2mm; }
+  .notes { margin: 1mm 0 2mm; }
   .code, .ref { font-family: monospace; font-size: 8pt; color: #555; }
   h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: 0.6pt; color: #8c1c13; border-bottom: 0.3mm solid #8c1c13; margin: 4mm 0 2mm; padding-bottom: 0.5mm; page-break-after: avoid; }
   .text > h2:first-child { margin-top: 0; }
@@ -30,7 +30,11 @@
   .props td { padding: 0.4mm 3mm 0.4mm 0; vertical-align: top; }
   .props td.k { color: #555; font-size: 7.5pt; text-transform: uppercase; white-space: nowrap; }
   .props .t, .detail .t, .fact .t { font-weight: bold; }
-  .body { white-space: pre-wrap; margin: 1mm 0; }
+  .body { margin: 1mm 0; }
+  /* Formatted notes (Notes.html): paragraphs and lists; [[mentions]] in bold */
+  .body p, .notes p { margin: 0 0 1.5mm; }
+  .body ul, .notes ul { margin: 0 0 1.5mm; padding-left: 4.5mm; }
+  .body > :last-child, .notes > :last-child { margin-bottom: 0; }
   h4 { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; margin: 2mm 0 0.5mm; }
   ul { margin: 0; padding-left: 4.5mm; list-style: disc; }
   li { margin: 0 0 0.6mm 0; }
@@ -64,7 +68,7 @@
   <div class="map-page">
     <header>
       <h1><span class="code">{{ node.code }}</span> {{ node.title }}{% for p in props %}{% if p.name == 'date' %}<span class="date">{{ p.value }}</span>{% endif %}{% endfor %}</h1>
-      {% if node.body is not empty %}<div class="notes">{{ node.body }}</div>{% endif %}
+      {% if node.body is not empty %}<div class="notes">{{ notes | raw }}</div>{% endif %}
     </header>
     {% if previous is not null %}
       {# The previous session's recap beside a smaller map, so the cover stays one page #}
@@ -73,7 +77,7 @@
         <td class="last-time">
           <h2>Last time</h2>
           <div class="ref">{{ previous.code }} {{ previous.title }}</div>
-          <div class="notes">{{ previous.text }}</div>
+          <div class="notes">{{ previous.notes | raw }}</div>
         </td>
       </tr></table>
     {% elseif map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 1000, "svgHeight": 640} %}{% endif %}
@@ -93,7 +97,7 @@
           {% if c.fields.calling.text is not empty or c.fields.class.text is not empty %}
             <div class="role">{{ c.fields.calling.text }}{% if c.fields.calling.text is not empty and c.fields.class.text is not empty %} · {% endif %}{{ c.fields.class.text }}</div>
           {% endif %}
-          {% if c.node.body is not empty %}<div class="body">{{ c.node.body }}</div>{% endif %}
+          {% if c.node.body is not empty %}<div class="body">{{ c.notes | raw }}</div>{% endif %}
           {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
             <div class="linked-label">Beats</div>
             <ul class="beats">
@@ -123,7 +127,7 @@
         <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
         {# Pebble's include takes a literal map: pass the place's print model through #}
         {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedProps": item.linkedProps,
-            "groups": item.groups, "facts": item.facts, "audience": item.audience} %}
+            "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes} %}
       </div>
     {% endfor %}
   {% endfor %}

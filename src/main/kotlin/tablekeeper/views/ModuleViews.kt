@@ -1,7 +1,9 @@
 package tablekeeper.views
 
 import tablekeeper.core.CampaignGraph
+import tablekeeper.core.Mentions
 import tablekeeper.core.Node
+import tablekeeper.core.Notes
 import tablekeeper.modules.FormField
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.PropsForm
@@ -10,10 +12,10 @@ import tablekeeper.modules.ViewDef
 
 /**
  * A node on a module view, with its props as form fields (display text, labels, hints) by name, its display title,
- * and its [linked] nodes for the view's `links` (e.g. a character's fallouts).
+ * its [linked] nodes for the view's `links` (e.g. a character's fallouts), and its [notes] as HTML ([Notes.html], for print).
  */
 data class ViewNode(val node: Node, val fields: Map<String, FormField>, val display: String = node.title,
-                    val linked: List<ViewLinkGroup> = emptyList())
+                    val linked: List<ViewLinkGroup> = emptyList(), val notes: String = "")
 
 /** Nodes linked one way, under a heading: the linked type's print-summary group ("Fallouts"), or the link label. */
 data class ViewLinkGroup(val label: String, val items: List<ViewLinkItem>)
@@ -35,11 +37,13 @@ object ModuleViews {
      * e.g. each character's fallouts with their print summary.
      */
     fun build(module: ResolvedModule, view: ViewDef, nodes: List<Node>, graph: CampaignGraph = CampaignGraph(nodes, emptyList())): ViewData {
+        val mentions = Mentions.of(graph.nodes, module::displayTitle)
         val viewNodes = nodes.filter { n -> view.types.any { module.isA(n.type, it) } }.map { n ->
             ViewNode(
                 n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }, module.displayTitle(n),
                 linked = view.links.mapNotNull { module.linkOption(n.type, it) }
                     .mapNotNull { option -> linkGroup(module, option, graph.linkedNodes(n.id, option.edgeType, option.direction)) },
+                notes = Notes.html(n.body, mentions),
             )
         }
         return ViewData(view, viewNodes, view.groupBy.associateWith { groups(viewNodes, it) })

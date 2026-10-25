@@ -12,7 +12,7 @@
     {% include "print/_linked_props.peb" %}
   </table>
 
-  {% if node.body is not empty %}<div class="body">{{ node.body }}</div>{% endif %}
+  {% if node.body is not empty %}<div class="body">{{ notes | raw }}</div>{% endif %}
 
   {% for p in props %}
     {% if p.name == 'haunts' or p.name == 'events' %}
@@ -29,6 +29,6 @@
   {% if facts is not empty %}
     <h4>{% if audience == 'gm' %}Secrets &amp; facts{% else %}What you know{% endif %}</h4>
     {% for f in facts %}
-      <div class="fact">{% if audience == 'gm' %}<span class="box"></span>{% endif %}<span class="t">{{ f.title }}</span>{% if f.body is not empty %}: {{ f.body }}{% endif %}</div>
+      <div class="fact">{% if audience == 'gm' %}<span class="box"></span>{% endif %}<span class="t">{{ f.title }}</span>{% if f.body is not empty %}: {{ f.notes | raw }}{% endif %}</div>
     {% endfor %}
   {% endif %}

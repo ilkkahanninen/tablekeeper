@@ -70,6 +70,25 @@ class GraphService(private val db: DSLContext) {
             campaignId, excludeId, "%$query%", "$query%", limit,
         ).map(::toRef)
 
+    /** Nodes whose notes mention one of [names] as `[[name]]` (any case), e.g. a node's code, title and display title. */
+    fun mentioning(campaignId: UUID, excludeId: UUID, names: Collection<String>): List<NodeRef> {
+        val patterns = names.filter { it.isNotBlank() }.distinct().map { "%[[" + it.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "]]%" }
+        if (patterns.isEmpty()) return emptyList()
+        return db.fetch(
+            "select $refCols from nodes n where n.campaign_id = ? and n.id <> ? and (${patterns.joinToString(" or ") { "n.body ilike ?" }}) order by n.type, n.title",
+            campaignId, excludeId, *patterns.toTypedArray(),
+        ).map(::toRef)
+    }
+
+    /** After a rename: `[[old]]` (any case) becomes `[[new]]` in the campaign's notes, so mentions keep pointing at the node. */
+    fun renameMentions(campaignId: UUID, old: String, new: String) {
+        val pattern = """\[\[""" + old.replace(Regex("""[.^$*+?()\[\]{}|\\]""")) { "\\" + it.value } + """]]"""
+        db.execute(
+            "update nodes set body = regexp_replace(body, ?, ?, 'gi') where campaign_id = ? and body ~* ?",
+            pattern, "[[" + new.replace("\\", "\\\\") + "]]", campaignId, pattern,
+        )
+    }
+
     /** All edges touching a node, seen from that node. */
     fun links(campaignId: UUID, nodeId: UUID): List<Link> =
         db.fetch(

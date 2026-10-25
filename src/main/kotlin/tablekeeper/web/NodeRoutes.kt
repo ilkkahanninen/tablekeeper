@@ -31,10 +31,15 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val (props, parseErrors) = PropsForm.parse(m.propsSchema(n.type), posted, p.getAll("only")?.toSet(), n.props)
         val errors = parseErrors + m.validateProps(n.type, props)
         val title = p["title"]?.trim().orEmpty().ifEmpty { n.title }
-        val body = p["body"].orEmpty()
+        // Missing (a partial save from a debrief) keeps the notes; an empty field clears them
+        val body = p["body"] ?: n.body
         // Visibility isn't in the form for now; keep the stored value unless one is posted.
         val vis = Visibility.of(p["visibility"] ?: n.visibility)
-        if (errors.isEmpty()) graph.updateNode(c.id, n.id, title, body, vis, props)
+        if (errors.isEmpty()) {
+            graph.updateNode(c.id, n.id, title, body, vis, props)
+            // Renamed: [[Old name]] mentions follow, so they keep pointing here
+            if (title != n.title) graph.renameMentions(c.id, n.title, title)
+        }
         // On error, re-show what the user typed rather than the stored values.
         @Suppress("UNCHECKED_CAST")
         val shown = if (errors.isEmpty()) call.node(c)
@@ -44,7 +49,8 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         // Autosave swaps only the status (errors, or nothing), so focus and typed text stay put
         if (p["refresh"] == "1") call.response.header("HX-Trigger", DEBRIEF_CHANGED)
         when {
-            p["autosave"] == "1" -> call.html("node/_save_status.peb", model)
+            // A full form save also refreshes the formatted notes; a partial one (debrief) is about another page's node
+            p["autosave"] == "1" -> call.html("node/_save_status.peb", model + ("notesOob" to (p.getAll("only") == null)))
             call.isHtmx() -> call.html("node/_form.peb", model)
             else -> call.html("node.peb", model)
         }
@@ -130,6 +136,13 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val n = call.node(g.campaign)
         graph.deleteEdge(g.campaign.id, call.uuid("eid"))
         call.linksChanged(g, n)
+    }
+
+    // The [[ picker in notes: nodes whose title or code matches what's typed after [[
+    get("/mentions") {
+        val (c, m) = call.game()
+        val n = call.node(c)
+        call.html("node/_mentions.peb", mapOf("choices" to nodePage.mentionChoices(c, m, n, call.request.queryParameters["q"].orEmpty().trim())))
     }
 
     // A session's debrief section, reloaded after something is added or done there

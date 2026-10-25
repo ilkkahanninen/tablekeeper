@@ -151,3 +151,14 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 .debrief .create-row { margin-top: .35rem; }
 button.done { font-size: .8rem; padding: .1rem .6rem; background: transparent; color: var(--blood); border: 1px solid var(--line); }
 button.done:hover { border-color: var(--blood); }
+
+/* Notes: formatted view (click to edit) and the [[ picker */
+.notes-field { position: relative; display: flex; flex-direction: column; gap: .2rem; }
+.notes-view { min-height: 3rem; padding: .35rem .5rem; border: 1px solid transparent; border-radius: 4px; cursor: text; line-height: 1.45; }
+.notes-view:hover { border-color: var(--line); background: #fff; }
+.notes-view p { margin: 0 0 .6rem; }
+.notes-view ul { margin: 0 0 .6rem; padding-left: 1.3rem; }
+.notes-view > :last-child { margin-bottom: 0; }
+.mention-menu { position: absolute; left: 0; right: 0; top: 100%; z-index: 10; max-height: 16rem; overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.mention-choice { display: block; width: 100%; text-align: left; background: transparent; color: var(--ink); border: none; border-radius: 0; padding: .35rem .6rem; }
+.mention-choice.active, .mention-choice:hover { background: var(--paper); }
