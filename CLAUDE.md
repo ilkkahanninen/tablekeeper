@@ -51,4 +51,4 @@ Prefer adding game-specific behaviour to module JSON/templates over adding Kotli
 
 ## Known gaps
 
-From README: `[[wikilinks]]` → edges and markdown rendering, `AUTH_MODE=session`, embedded TTF for PDF symbols beyond Latin-1 (e.g. →), graph view. The build passes, but only module resolution has tests; routes, templates and PDF output haven't been run end to end.
+From README: `AUTH_MODE=session`, player handouts (hidden from the UI), embedded TTF for PDF symbols beyond Latin-1 (e.g. →), `[[wikilinks]]` → edges and markdown rendering. Unit tests cover module loading, map layout, campaign-page tables, packet selection, module views and random tables. Routes, SQL and templates have no automated tests: check them by running the app against a throwaway campaign (e.g. `PORT=8099 ./gradlew run`) and deleting it afterwards.
