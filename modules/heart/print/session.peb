@@ -40,11 +40,14 @@
   li { margin: 0 0 0.6mm 0; }
   ul.nested { list-style: circle; margin-top: 0.6mm; }
   .fact, .detail { margin: 0 0 1mm 0; }
-  /* Resistance track ("x-track") and events ("lines"), ticked off at the table */
+  /* Resistance track ("x-track") and events ("list", formatted like notes), ticked off at the table */
   .track { line-height: 6mm; }
   .pip { display: inline-block; width: 4.6mm; height: 4.6mm; line-height: 4.6mm; border: 0.3mm solid #111; margin: 0 0.8mm 0.8mm 0;
          text-align: center; font-size: 6pt; color: #777; vertical-align: middle; }
-  .item { margin: 0 0 1mm 0; }
+  .item { margin: 0 0 1.5mm 0; }
+  .item .box + p { display: inline; }
+  .item p { margin: 0 0 1mm; }
+  .item ul { margin: 0 0 1mm; padding-left: 4.5mm; }
   .long-text { white-space: pre-wrap; margin: 1mm 0; }
   .box { display: inline-block; width: 2.6mm; height: 2.6mm; border: 0.3mm solid #111; margin-right: 1mm; vertical-align: -0.3mm; }
 

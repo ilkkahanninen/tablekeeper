@@ -112,7 +112,7 @@
           "resistance": { "type": "integer", "title": "Resistance", "minimum": 1, "x-track": true },
           "stress":     { "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Default stress",
                           "x-enumDescriptions": { "d4": "Tier 0-1", "d6": "Tier 2-3", "d8": "Tier 4" } },
-          "events":     { "type": "string", "title": "Events", "x-widget": "lines" }
+          "events":     { "type": "string", "title": "Events", "x-widget": "list" }
         }
       }
     },

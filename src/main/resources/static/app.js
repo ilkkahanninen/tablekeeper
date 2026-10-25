@@ -46,7 +46,7 @@ document.addEventListener("htmx:afterRequest", (e) => {
 });
 
 // Random table button: fill its field with a roll from the server (a different value when possible); the field's change autosaves.
-// On a "lines" field (data-append, e.g. a delve's events) the roll is added as a new line instead.
+// On a "list" field (data-append, e.g. a delve's events) the roll is added as a new item, after a blank line.
 // With several tables the button is a menu (details); picking a table rolls on it and closes the menu.
 document.addEventListener("click", (e) => {
   // Clicking outside an open menu closes it
@@ -60,7 +60,7 @@ document.addEventListener("click", (e) => {
   fetch(`${button.dataset.roll}?avoid=${encodeURIComponent(field.value)}`)
     .then((r) => (r.ok ? r.text() : Promise.reject(r.status)))
     .then((value) => {
-      field.value = "append" in button.dataset && field.value.trim() !== "" ? `${field.value.trimEnd()}\n${value}` : value;
+      field.value = "append" in button.dataset && field.value.trim() !== "" ? `${field.value.trimEnd()}\n\n${value}` : value;
       field.dispatchEvent(new Event("change", { bubbles: true }));
     });
 });

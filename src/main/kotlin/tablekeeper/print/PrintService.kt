@@ -30,7 +30,7 @@ import java.util.UUID
 /**
  * [details]: chosen options with their "x-enumDescriptions" text, e.g. Fragile → "The resource will be destroyed…".
  * [multi]: several options can be chosen (checkboxes), so cards list them in their own section.
- * [items]: a "lines" field's items (e.g. a delve's events), printed as a list with tick boxes.
+ * [items]: a "list" field's items (e.g. a delve's events) as HTML, formatted like notes ([Notes.html]); printed with a tick box each.
  * [track]: an "x-track" field's number (e.g. resistance 12), printed as that many boxes to tick off.
  */
 data class PropLine(val name: String, val label: String, val value: String,
@@ -106,7 +106,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val fields = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
         val (flagFields, rowFields) = fields.partition { it.kind == "bool" && it.trueLabel != null }
         val props = PropsForm.rows(rowFields).flatMap { row ->
-            if (row.label == null) row.fields.mapNotNull(::propLine)
+            if (row.label == null) row.fields.mapNotNull { propLine(it, mentions) }
             // "x-row" fields print as one line, e.g. "Beat 1: Major · Find the ledger"
             else listOfNotNull(row.fields.map { it.text }.filter { it.isNotBlank() }.takeIf { it.isNotEmpty() }
                 ?.let { PropLine(row.fields.first().name, row.label, it.joinToString(" · ")) })
@@ -254,11 +254,11 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             .distinctBy { it.code }
     }
 
-    private fun propLine(f: FormField): PropLine? {
+    private fun propLine(f: FormField, mentions: Mentions): PropLine? {
         val chosen = (f.value as? List<*>)?.map { it.toString() } ?: listOf(f.value.toString())
         val details = chosen.mapNotNull { o -> f.hints[o]?.let { PropDetail(o, it) } }
         return f.text.takeIf { it.isNotBlank() }?.let {
-            PropLine(f.name, f.label, it, details, multi = f.kind == "multi", items = f.lines,
+            PropLine(f.name, f.label, it, details, multi = f.kind == "multi", items = f.items.map { item -> Notes.html(item, mentions) },
                 track = if (f.track) it.toIntOrNull()?.takeIf { n -> n in 1..MAX_TRACK } else null)
         }
     }

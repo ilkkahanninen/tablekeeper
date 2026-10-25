@@ -568,11 +568,11 @@ class GameModulesTest {
     }
 
     @Test
-    fun `delves have a resistance track, a default stress die and events one per line`() {
-        val fields = PropsForm.fields(heart.propsSchema("heart.delve"), mapOf("resistance" to 8, "events" to "Floor gives way\n\n  The Hunger notices  \n")).associateBy { it.name }
+    fun `delves have a resistance track, a default stress die and a list of events`() {
+        val fields = PropsForm.fields(heart.propsSchema("heart.delve"), mapOf("resistance" to 8, "events" to "Floor gives way,\nwater rushes in\n\n \n  The Hunger notices  \n")).associateBy { it.name }
         assertTrue(fields.getValue("resistance").track)
-        assertEquals("lines", fields.getValue("events").kind)
-        assertEquals(listOf("Floor gives way", "The Hunger notices"), fields.getValue("events").lines)
+        assertEquals("list", fields.getValue("events").kind)
+        assertEquals(listOf("Floor gives way,\nwater rushes in", "The Hunger notices"), fields.getValue("events").items, "items split at blank lines")
         assertEquals(listOf("d4", "d6", "d8", "d10", "d12"), fields.getValue("stress").options)
         assertEquals(mapOf("d4" to "Tier 0-1", "d6" to "Tier 2-3", "d8" to "Tier 4"), fields.getValue("stress").hints)
         assertEquals(fields.getValue("stress").hints, PropsForm.fields(heart.propsSchema("heart.landmark"), emptyMap()).single { it.name == "stress" }.hints)

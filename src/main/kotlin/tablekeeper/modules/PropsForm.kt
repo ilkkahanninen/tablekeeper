@@ -14,7 +14,7 @@ import tablekeeper.core.Json
  *   {"type":"array","items":{"enum":[...]}}            -> kind "multi" (checkboxes)
  *   {"type":"boolean"}                                 -> kind "bool"
  *   {"type":"string","x-widget":"textarea"}            -> kind "textarea"
- *   {"type":"string","x-widget":"lines"}               -> kind "lines": a textarea, one item per line (e.g. a delve's events)
+ *   {"type":"string","x-widget":"list"}                -> kind "list": a textarea, items separated by a blank line (e.g. a delve's events)
  *   {"type":"string"}                                  -> kind "text"
  *
  * "x-enumDescriptions": {"Fragile": "…"} on a select/multi field becomes a hover hint per option.
@@ -62,8 +62,9 @@ data class FormField(
     /** [hideIf] and [showIf] as JSON, for the form's script to re-check on change. */
     val conditionsJson: String get() = Json.mapper.writeValueAsString(mapOf("hideIf" to hideIf, "showIf" to showIf))
 
-    /** A "lines" field's items: its non-empty lines, trimmed. */
-    val lines: List<String> get() = if (kind == "lines") value.toString().lines().map { it.trim() }.filter { it.isNotEmpty() } else emptyList()
+    /** A "list" field's items: the text split at blank lines, trimmed; an item may span several lines. */
+    val items: List<String> get() =
+        if (kind == "list") value.toString().replace("\r\n", "\n").split(Regex("""\n\s*\n""")).map { it.trim() }.filter { it.isNotEmpty() } else emptyList()
 
     /** Current value as display text: labels applied, lists joined, true as "yes", unset as "". */
     val text: String get() = format { labels[it] ?: it }
@@ -130,7 +131,7 @@ object PropsForm {
                     value = current?.toString() ?: "")
             s.get("type")?.asText() == "boolean" ->
                 FormField(name, label, "bool", value = current == true, trueLabel = s.get("x-trueLabel")?.asText())
-            s.get("x-widget")?.asText() in setOf("textarea", "lines") ->
+            s.get("x-widget")?.asText() in setOf("textarea", "list") ->
                 FormField(name, label, s.get("x-widget").asText(), value = current?.toString() ?: "")
             else -> FormField(name, label, "text", value = current?.toString() ?: "")
         }
