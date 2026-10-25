@@ -67,14 +67,8 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val (factLinks, otherLinks) = visible.partition { module.isA(it.other.type, "core.fact") }
 
         val groups = otherLinks
-            .groupBy { link ->
-                val e = module.edgeType(link.type)
-                module.printSummary(link.other.type)?.group ?: when {
-                    e == null -> link.type
-                    link.direction == Direction.OUT -> e.label
-                    else -> e.inverseLabel
-                }
-            }
+            .sortedWith(compareBy({ module.linkGroupRank(it.type, it.other.type).first }, { module.linkGroupRank(it.type, it.other.type).second }))
+            .groupBy { link -> module.printSummary(link.other.type)?.group ?: module.linkGroupLabel(link.type, link.direction, link.other.type) }
             .map { (label, links) ->
                 LinkGroup(label, links.map { link ->
                     ref(campaign, module, link.other).copy(children = nested(campaign, module, node, link, audience))

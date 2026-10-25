@@ -185,14 +185,8 @@ fun Application.routes(d: Deps) {
     /** Links for the sidebar, slot links included so the place or carrier is one click away. */
     fun linkGroups(c: Campaign, m: ResolvedModule, n: Node): List<UiGroup> =
         d.graph.links(c.id, n.id)
-            .groupBy { link ->
-                val e = m.edgeType(link.type)
-                when {
-                    e == null -> link.type
-                    link.direction == Direction.OUT -> e.label
-                    else -> e.inverseLabel
-                }
-            }
+            .sortedWith(compareBy({ m.linkGroupRank(it.type, it.other.type).first }, { m.linkGroupRank(it.type, it.other.type).second }))
+            .groupBy { link -> m.linkGroupLabel(link.type, link.direction, link.other.type) }
             .map { (label, links) ->
                 UiGroup(label, links.map {
                     UiLink(it.edgeId, it.other.id, it.other.code, it.other.title, m.label(it.other.type), it.other.visibility)
@@ -207,10 +201,8 @@ fun Application.routes(d: Deps) {
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
-        // Random buttons: field name -> its tables (name + items as JSON, for the buttons' data attribute)
-        "random" to d.tables.forType(c.id, n.type).mapValues { (_, choices) ->
-            choices.map { mapOf("name" to it.name, "items" to GameModules.mapper.writeValueAsString(it.items), "mix" to it.mix) }
-        },
+        // Random buttons: field name -> its tables (each button asks the server for a roll)
+        "random" to d.tables.forType(c.id, n.type),
         "checklists" to checklists(c, m, n),
         "quickCreate" to quickCreateOptions(c, m, n).let { options ->
             // Just the type ("Delve"); the relation only where one type is offered through several
@@ -221,6 +213,10 @@ fun Application.routes(d: Deps) {
         "groups" to linkGroups(c, m, n),
         "errors" to errors,
     )
+
+    /** A new node's title: the given one, else a roll on the type's title tables, else "New <type>". */
+    fun newTitle(c: Campaign, typeId: String, typeLabel: String, given: String?): String =
+        given?.trim()?.takeIf { it.isNotEmpty() } ?: d.tables.rollTitle(c.id, typeId) ?: "New $typeLabel"
 
     fun parseOption(m: ResolvedModule, n: Node, key: String?): LinkOption {
         val parts = key?.split(":") ?: throw BadRequest("Missing link type")
@@ -282,7 +278,7 @@ fun Application.routes(d: Deps) {
                 val m = d.modules.get(c.gameModule)
                 val p = call.receiveParameters()
                 val type = m.nodeTypes.firstOrNull { it.id == p["type"] } ?: throw BadRequest("Unknown type")
-                val title = p["title"]?.trim().orEmpty().ifEmpty { "New ${type.label}" }
+                val title = newTitle(c, type.id, type.label, p["title"])
                 val n = d.graph.createNode(c.id, type.id, type.codePrefix, title)
                 call.respondRedirect("/c/${c.id}/n/${n.id}")
             }
@@ -337,6 +333,13 @@ fun Application.routes(d: Deps) {
                     d.tables.setFields(c.id, t.id, p.getAll("fields").orEmpty())
                     if (p["autosave"] == "1") call.html("node/_save_status.peb", mapOf("errors" to emptyList<String>()))
                     else call.respondRedirect("/c/${c.id}/tables/${t.id}")
+                }
+
+                // A Random button's roll; avoids repeating the field's current value
+                get("/{tid}/roll") {
+                    val c = call.campaign()
+                    val value = d.tables.roll(c.id, call.table(c).id, call.request.queryParameters["avoid"]) ?: throw NotFound("Items")
+                    call.respondText(value, ContentType.Text.Plain)
                 }
 
                 post("/{tid}/delete") {
@@ -498,7 +501,7 @@ fun Application.routes(d: Deps) {
                 // Check the limit before creating, so a full link type doesn't leave an unlinked node behind.
                 limitError(c, m, n.id, n.type, "${n.code} ${n.title}", q.option.edgeType, q.option.direction)?.let { throw BadRequest(it) }
                 // The Link box sends its search text as "q"
-                val title = (p["title"] ?: p["q"])?.trim().orEmpty().ifEmpty { "New ${q.type.label}" }
+                val title = newTitle(c, q.type.id, q.type.label, p["title"] ?: p["q"])
                 val created = d.graph.createNode(c.id, q.type.id, q.type.codePrefix, title)
                 link(c, m, n, q.option, created)
                 if (p["stay"] == "1") {

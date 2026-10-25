@@ -27,7 +27,7 @@ docker compose up --build
 ## First flow to try
 
 1. Create a campaign (Heart).
-2. Add Landmark "Red Market" with *Add* in the top bar (there on every campaign page): tier 1, domains Occult + Desolate. Fields save as you leave them; there's no Save button.
+2. Pick Landmark in *Add* in the top bar (there on every campaign page) and name it "Red Market": tier 1, domains Occult + Desolate. Fields save as you leave them; there's no Save button.
 3. On Red Market, type "Silvia" in the *Link* box. Pick *NPC · has here* in the create row under it, then *Create* to create and open her, or ↓ to create her and stay (with the box empty, it's named "New NPC"). Her *Location* now says Red Market ("— Pool —" means nowhere yet).
 4. Type "Gut" in the *Link* box, create it as *Delve · reached via*. Its Domains show "L1 Red Market: Occult, Desolate".
 5. Typing the name of something that already exists lists it with a button per relation (Any), e.g. *has here*, *relates to*. Pick a relation in the dropdown to narrow it.
@@ -109,6 +109,8 @@ To show where a node belongs in dropdowns and search results, use `context`, nam
 "context": "part_of:out"
 ```
 
+An edge type with `"groupByType": true` (core `located_at`) lists its links on the `to` side by type: a landmark shows *Characters*, *NPCs*, *Equipment* and *Resources* instead of one *has here* list, on its page, cards and packets.
+
 ## Campaign home
 
 One table per type, in the order of the module's `overviewOrder` (types not listed follow). Columns come from each type's `overview`: a prop name shows that prop, and `"@rel"` shows the titles linked that way. Every link slot (e.g. Location) is added as a column automatically. A type with a `context` link is listed under the node at its far end, e.g. minor locations under their landmark.
@@ -125,7 +127,7 @@ An unknown prop, relation or type stops the app at startup.
 
 ## Random tables
 
-*Tables* in the top bar holds your own lists, separate from the game module. A table is a list with one item per line; blank lines are ignored. Tick the fields it fills, e.g. *NPC: Title* or *NPC: Voice*. Those fields then get a **Random** button on node pages, which fills in a random item and saves. Tick **Mix first and last words** to combine lines: a roll joins one line's first name with another line's surname, so 20 "First Last" lines give 400 names. One-word lines are used whole. A field can have several tables, e.g. elven, dwarf and street names on *NPC: Title*. Its button then reads **Random ▾** and lists the tables; picking one rolls on it. Titles and text fields can be linked; dropdowns, checkboxes and numbers can't.
+*Tables* in the top bar holds your own lists, separate from the game module. A table is a list with one item per line; blank lines are ignored. Tick the fields it fills, e.g. *NPC: Title* or *NPC: Voice*. Those fields then get a **Random** button on node pages, which fills in a random item and saves. New nodes are named from their type's title tables: a random one of them is rolled, both from *Add* in the top bar and from the *Link* box when its search box is empty. A type with no title table gets "New NPC" and so on. Tick **Mix first and last words** to combine lines: a roll joins one line's first name with another line's surname, so 20 "First Last" lines give 400 names. One-word lines are used whole. A field can have several tables, e.g. elven, dwarf and street names on *NPC: Title*. Its button then reads **Random ▾** and lists the tables; picking one rolls on it. Titles and text fields can be linked; dropdowns, checkboxes and numbers can't.
 
 ## Session packet
 

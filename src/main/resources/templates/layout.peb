@@ -12,7 +12,7 @@
   <header class="top">
     <a class="brand" href="/">Tablekeeper</a>
     {% block crumbs %}{% endblock %}
-    {# On every campaign page: campaign-wide pages, and create any kind of node, then open it #}
+    {# On every campaign page: campaign-wide pages, and create any kind of node (named from its random tables, or "New <type>"), then open it #}
     {% if campaign is not null and module is not null %}
       <nav class="top-nav">
         <a href="/c/{{ campaign.id }}/map">Map</a>
@@ -24,7 +24,6 @@
           {# Preselect the current page's type: the node's own, or the type a module view lists #}
           {% for t in module.nodeTypes %}<option value="{{ t.id }}"{% if (node is not null and node.type == t.id) or (view is not null and view.types contains t.id) %} selected{% endif %}>{{ t.label }}</option>{% endfor %}
         </select>
-        <input name="title" placeholder="Title" aria-label="Title" required>
         <button>Add</button>
       </form>
     {% endif %}

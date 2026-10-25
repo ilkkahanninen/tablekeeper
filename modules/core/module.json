@@ -38,7 +38,7 @@
   ],
   "edgeTypes": [
     { "id": "relates_to",   "label": "relates to",      "inverseLabel": "relates to",        "from": ["*"],                        "to": ["*"] },
-    { "id": "located_at",   "label": "is located at",   "inverseLabel": "has here",          "from": ["core.npc", "core.pc", "core.item", "core.faction"], "to": ["core.place"] },
+    { "id": "located_at",   "label": "is located at",   "inverseLabel": "has here",          "from": ["core.npc", "core.pc", "core.item", "core.faction"], "to": ["core.place"], "groupByType": true },
     { "id": "knows",        "label": "knows",           "inverseLabel": "is known by",       "from": ["core.npc", "core.pc", "core.faction"], "to": ["core.fact"] },
     { "id": "about",        "label": "is about",        "inverseLabel": "facts",             "from": ["core.fact"],                "to": ["*"] },
     { "id": "carries",      "label": "carries",         "inverseLabel": "carried by",        "from": ["core.npc", "core.pc"],      "to": ["core.item"] },

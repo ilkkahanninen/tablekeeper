@@ -401,6 +401,18 @@ class GameModulesTest {
     }
 
     @Test
+    fun `what a place has here is listed by type`() {
+        assertEquals("NPCs", heart.linkGroupLabel("located_at", Direction.IN, "core.npc"))
+        assertEquals("Resources", heart.linkGroupLabel("located_at", Direction.IN, "heart.resource"))
+        assertEquals("Equipment", heart.linkGroupLabel("located_at", Direction.IN, "heart.equipment"))
+        assertEquals("is located at", heart.linkGroupLabel("located_at", Direction.OUT, "heart.landmark"), "the NPC's own side keeps its label")
+        assertEquals("reached via", heart.linkGroupLabel("connects", Direction.IN, "heart.delve"), "other links keep their label")
+        // Characters before NPCs before equipment before resources, as on the campaign home
+        val order = listOf("heart.resource", "core.npc", "heart.equipment", "heart.pc").sortedBy { heart.linkGroupRank("located_at", it).second }
+        assertEquals(listOf("heart.pc", "core.npc", "heart.equipment", "heart.resource"), order)
+    }
+
+    @Test
     fun `invalid quick-create rel fails module load`() {
         val dir = Files.createTempDirectory("modules").toFile()
         File(dir, "bad").mkdirs()

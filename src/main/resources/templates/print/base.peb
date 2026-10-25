@@ -20,9 +20,9 @@
   .props td.k { width: 25mm; color: #555; font-size: 7.5pt; text-transform: uppercase; }
   .body { white-space: pre-wrap; margin: 2mm 0; }
   h4 { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5pt; margin: 3mm 0 1mm; color: #555; }
-  ul { margin: 0; padding-left: 0; list-style: none; }
+  ul { margin: 0; padding-left: 4mm; list-style: disc; }
   li { margin: 0 0 0.8mm 0; }
-  ul.nested { padding-left: 4mm; margin-top: 0.8mm; }
+  ul.nested { list-style: circle; margin-top: 0.8mm; }
   .ref { font-family: monospace; font-size: 8pt; }
   .fact { margin: 0 0 1.5mm 0; }
   .fact .t, .detail .t, .props .t { font-weight: bold; }

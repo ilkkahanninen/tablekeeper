@@ -130,6 +130,8 @@ data class EdgeTypeDef(
     val inverseLabel: String,
     val from: List<String>,
     val to: List<String>,
+    /** On the `to` side (e.g. a place), these links are listed by the linked node's type ("NPCs", "Resources") instead of under [inverseLabel]. */
+    val groupByType: Boolean = false,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -248,6 +250,25 @@ class ResolvedModule(
     fun plural(typeId: String): String = types[typeId]?.let { it.plural ?: it.label + "s" } ?: typeId
 
     fun edgeType(id: String): EdgeTypeDef? = edgeTypes.firstOrNull { it.id == id }
+
+    /**
+     * Heading for a link in a node's lists: the edge's label seen from that node ("is located at", "has here"), or on
+     * the `to` side of a `groupByType` edge the linked node's plural type label ("NPCs").
+     */
+    fun linkGroupLabel(edgeTypeId: String, direction: Direction, otherType: String): String {
+        val e = edgeType(edgeTypeId) ?: return edgeTypeId
+        return when {
+            e.groupByType && direction == Direction.IN -> plural(otherType)
+            direction == Direction.OUT -> e.label
+            else -> e.inverseLabel
+        }
+    }
+
+    /** Sort key for those lists: edges in module order, and within a type-grouped edge, types in campaign-home order. */
+    fun linkGroupRank(edgeTypeId: String, otherType: String): Pair<Int, Int> {
+        val e = edgeTypes.indexOfFirst { it.id == edgeTypeId }.let { if (it < 0) edgeTypes.size else it }
+        return e to if (edgeType(edgeTypeId)?.groupByType == true) overviewRank(otherType) else 0  // only matters where grouped
+    }
 
     /** Type inheritance check: isA("heart.landmark", "core.place") == true. "*" matches anything. */
     fun isA(typeId: String, target: String): Boolean {
