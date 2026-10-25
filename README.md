@@ -142,7 +142,7 @@ Characters and NPCs can suffer any number of fallouts. Add one from the characte
 
 One brief landscape A4 document for the next session, with the text in three columns. Add a **Session** (S1, S2…). On its page, tick the landmarks likely to come up and the characters taking part, then **Print**. For Heart the packet has:
 - **page 1:** the session's title, date and notes, and the whole map with the selected landmarks filled red
-- **Characters:** Inspiration for the ticked characters only, each with their fallouts
+- **Characters:** one block per ticked character, headed "Thonal (Jori)", with calling · class, notes, beats, fallouts and their class's inspiration points. When characters share a class, the points print only under the first of them.
 - **Landmarks:** each selected landmark, by tier, with its props, notes, haunts, who and what is there (NPC voice and appearance, resources' die and tags), minor locations with their contents, and facts with tick boxes
 - **Delves:** only those between selected landmarks
 - **NPCs:** those at a selected landmark or in one of its minor locations, with voice, appearance, notes, what they carry and their fallouts

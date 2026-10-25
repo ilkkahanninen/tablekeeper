@@ -47,7 +47,9 @@
   .beats { margin: 0 0 1mm; }
   .beat-type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #8c1c13; margin-right: 1mm; }
   .wants { margin: 0.5mm 0 0; }
-  .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 0.5mm 0 0; }
+  .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 1.5mm 0 0.3mm; }
+  .character { page-break-inside: avoid; margin-bottom: 3mm; }
+  .role { color: #555; font-size: 8.5pt; margin: 0 0 0.5mm; }
 </style>
 </head>
 <body>
@@ -66,7 +68,34 @@
   {% for v in views %}
     {% if v.view.id == 'inspiration' %}
       <h2>Characters</h2>
-      {% include "heart/views/_inspiration.peb" with {"groups": v.groups, "links": false} %}
+      {# One block per character: calling · class, notes, beats, fallouts, and the class's inspiration points.
+         Characters sharing a class: the points print only under the first of them (the class group's first node). #}
+      {% for c in v.nodes %}
+        <div class="character">
+          <h3><span class="code">{{ c.node.code }}</span> {{ c.display }}</h3>
+          {% if c.fields.calling.text is not empty or c.fields.class.text is not empty %}
+            <div class="role">{{ c.fields.calling.text }}{% if c.fields.calling.text is not empty and c.fields.class.text is not empty %} · {% endif %}{{ c.fields.class.text }}</div>
+          {% endif %}
+          {% if c.node.body is not empty %}<div class="body">{{ c.node.body }}</div>{% endif %}
+          {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
+            <div class="linked-label">Beats</div>
+            <ul class="beats">
+              {% if c.fields.beat1.text is not empty %}<li>{% if c.fields.beat1Type.text is not empty %}<span class="beat-type">{{ c.fields.beat1Type.text }}</span> {% endif %}{{ c.fields.beat1.text }}</li>{% endif %}
+              {% if c.fields.beat2.text is not empty %}<li>{% if c.fields.beat2Type.text is not empty %}<span class="beat-type">{{ c.fields.beat2Type.text }}</span> {% endif %}{{ c.fields.beat2.text }}</li>{% endif %}
+            </ul>
+          {% endif %}
+          {% for lg in c.linked %}
+            <div class="linked-label">{{ lg.label }}</div>
+            <ul>{% for i in lg.items %}<li>{{ i.title }} <span class="ref">({{ i.code }})</span>{% if i.summary is not empty %}: {{ i.summary }}{% endif %}</li>{% endfor %}</ul>
+          {% endfor %}
+          {% for g in v.groups["class"] %}
+            {% if g.hint is not null and g.value == c.fields.class.value and g.nodes[0].node.code == c.node.code %}
+              <div class="linked-label">{{ g.label }}</div>
+              <ul class="wants">{% for w in g.hint | split('; ') %}<li>{{ w }}</li>{% endfor %}</ul>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
     {% endif %}
   {% endfor %}
 
