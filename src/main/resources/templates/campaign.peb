@@ -34,6 +34,13 @@
         </tbody>
       </table>
     </div>
+    {# Same as Add in the top bar, for this table's type: named from its random tables (or "New ..."), then opened #}
+    {% if s.creatable %}
+      <form class="section-create" method="post" action="/c/{{ campaign.id }}/nodes">
+        <input type="hidden" name="type" value="{{ s.typeId }}">
+        <button>Create</button>
+      </form>
+    {% endif %}
   </section>
 {% endfor %}
 {% endblock %}

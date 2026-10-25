@@ -61,6 +61,8 @@ data class NodeTypeDef(
     val overview: List<String>? = null,
     /** Boolean prop that greys out this type's rows on the campaign home when true, e.g. an NPC's "dead". Missing = inherit. */
     val overviewMuted: String? = null,
+    /** Prop ordering this type's rows on the campaign home, e.g. "date"; "-date" for newest first. Missing = inherit; none = by title. */
+    val overviewSort: String? = null,
     /** Checkbox lists on this type's page; ticking links the node via the list's rel. Missing = inherit. */
     val checklists: List<ChecklistDef>? = null,
     /** Printing a node of this type builds a session packet from what it links. Missing = inherit. */
@@ -200,6 +202,7 @@ data class TypePatch(
     val mapBetween: String? = null,
     val overview: List<String>? = null,
     val overviewMuted: String? = null,
+    val overviewSort: String? = null,
     val checklists: List<ChecklistDef>? = null,
     val packet: PacketDef? = null,
     val displayTitle: List<String>? = null,
@@ -220,6 +223,7 @@ data class TypePatch(
         mapBetween = mapBetween ?: def.mapBetween,
         overview = overview ?: def.overview,
         overviewMuted = overviewMuted ?: def.overviewMuted,
+        overviewSort = overviewSort ?: def.overviewSort,
         checklists = checklists ?: def.checklists,
         packet = packet ?: def.packet,
         displayTitle = displayTitle ?: def.displayTitle,
@@ -456,6 +460,8 @@ class ResolvedModule(
             if (col.startsWith("@")) "${def.id}: overview '$col' is not a link option of ${def.id}".takeIf { options.none { it.key == col.drop(1) } }
             else "${def.id}: overview prop '$col' is not in its props schema".takeIf { schemaProps?.has(col) != true }
         }
+        val sort = listOfNotNull(def.overviewSort?.removePrefix("-")?.takeIf { schemaProps?.has(it) != true }
+            ?.let { "${def.id}: overviewSort prop '$it' is not in its props schema" })
         val display = def.displayTitle?.let { Parts.names(it) }.orEmpty().filter { it != "title" && schemaProps?.has(it) != true }
             .map { "${def.id}: displayTitle prop '$it' is not in its props schema" }
         val muted = listOfNotNull(def.overviewMuted?.takeIf { schemaProps?.get(it)?.get("type")?.asText() != "boolean" }
@@ -472,7 +478,7 @@ class ResolvedModule(
                         .takeIf { linkOptions(b.type).none { it.key == b.rel } })
                 }
         }.orEmpty()
-        quick + linked + limits + slots + summary + nested + context + map + overview + muted + checklists + packet + display
+        quick + linked + limits + slots + summary + nested + context + map + overview + muted + checklists + packet + display + sort
     }
 
     fun view(id: String): ViewDef? = views.firstOrNull { it.id == id }
@@ -485,6 +491,10 @@ class ResolvedModule(
         .mapNotNull { c -> linkOptions(typeId).firstOrNull { it.key == c.rel }?.let { c to it } }
 
     fun packet(typeId: String): PacketDef? = inherited(typeId) { it.packet }
+
+    /** The type's `overviewSort`: the prop, and whether newest/largest first ("-date"). */
+    fun overviewSort(typeId: String): Pair<String, Boolean>? =
+        inherited(typeId) { it.overviewSort }?.let { if (it.startsWith("-")) it.drop(1) to true else it to false }
 
     /** The boolean prop that greys out a type's overview rows, if any. */
     fun overviewMuted(typeId: String): String? = inherited(typeId) { it.overviewMuted }

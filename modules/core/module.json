@@ -26,6 +26,7 @@
     { "id": "core.fact",    "label": "Fact",             "codePrefix": "F" },
     {
       "id": "core.session", "label": "Session", "codePrefix": "S",
+      "overviewSort": "date", "overview": ["date"],
       "props": {
         "type": "object",
         "additionalProperties": false,

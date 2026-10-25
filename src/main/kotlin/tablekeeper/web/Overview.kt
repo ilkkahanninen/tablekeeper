@@ -14,7 +14,9 @@ data class LinkColumn(val options: List<LinkOption>, override val label: String)
 /** One node's row; [children] are nodes listed under it, e.g. a landmark's minor locations; [muted] greys it out (a dead NPC). */
 data class OverviewRow(val id: UUID, val code: String, val title: String, val cells: List<String>,
                        val children: List<OverviewRow> = emptyList(), val muted: Boolean = false)
-data class OverviewSection(val typeId: String, val label: String, val columns: List<OverviewColumn>, val rows: List<OverviewRow>)
+/** [creatable]: the type can be created (it isn't hidden by the game), so the table gets a Create button. */
+data class OverviewSection(val typeId: String, val label: String, val columns: List<OverviewColumn>, val rows: List<OverviewRow>,
+                           val creatable: Boolean = false)
 
 /** The campaign home's tables. Pure: callers pass fields and linked titles, so it is testable without a database. */
 object Overview {
@@ -27,6 +29,19 @@ object Overview {
                 ?.let { LinkColumn(listOf(it), it.label.replaceFirstChar(Char::uppercase)) }
             else fields[spec]?.let { PropColumn(spec, it.label) }
         } + m.linkSlots(typeId).map { LinkColumn(it.options, it.label) }
+    }
+
+    /**
+     * Orders a type's rows by its `overviewSort` prop: stored values compared as numbers when both are, else as text
+     * (ISO dates sort right), rows without a value last; ties and unsorted types by title.
+     */
+    fun <T> sorted(items: List<T>, sort: Pair<String, Boolean>?, props: (T) -> Map<String, Any?>, title: (T) -> String): List<T> {
+        if (sort == null) return items.sortedBy(title)
+        val (prop, descending) = sort
+        val byValue = Comparator<Any> { a, b ->
+            if (a is Number && b is Number) a.toDouble().compareTo(b.toDouble()) else a.toString().compareTo(b.toString())
+        }.let { if (descending) it.reversed() else it }
+        return items.sortedWith(compareBy<T, Any?>(nullsLast(byValue)) { props(it)[prop]?.takeIf { v -> v.toString().isNotBlank() } }.thenBy(title))
     }
 
     /** Cell text per column: a prop's display text (empty while hidden), or the linked titles joined. */

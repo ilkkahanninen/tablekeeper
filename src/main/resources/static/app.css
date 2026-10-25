@@ -105,6 +105,9 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 /* Campaign home tables */
 .overview-filter { width: 100%; max-width: 24rem; margin: 0 0 1rem; box-sizing: border-box; }
 .overview-section { margin: 0 0 1.5rem; }
+.section-create { margin-top: .4rem; }
+.section-create button { font-size: .85rem; padding: .2rem .7rem; background: transparent; color: var(--blood); border-color: var(--line); }
+.section-create button:hover { border-color: var(--blood); }
 .table-scroll { overflow-x: auto; }
 .overview { border-collapse: collapse; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
 .overview th { text-align: left; font-weight: normal; font-size: .8rem; color: var(--muted); padding: .4rem .6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }

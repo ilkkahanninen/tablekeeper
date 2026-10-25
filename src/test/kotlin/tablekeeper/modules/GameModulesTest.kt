@@ -303,9 +303,9 @@ class GameModulesTest {
 
     @Test
     fun `campaign home lists heart types in game order`() {
-        val order = listOf("heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.equipment", "heart.resource")
+        val order = listOf("core.session", "heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.equipment", "heart.resource")
         assertEquals(order, order.sortedBy { heart.overviewRank(it) })
-        assertTrue(heart.overviewRank("heart.minor_location") > heart.overviewRank("core.session"), "unlisted types come last")
+        assertTrue(heart.overviewRank("heart.minor_location") > heart.overviewRank("core.fact"), "unlisted types come last")
         assertEquals(listOf("tier", "stress", "domains"), heart.overview("heart.landmark"))
     }
 
