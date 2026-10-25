@@ -1,13 +1,26 @@
 package tablekeeper.views
 
+import tablekeeper.core.Direction
+import tablekeeper.core.EdgeRef
 import tablekeeper.core.Node
+import tablekeeper.modules.LinkOption
+import tablekeeper.modules.Parts
 import tablekeeper.modules.FormField
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.modules.ViewDef
+import java.util.UUID
 
-/** A node on a module view, with its props as form fields (display text, labels, hints) by name, and its display title. */
-data class ViewNode(val node: Node, val fields: Map<String, FormField>, val display: String = node.title)
+/**
+ * A node on a module view, with its props as form fields (display text, labels, hints) by name, its display title,
+ * and its [linked] nodes for the view's `links` (e.g. a character's fallouts).
+ */
+data class ViewNode(val node: Node, val fields: Map<String, FormField>, val display: String = node.title,
+                    val linked: List<ViewLinkGroup> = emptyList())
+
+/** Nodes linked one way, under a heading: the linked type's print-summary group ("Fallouts"), or the link label. */
+data class ViewLinkGroup(val label: String, val items: List<ViewLinkItem>)
+data class ViewLinkItem(val code: String, val title: String, val summary: String)
 
 /** View nodes sharing one value of a `groupBy` prop; [hint] is that value's "x-enumDescriptions" text, if any. */
 data class ViewGroup(val value: String, val label: String, val hint: String?, val nodes: List<ViewNode>)
@@ -20,11 +33,36 @@ data class ViewData(val view: ViewDef, val nodes: List<ViewNode>, val groups: Ma
  * campaign's nodes) and session packets (only the selected ones), so both show the same thing.
  */
 object ModuleViews {
-    /** [view] over those of [nodes] whose type it lists. */
-    fun build(module: ResolvedModule, view: ViewDef, nodes: List<Node>): ViewData {
-        val viewNodes = nodes.filter { n -> view.types.any { module.isA(n.type, it) } }
-            .map { n -> ViewNode(n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }, module.displayTitle(n.type, n.title, n.props)) }
+    /**
+     * [view] over those of [nodes] whose type it lists. [edges] and [allNodes] (the campaign's) give the view's `links`,
+     * e.g. each character's fallouts with their print summary.
+     */
+    fun build(module: ResolvedModule, view: ViewDef, nodes: List<Node>, edges: List<EdgeRef> = emptyList(), allNodes: List<Node> = nodes): ViewData {
+        val byId = allNodes.associateBy { it.id }
+        val viewNodes = nodes.filter { n -> view.types.any { module.isA(n.type, it) } }.map { n ->
+            ViewNode(
+                n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }, module.displayTitle(n.type, n.title, n.props),
+                linked = view.links.mapNotNull { key -> module.linkOptions(n.type).firstOrNull { it.key == key } }
+                    .mapNotNull { option -> linkGroup(module, option, linkedTo(n.id, option, edges).mapNotNull { byId[it] }) },
+            )
+        }
         return ViewData(view, viewNodes, view.groupBy.associateWith { groups(viewNodes, it) })
+    }
+
+    private fun linkedTo(id: UUID, option: LinkOption, edges: List<EdgeRef>): List<UUID> = edges.filter { it.type == option.edgeType }.mapNotNull { e ->
+        if (option.direction == Direction.OUT) e.toId.takeIf { e.fromId == id } else e.fromId.takeIf { e.toId == id }
+    }
+
+    private fun linkGroup(module: ResolvedModule, option: LinkOption, others: List<Node>): ViewLinkGroup? {
+        if (others.isEmpty()) return null
+        val sorted = others.sortedBy { it.title }
+        val label = module.printSummary(sorted.first().type)?.group ?: option.label.replaceFirstChar(Char::uppercase)
+        return ViewLinkGroup(label, sorted.map { o ->
+            val summary = module.printSummary(o.type)?.parts?.let { parts ->
+                Parts.fill(parts, PropsForm.fields(module.propsSchema(o.type), o.props).filterNot { it.hidden }.associateBy { it.name }, " · ")
+            }.orEmpty()
+            ViewLinkItem(o.code, module.displayTitle(o.type, o.title, o.props), summary)
+        })
     }
 
     /** [nodes] grouped by their value of [prop], in the prop's option order; nodes without one last, as "Not set". */

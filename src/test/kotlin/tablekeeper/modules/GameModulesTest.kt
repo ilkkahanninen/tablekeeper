@@ -190,10 +190,10 @@ class GameModulesTest {
     }
 
     @Test
-    fun `characters and npcs quick-create carried resources and equipment`() {
+    fun `characters and npcs quick-create carried resources, equipment and fallouts`() {
         for (type in listOf("core.npc", "heart.pc")) {
             assertEquals(
-                listOf("heart.resource" to "carries", "heart.equipment" to "carries"),
+                listOf("heart.resource" to "carries", "heart.equipment" to "carries", "heart.fallout" to "suffers"),
                 heart.quickCreate(type).map { it.type.id to it.option.label }, type,
             )
         }
@@ -418,6 +418,32 @@ class GameModulesTest {
         assertEquals("Thonal (Jori)", heart.displayTitle("heart.pc", "Thonal", mapOf("player" to "Jori")))
         assertEquals("Thonal", heart.displayTitle("heart.pc", "Thonal", emptyMap()), "no player, no brackets")
         assertEquals("Silvia", heart.displayTitle("core.npc", "Silvia", mapOf("voice" to "Hoarse")), "other types show their title")
+    }
+
+    @Test
+    fun `characters and npcs suffer fallouts`() {
+        val fields = PropsForm.fields(heart.propsSchema("heart.fallout"), emptyMap()).associateBy { it.name }
+        assertEquals(listOf("Minor", "Major", "Zenith"), fields.getValue("type").options)
+        assertEquals(listOf("Blood", "Echo", "Mind", "Fortune", "Supplies"), fields.getValue("resistance").options)
+        assertEquals("textarea", fields.getValue("description").kind)
+        val slot = heart.linkSlots("heart.fallout").single()
+        assertEquals("Character", slot.label)
+        assertTrue(listOf("heart.pc", "core.npc").all { t -> heart.acceptsOther(slot.options.single(), t) })
+        for (type in listOf("heart.pc", "core.npc")) assertTrue(heart.quickCreate(type).any { it.type.id == "heart.fallout" }, type)
+        assertEquals(listOf("suffers:out"), heart.view("inspiration")!!.links)
+        assertEquals("Fallouts", heart.plural("heart.fallout"))
+    }
+
+    @Test
+    fun `a view link that isn't a link option fails module load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.pc", "label": "PC", "codePrefix": "P"}],
+                "views": [{"id": "v", "label": "V", "template": "x.peb", "types": ["bad.pc"], "links": ["nope:out"]}]}"""
+        )
+        assertTrue("nope:out" in assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty())
+        dir.deleteRecursively()
     }
 
     @Test

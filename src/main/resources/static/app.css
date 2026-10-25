@@ -121,6 +121,7 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 .beats { margin: 0 0 .5rem 1.6rem; padding-left: 1rem; }
 .beat-type { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--blood); margin-right: .25rem; }
 .wants { margin: .3rem 0 0; padding-left: 1.2rem; }
+.linked-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: .2rem 0 0 1.6rem; }
 .wants li { margin-bottom: .2rem; }
 
 .map-card { padding: .5rem; }

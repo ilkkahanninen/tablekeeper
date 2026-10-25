@@ -177,6 +177,8 @@ data class ViewDef(
     val template: String,
     val types: List<String>,
     val groupBy: List<String> = emptyList(),
+    /** Link options whose linked nodes are listed under each node, with their print summary (e.g. a character's fallouts). */
+    val links: List<String> = emptyList(),
 )
 
 /** Settings laid over an inherited node type; each one given replaces the type's own. */
@@ -493,7 +495,9 @@ class ResolvedModule(
         views.flatMap { v ->
         v.types.filter { it !in types }.map { "view '${v.id}': type '$it' is unknown" } +
             v.groupBy.filter { prop -> v.types.none { propsSchema(it)?.get("properties")?.has(prop) == true } }
-                .map { "view '${v.id}': groupBy '$it' is not a prop of ${v.types.joinToString()}" }
+                .map { "view '${v.id}': groupBy '$it' is not a prop of ${v.types.joinToString()}" } +
+            v.links.filter { key -> v.types.none { t -> t in types && linkOptions(t).any { it.key == key } } }
+                .map { "view '${v.id}': link '$it' is not a link option of ${v.types.joinToString()}" }
     }
 
     /** Returns human-readable validation errors; empty list = valid. */

@@ -127,6 +127,13 @@ One table per type, in the order of the module's `overviewOrder` (types not list
 
 An unknown prop, relation or type stops the app at startup.
 
+## Fallouts (Heart)
+
+Characters and NPCs can suffer any number of fallouts. Add one from the character's create row (*Fallout*). Each has a name, a type (Minor / Major / Zenith), a resistance (Blood / Echo / Mind / Fortune / Supplies) and a description, and a **Character** dropdown saying whose it is. They print as "Broken arm (FO1): Major · Blood · Can't hold a weapon two-handed":
+- in the session packet, under the character in *Characters*
+- in the NPC's section
+- on cards
+
 ## Random tables
 
 *Tables* in the top bar holds your own lists, separate from the game module. A table is a list with one item per line; blank lines are ignored. Tick the fields it fills, e.g. *NPC: Title* or *NPC: Voice*. Those fields then get a **Random** button on node pages, which fills in a random item and saves. New nodes are named from their type's title tables: a random one of them is rolled, both from *Add* in the top bar and from the *Link* box when its search box is empty. A type with no title table gets "New NPC" and so on. Tick **Mix first and last words** to combine lines: a roll joins one line's first name with another line's surname, so 20 "First Last" lines give 400 names. One-word lines are used whole. A field can have several tables, e.g. elven, dwarf and street names on *NPC: Title*. Its button then reads **Random ▾** and lists the tables; picking one rolls on it. Titles and text fields can be linked; dropdowns, checkboxes and numbers can't.
@@ -135,10 +142,10 @@ An unknown prop, relation or type stops the app at startup.
 
 One brief landscape A4 document for the next session, with the text in three columns. Add a **Session** (S1, S2…). On its page, tick the landmarks likely to come up and the characters taking part, then **Print**. For Heart the packet has:
 - **page 1:** the session's title, date and notes, and the whole map with the selected landmarks filled red
-- **Characters:** Inspiration for the ticked characters only
+- **Characters:** Inspiration for the ticked characters only, each with their fallouts
 - **Landmarks:** each selected landmark, by tier, with its props, notes, haunts, who and what is there (NPC voice and appearance, resources' die and tags), minor locations with their contents, and facts with tick boxes
 - **Delves:** only those between selected landmarks
-- **NPCs:** those at a selected landmark or in one of its minor locations, with voice, appearance, notes and what they carry
+- **NPCs:** those at a selected landmark or in one of its minor locations, with voice, appearance, notes, what they carry and their fallouts
 - **Factions:** those at a selected landmark or in one of its minor locations, and those any NPC in the packet is a member of
 
 Module settings (Heart sets them on `core.session` via `patchTypes`):
@@ -173,7 +180,7 @@ A module can ship extra campaign pages. Heart's *Inspiration* page shows the GM 
             "types": ["heart.pc"], "groupBy": ["calling", "class"] }]
 ```
 
-The page lives at `/c/{id}/v/{view id}` and is linked in the top bar. Its template gets these variables:
+A view's `links` (e.g. `["suffers:out"]`) lists, under each node, what it links that way with its print summary. Heart's Inspiration uses this to show each character's fallouts. The page lives at `/c/{id}/v/{view id}` and is linked in the top bar. Its template gets these variables:
 - `nodes`: the campaign's nodes of `types`. Each has `node` and `fields`, the props as form fields by name, giving `.text`, `.value`, `.labels` and `.hints`.
 - `groups[prop]`: for each `groupBy` prop, the nodes grouped by value in option order, with "Not set" last. Each group has `value`, `label`, `hint` and `nodes`.
 

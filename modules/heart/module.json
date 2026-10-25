@@ -3,10 +3,10 @@
   "name": "Heart: The City Beneath",
   "extends": ["core"],
   "hide": ["core.place", "core.pc", "core.item"],
-  "overviewOrder": ["heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.equipment", "heart.resource", "core.faction", "core.fact", "core.session"],
+  "overviewOrder": ["heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.fallout", "heart.equipment", "heart.resource", "core.faction", "core.fact", "core.session"],
   "views": [
     { "id": "inspiration", "label": "Inspiration", "template": "heart/views/inspiration.peb",
-      "types": ["heart.pc"], "groupBy": ["calling", "class"] }
+      "types": ["heart.pc"], "groupBy": ["calling", "class"], "links": ["suffers:out"] }
   ],
   "patchTypes": [
     {
@@ -24,7 +24,8 @@
       "id": "core.npc",
       "quickCreate": [
         { "type": "heart.resource",  "rel": "carries:out" },
-        { "type": "heart.equipment", "rel": "carries:out" }
+        { "type": "heart.equipment", "rel": "carries:out" },
+        { "type": "heart.fallout",   "rel": "suffers:out" }
       ]
     }
   ],
@@ -115,7 +116,8 @@
       "displayTitle": ["{title}", "({player})"],
       "quickCreate": [
         { "type": "heart.resource",  "rel": "carries:out" },
-        { "type": "heart.equipment", "rel": "carries:out" }
+        { "type": "heart.equipment", "rel": "carries:out" },
+        { "type": "heart.fallout",   "rel": "suffers:out" }
       ],
       "props": {
         "type": "object",
@@ -213,6 +215,23 @@
       }
     },
     {
+      "id": "heart.fallout",
+      "label": "Fallout",
+      "codePrefix": "FO",
+      "linkSlots": [{ "label": "Character", "rels": ["suffers:in"] }],
+      "printSummary": { "group": "Fallouts", "parts": ["{type}", "{resistance}", "{description}"] },
+      "overview": ["type", "resistance"],
+      "props": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type":        { "enum": ["Minor", "Major", "Zenith"], "title": "Type" },
+          "resistance":  { "enum": ["Blood", "Echo", "Mind", "Fortune", "Supplies"], "title": "Resistance" },
+          "description": { "type": "string", "title": "Description", "x-widget": "textarea" }
+        }
+      }
+    },
+    {
       "id": "heart.resource",
       "printSummary": { "parts": ["{die.value}", "{tags}"] },
       "overview": ["die", "tags"],
@@ -250,6 +269,7 @@
   ],
   "edgeTypes": [
     { "id": "connects", "label": "connects", "inverseLabel": "reached via", "from": ["heart.delve"], "to": ["heart.landmark"] },
+    { "id": "suffers", "label": "suffers", "inverseLabel": "suffered by", "from": ["core.pc", "core.npc"], "to": ["heart.fallout"] },
     { "id": "part_of", "label": "is part of", "inverseLabel": "minor locations", "from": ["heart.minor_location"], "to": ["heart.landmark"] }
   ]
 }

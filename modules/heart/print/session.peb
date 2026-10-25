@@ -47,6 +47,7 @@
   .beats { margin: 0 0 1mm; }
   .beat-type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #8c1c13; margin-right: 1mm; }
   .wants { margin: 0.5mm 0 0; }
+  .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 0.5mm 0 0; }
 </style>
 </head>
 <body>

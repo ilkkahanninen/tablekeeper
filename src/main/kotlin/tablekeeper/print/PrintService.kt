@@ -121,7 +121,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             Packet.around(selectedIds, nodes.filter { module.isA(it.type, a.type) }.map { it.id }, { linked(it, via) }, ::parentOf)
         }.mapNotNull { byId[it] }
 
-        val views = module.views.map { ModuleViews.build(module, it, selected) }.filter { it.nodes.isNotEmpty() }
+        val views = module.views.map { ModuleViews.build(module, it, selected, edges, nodes) }.filter { it.nodes.isNotEmpty() }
         val inViews = views.flatMap { v -> v.nodes.map { it.node.id } }.toSet()
         val included = (selected + between + around).map { it.id }.toSet()
         val related = def.related.flatMap { r ->

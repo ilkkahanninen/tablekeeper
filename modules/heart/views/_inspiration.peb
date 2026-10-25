@@ -1,4 +1,4 @@
-{# Inspiration body: callings with the characters' beats, classes with the rule book's text.
+{# Inspiration body: callings with the characters' beats (and the view's linked nodes, e.g. fallouts), classes with the rule book's text.
    Variables: campaign, groups["calling"], groups["class"] (ViewGroup lists), links (link names to their pages).
    Used by the Inspiration page and the session packet, so both show the same thing. #}
 <div class="inspiration">
@@ -18,6 +18,10 @@
               {% if c.fields.beat2.text is not empty %}<li>{% if c.fields.beat2Type.text is not empty %}<span class="beat-type">{{ c.fields.beat2Type.text }}</span> {% endif %}{{ c.fields.beat2.text }}</li>{% endif %}
             </ul>
           {% endif %}
+          {% for lg in c.linked %}
+            <div class="linked-label">{{ lg.label }}</div>
+            <ul class="beats">{% for i in lg.items %}<li><span class="code">{{ i.code }}</span> {{ i.title }}{% if i.summary is not empty %}: {{ i.summary }}{% endif %}</li>{% endfor %}</ul>
+          {% endfor %}
         {% endfor %}
       </div>
     {% endfor %}

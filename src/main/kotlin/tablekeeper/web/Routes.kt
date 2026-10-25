@@ -297,7 +297,7 @@ fun Application.routes(d: Deps) {
                 val c = call.campaign()
                 val m = d.modules.get(c.gameModule)
                 val view = m.view(call.parameters["view"].orEmpty()) ?: throw NotFound("View")
-                val data = ModuleViews.build(m, view, d.graph.listNodesWithProps(c.id))
+                val data = ModuleViews.build(m, view, d.graph.listNodesWithProps(c.id), d.graph.listEdges(c.id))
                 call.html(view.template, mapOf(
                     "campaign" to c, "module" to m, "view" to view, "nodes" to data.nodes, "groups" to data.groups,
                 ))
