@@ -1,0 +1,2 @@
+{# Quick find results (top bar): links to the matching nodes; app.js moves the highlight (.active) and opens one on Enter. #}
+{% for ch in choices %}<a class="menu-item{% if loop.first %} active{% endif %}" role="option" href="/c/{{ campaign.id }}/n/{{ ch.id }}">{% include "node/_icon.peb" with {"type": ch.type, "code": ch.code} %} {{ ch.label }}</a>{% endfor %}

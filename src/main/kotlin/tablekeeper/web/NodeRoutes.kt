@@ -151,7 +151,7 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
     get("/mentions") {
         val (c, m) = call.game()
         val n = call.node(c)
-        call.html("node/_mentions.peb", mapOf("module" to m, "choices" to nodePage.mentionChoices(c, m, n, call.request.queryParameters["q"].orEmpty().trim())))
+        call.html("node/_mentions.peb", mapOf("module" to m, "choices" to nodePage.choices(c, m, call.request.queryParameters["q"].orEmpty().trim(), exclude = n.id, limit = 8)))
     }
 
     // A session's debrief section, reloaded after something is added or done there

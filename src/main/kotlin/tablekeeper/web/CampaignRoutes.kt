@@ -36,6 +36,14 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
         ))
     }
 
+    // Quick find (top bar): nodes whose title or code matches what's typed
+    get("/find") {
+        val (c, m) = call.game()
+        val q = call.request.queryParameters["q"].orEmpty().trim()
+        val choices = if (q.isEmpty()) emptyList() else nodePage.choices(c, m, q, exclude = null, limit = 12)
+        call.html("_find.peb", mapOf("campaign" to c, "module" to m, "choices" to choices))
+    }
+
     // Campaign map: places drawn by a server-side layout, so the PDF matches the screen.
     get("/map") {
         val (c, m) = call.game()

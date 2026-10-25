@@ -14,6 +14,13 @@
     {% block crumbs %}{% endblock %}
     {# On every campaign page: campaign-wide pages, and create any kind of node (named from its random tables, or "New <type>"), then open it #}
     {% if campaign is not null and module is not null %}
+      {# Quick find: "/" or Ctrl/⌘ K from anywhere (app.js) #}
+      <div class="top-find" role="search">
+        <span class="type-icon find-icon" aria-hidden="true"><svg><use href="/static/icons.svg#search"/></svg></span>
+        <input id="find-q" type="search" name="q" aria-label="Find" title="Find (/)" autocomplete="off"
+               hx-get="/c/{{ campaign.id }}/find" hx-trigger="input changed delay:150ms, focus" hx-target="#find-results">
+        <div id="find-results" class="menu find-results" role="listbox"></div>
+      </div>
       <nav class="top-nav">
         <a href="/c/{{ campaign.id }}/map">Map</a>
         {% for v in module.views %}<a href="/c/{{ campaign.id }}/v/{{ v.id }}">{{ v.label }}</a>{% endfor %}

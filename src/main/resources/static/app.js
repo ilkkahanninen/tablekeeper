@@ -128,6 +128,49 @@ document.addEventListener("focusout", (e) => {
   }
 });
 
+// A menu's highlighted row (.active), moved by the arrow keys: the [[ picker and quick find.
+function stepActive(menu, step) {
+  const items = [...menu.querySelectorAll(".menu-item")];
+  if (items.length === 0) return;
+  const active = menu.querySelector(".menu-item.active");
+  const next = items[(items.indexOf(active) + step + items.length) % items.length];
+  active?.classList.remove("active");
+  next.classList.add("active");
+  next.scrollIntoView({ block: "nearest" });
+}
+
+// Quick find (top bar): "/" or Ctrl/⌘ K focuses it from anywhere; the arrows move the highlight, Enter opens that node,
+// Escape closes. The results come from the server as you type (hx-get on #find-q).
+document.addEventListener("keydown", (e) => {
+  const input = document.getElementById("find-q");
+  if (!input) return;
+  const typing = e.target instanceof Element && e.target.closest("input, textarea, select, [contenteditable]");
+  if ((e.key === "/" && !typing) || (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey))) {
+    e.preventDefault();
+    input.focus();
+    input.select();
+    return;
+  }
+  if (e.target !== input) return;
+  const menu = document.getElementById("find-results");
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    stepActive(menu, e.key === "ArrowDown" ? 1 : -1);
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    const pick = menu.querySelector(".menu-item.active") ?? menu.querySelector(".menu-item");
+    if (pick) location.href = pick.href;
+  } else if (e.key === "Escape") {
+    menu.replaceChildren();
+    input.blur();
+  }
+});
+// Leaving quick find closes its results; pressing on one keeps the focus (and the list) until its click opens it
+document.addEventListener("focusout", (e) => {
+  if (e.target.id === "find-q") document.getElementById("find-results").replaceChildren();
+});
+document.addEventListener("mousedown", (e) => { if (e.target.closest(".find-results")) e.preventDefault(); });
+
 // Typing [[ in notes offers matching nodes (found on the server); picking one inserts [[Title]].
 const mentionQuery = (input) => input.value.slice(0, input.selectionStart).match(/\[\[([^[\]\n]{0,40})$/)?.[1] ?? null;
 const mentionMenu = (input) => input.closest(".notes-field").querySelector(".mention-menu");
@@ -159,14 +202,9 @@ document.addEventListener("keydown", (e) => {
   if (!e.target.matches("textarea[data-mentions]")) return;
   const menu = mentionMenu(e.target);
   if (menu.hidden) return;
-  const choices = [...menu.querySelectorAll(".mention-choice")];
   const active = menu.querySelector(".mention-choice.active");
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-    const step = e.key === "ArrowDown" ? 1 : -1;
-    const next = choices[(choices.indexOf(active) + step + choices.length) % choices.length];
-    active?.classList.remove("active");
-    next.classList.add("active");
-    next.scrollIntoView({ block: "nearest" });
+    stepActive(menu, e.key === "ArrowDown" ? 1 : -1);
   } else if ((e.key === "Enter" || e.key === "Tab") && active) {
     insertMention(e.target, active.dataset.title);
   } else if (e.key === "Escape") {

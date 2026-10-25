@@ -17,7 +17,14 @@ h2 { font-size: 1.05rem; margin: 0 0 .5rem; text-transform: uppercase; letter-sp
 h3 { font-size: .85rem; margin: .75rem 0 .25rem; color: var(--muted); font-weight: normal; }
 
 .top { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .6rem 1.25rem; border-bottom: 1px solid var(--line); background: var(--card); }
-.top-nav { display: flex; gap: .9rem; margin-left: auto; font-size: .9rem; }
+.top-nav { display: flex; gap: .9rem; margin-left: .9rem; font-size: .9rem; }
+/* Quick find: right of the breadcrumbs, its results a menu below */
+.top-find { position: relative; display: flex; align-items: center; margin-left: auto; }
+.top-find input { font-size: .9rem; padding: .25rem .5rem .25rem 1.7rem; width: 14rem; }
+.top-find .find-icon { position: absolute; left: .5rem; pointer-events: none; }
+.find-results { position: absolute; top: 100%; right: 0; min-width: 22rem; margin-top: .25rem; max-height: 24rem; overflow-y: auto; }
+.find-results:not(:has(*)) { display: none; }
+a.menu-item { text-decoration: none; color: var(--ink); }
 .top-create { display: flex; gap: .35rem; margin-left: .75rem; }
 .top-create select, .top-create input, .top-create button { font-size: .9rem; padding: .25rem .5rem; }
 .top-create input { width: 12rem; }

@@ -33,8 +33,8 @@ data class CreateChoice(val key: String, val label: String)
 /** One dropdown entry; [value] is "<rel>|<node id>". */
 data class Choice(val value: String, val label: String, val selected: Boolean)
 data class ChoiceGroup(val label: String, val choices: List<Choice>)
-/** A node offered after typing `[[` in notes: [label] as in pickers, [title] what gets inserted. */
-data class MentionChoice(val type: String, val code: String, val label: String, val title: String)
+/** A node offered by a search (the `[[` picker in notes, quick find): [label] as in pickers, [title] what `[[` inserts. */
+data class NodeChoice(val id: UUID, val type: String, val code: String, val label: String, val title: String)
 /** Dropdown for a link slot, e.g. Location: places, then carriers. */
 data class SlotView(val index: Int, val label: String, val groups: List<ChoiceGroup>)
 
@@ -142,11 +142,11 @@ class NodePage(
         }
     }
 
-    /** Nodes for the `[[` picker in notes: title or code matches, labelled as in other pickers. */
-    fun mentionChoices(c: Campaign, m: ResolvedModule, n: Node, q: String): List<MentionChoice> {
-        val found = graph.search(c.id, q, n.id, limit = 8)
+    /** Nodes whose title or code matches [q], labelled as in other pickers; [exclude] (the current node) left out. */
+    fun choices(c: Campaign, m: ResolvedModule, q: String, exclude: UUID?, limit: Int): List<NodeChoice> {
+        val found = graph.search(c.id, q, exclude, limit)
         val labels = pickerLabels(c, m, found)
-        return found.map { MentionChoice(it.type, it.code, labels.getValue(it.id), it.title) }
+        return found.map { NodeChoice(it.id, it.type, it.code, labels.getValue(it.id), it.title) }
     }
 
     /** The campaign's nodes by the names a `[[mention]]` may use. */

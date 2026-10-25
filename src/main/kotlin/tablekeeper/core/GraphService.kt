@@ -68,9 +68,15 @@ class GraphService(private val db: DSLContext) {
         db.execute("delete from nodes where campaign_id = ? and id = ?", campaignId, nodeId)
     }
 
-    /** Title/code search for the link picker. Type filtering happens in the caller (needs module rules). */
-    fun search(campaignId: UUID, query: String, excludeId: UUID, limit: Int = 30): List<NodeRef> =
-        db.fetch(
+    /** Title/code search (Link box, [[ picker, quick find), leaving out [excludeId]. Type filtering happens in the caller (needs module rules). */
+    fun search(campaignId: UUID, query: String, excludeId: UUID?, limit: Int = 30): List<NodeRef> =
+        if (excludeId == null) db.fetch(
+            """select $refCols from nodes n
+               where n.campaign_id = ? and (n.title ilike ? or n.code ilike ?)
+               order by n.title limit ?""",
+            campaignId, "%$query%", "$query%", limit,
+        ).map(::toRef)
+        else db.fetch(
             """select $refCols from nodes n
                where n.campaign_id = ? and n.id <> ? and (n.title ilike ? or n.code ilike ?)
                order by n.title limit ?""",
