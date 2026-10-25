@@ -121,8 +121,8 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 .random-choices { position: absolute; right: 0; margin-top: .25rem; min-width: 10rem; }
 
 /* Campaign home tables */
-.page-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 a.secondary { display: inline-block; text-decoration: none; }
+.page-actions { margin-top: 2rem; }   /* a page's Export / Delete row, below its content */
 .overview-filter { width: 100%; max-width: 24rem; margin: 0 0 1rem; box-sizing: border-box; }
 .overview-section { margin: 0 0 1.5rem; }
 .section-create { margin-top: .4rem; }

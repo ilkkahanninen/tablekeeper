@@ -9,6 +9,7 @@ import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import tablekeeper.auth.user
 import tablekeeper.core.BadRequest
 import tablekeeper.core.NotFound
 import tablekeeper.map.MapService
@@ -20,6 +21,21 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
     get {
         val (c, m) = call.game()
         call.html("campaign.peb", mapOf("campaign" to c, "module" to m, "sections" to Overview.sections(m, graph.snapshot(c.id))))
+    }
+
+    // Rename (the page's title autosaves, like a node's); an empty name keeps the old one
+    post {
+        val (c, _) = call.game()
+        val name = call.receiveParameters()["name"]?.trim().orEmpty()
+        if (name.isNotEmpty()) campaigns.rename(call.user, c.id, name)
+        call.html("node/_save_status.peb", mapOf("errors" to emptyList<String>()))
+    }
+
+    // Delete the campaign and everything in it, then back to the campaign list
+    post("/delete") {
+        val (c, _) = call.game()
+        campaigns.delete(call.user, c.id)
+        call.redirect("/")
     }
 
     post("/nodes") {

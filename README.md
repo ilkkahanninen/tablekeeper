@@ -9,6 +9,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
 ## Features
 
 - **Campaign page:** one table per type (Sessions, Landmarks, Delves, Characters, NPCs, Fallouts, Equipment, Resources, Factions…), with key columns, a filter box and a **Create** button under each table. Minor locations sit under their landmark, sessions are in date order, and dead NPCs are greyed out.
+- **Campaigns** are renamed by editing the name at the top of their page, and deleted with **Delete** at the bottom (it asks first).
 - **Export and import:** **Export** on the campaign page downloads the whole campaign as one JSON file (nodes, links, random tables); **Import** on the home page makes a new campaign from such a file, so it works as a backup and as a way to copy a campaign.
 - **Quick find:** press `/` (or Ctrl/⌘ K) on any campaign page and type part of a name or code; arrows and Enter open the node.
 - **Node pages:**

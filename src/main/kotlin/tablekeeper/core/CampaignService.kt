@@ -25,6 +25,15 @@ class CampaignService(private val db: DSLContext) {
         return toCampaign(r)
     }
 
+    fun rename(owner: User, id: UUID, name: String) {
+        db.execute("update campaigns set name = ? where id = ? and owner_id = ?", name, id, owner.id)
+    }
+
+    /** Deletes the campaign and everything in it (nodes, links, random tables cascade). */
+    fun delete(owner: User, id: UUID) {
+        db.execute("delete from campaigns where id = ? and owner_id = ?", id, owner.id)
+    }
+
     /** Ownership check lives here: every campaign-scoped route goes through this. */
     fun get(owner: User, id: UUID): Campaign? =
         db.fetchOne("select id, name, game_module from campaigns where id = ? and owner_id = ?", id, owner.id)
