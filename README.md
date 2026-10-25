@@ -179,7 +179,7 @@ Each campaign has a map (*Map* in the top bar, or `/c/{id}/map`), plus a printab
 "mapDepthFrom": "connects:out"   // heart.delve: depth = average tier of the landmarks it connects
 ```
 
-With `mapDepth`, places are fixed at a height set by that integer prop, and faint guides ("TIER 1", "TIER 2"…) mark the levels. Places without a value, like minor locations, follow their links.
+`mapDepth` names an integer prop, or an enum prop whose `"x-depth"` maps values to depths. Heart's tier is `{"Tier 0": 0, …, "Tier 3": 3}`; Rogue, Fracture and The Eight Heavens have no depth, so they're placed by their links. With `mapDepth`, places are fixed at a height set by that prop, and faint guides ("TIER 1", "TIER 2"…) mark the levels. Places without a value, like minor locations, follow their links.
 
 Places are node types with a `mapShape`. Any link between two places is drawn as a line, dashed when it touches a dot.
 

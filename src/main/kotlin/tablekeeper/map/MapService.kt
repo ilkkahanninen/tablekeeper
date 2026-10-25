@@ -42,12 +42,8 @@ class MapService(private val graph: GraphService) {
         val lines = edges.filter { it.fromId in shapes && it.toId in shapes }
             .map { setOf(it.fromId, it.toId) }.distinct().filter { it.size == 2 }.map { it.toList() }
 
-        // Depth = the type's mapDepth prop, e.g. a landmark's tier; unset tiers leave the place free
-        val depths = places.mapNotNull { (n, _) ->
-            module.mapDepth(n.type)?.let { prop ->
-                (n.props[prop] as? Number)?.let { n.id to (prop to it.toDouble()) }
-            }
-        }.toMap()
+        // Depth = the type's mapDepth prop, e.g. a landmark's tier; unset tiers (and ones like Rogue) leave the place free
+        val depths = places.mapNotNull { (n, _) -> module.depthOf(n.type, n.props)?.let { n.id to it } }.toMap()
         // ...or the average over a link, e.g. a delve halfway between its landmarks' tiers. These don't get guides.
         val derivedDepths = places.mapNotNull { (n, _) ->
             val via = module.mapDepthFrom(n.type) ?: return@mapNotNull null
@@ -57,12 +53,12 @@ class MapService(private val graph: GraphService) {
                     Direction.IN -> e.fromId.takeIf { e.toId == n.id }
                 }
             }
-            linked.mapNotNull { depths[it]?.second }.takeIf { it.isNotEmpty() }?.let { n.id to it.average() }
+            linked.mapNotNull { depths[it]?.depth }.takeIf { it.isNotEmpty() }?.let { n.id to it.average() }
         }.toMap()
 
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
-                MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.second ?: derivedDepths[n.id],
+                MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.depth ?: derivedDepths[n.id],
                     labelWidth = labelWidth(n.code, n.title, shape), body = BODY.getValue(shape))
             },
             lines.map { (a, b) -> a.toString() to b.toString() },
@@ -84,10 +80,7 @@ class MapService(private val graph: GraphService) {
             },
             // One guide per depth value, labelled with the prop's title: "Tier 2"
             levels = depths.entries.groupBy({ it.value }, { it.key }).map { (depth, ids) ->
-                val (prop, value) = depth
-                val type = places.first { it.first.id == ids.first() }.first.type
-                val title = module.propsSchema(type)?.get("properties")?.get(prop)?.get("title")?.asText() ?: prop
-                MapLevel("$title ${value.toInt()}", ids.map { at(it).y }.average().roundToInt())
+                MapLevel(depth.label, ids.map { at(it).y }.average().roundToInt())
             }.sortedBy { it.y },
         )
     }

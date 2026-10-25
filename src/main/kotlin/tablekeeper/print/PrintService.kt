@@ -130,9 +130,8 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             .groupBy { it.type }.entries
             .sortedWith(compareBy({ module.overviewRank(it.key) }, { module.label(it.key) }))
             .map { (type, ofType) ->
-                // Deepest last, e.g. landmarks by tier (the way down to the Heart), then by title
-                val depth = module.mapDepth(type)
-                val ordered = ofType.sortedWith(compareBy({ depth?.let { p -> (it.props[p] as? Number)?.toDouble() } ?: 0.0 }, { it.title }))
+                // Deepest last, e.g. landmarks by tier (the way down to the Heart); ones without a depth (Rogue) after; then by title
+                val ordered = ofType.sortedWith(compareBy({ module.depthOf(type, it.props)?.depth ?: Double.MAX_VALUE }, { it.title }))
                 PacketSection(type, module.plural(type), ordered.map { place ->
                     val m = model(campaign, module, place, audience, withPacket = false)
                     // Links back to this session ("featured in S1") say nothing inside its own packet, and a list whose

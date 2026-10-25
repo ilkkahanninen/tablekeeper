@@ -49,7 +49,8 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "tier":    { "type": "integer", "title": "Tier", "minimum": 0, "maximum": 4 },
+          "tier":    { "enum": ["Tier 0", "Tier 1", "Tier 2", "Tier 3", "Rogue", "Fracture", "The Eight Heavens"], "title": "Tier",
+                       "x-depth": { "Tier 0": 0, "Tier 1": 1, "Tier 2": 2, "Tier 3": 3 } },
           "stress":  { "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Default stress" },
           "domains": {
             "type": "array", "title": "Domains", "uniqueItems": true,

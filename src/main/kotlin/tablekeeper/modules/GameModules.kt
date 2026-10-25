@@ -40,7 +40,10 @@ data class NodeTypeDef(
     val context: String? = null,
     /** Drawn on the campaign map with this shape: one of [MAP_SHAPES]. Missing = inherit; none = not on the map. */
     val mapShape: String? = null,
-    /** Integer prop placing this type vertically on the map, higher values lower, e.g. Heart's "tier". Missing = inherit. */
+    /**
+     * Prop placing this type vertically on the map, higher values lower, e.g. Heart's "tier": an integer, or an enum
+     * whose "x-depth" maps values to depths ("Tier 2": 2; values left out, like "Rogue", are placed freely). Missing = inherit.
+     */
     val mapDepth: String? = null,
     /** Link whose far ends' map depths are averaged for this type, e.g. a delve between its landmarks. Missing = inherit. */
     val mapDepthFrom: String? = null,
@@ -74,6 +77,9 @@ data class PacketDef(val rel: String, val between: List<BetweenDef> = emptyList(
 /** Nodes of [type] included when each of their [rel] links ends at a selected node (and there is at least one). */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BetweenDef(val type: String, val rel: String)
+
+/** A place's depth on the map (higher = lower), and the guide label for its level, e.g. 2.0 / "Tier 2". */
+data class MapDepth(val depth: Double, val label: String)
 
 val MAP_SHAPES = setOf("circle", "diamond", "dot")
 
@@ -308,6 +314,20 @@ class ResolvedModule(
 
     fun mapDepth(typeId: String): String? = inherited(typeId) { it.mapDepth }
 
+    /**
+     * A node's map depth from its type's `mapDepth` prop, with its guide label: an integer as itself ("Tier 2" from
+     * the prop title), or an enum value through the prop's "x-depth" ("Tier 2" -> 2). No depth (e.g. "Rogue") = null.
+     */
+    fun depthOf(typeId: String, props: Map<String, Any?>): MapDepth? {
+        val prop = mapDepth(typeId) ?: return null
+        val schema = propsSchema(typeId)?.get("properties")?.get(prop)
+        return when (val v = props[prop]) {
+            is Number -> MapDepth(v.toDouble(), "${schema?.get("title")?.asText() ?: prop} ${v.toInt()}")
+            is String -> schema?.get("x-depth")?.get(v)?.takeIf { it.isNumber }?.let { MapDepth(it.asDouble(), v) }
+            else -> null
+        }
+    }
+
     /** The type's `mapDepthFrom` link option, e.g. a delve's "connects" (to its landmarks). */
     fun mapDepthFrom(typeId: String): LinkOption? =
         inherited(typeId) { it.mapDepthFrom }?.let { key -> linkOptions(typeId).firstOrNull { it.key == key } }
@@ -375,8 +395,10 @@ class ResolvedModule(
             ?.let { "${def.id}: context '$it' is not a link option of ${def.id}" })
         val map = listOfNotNull(def.mapShape?.takeIf { it !in MAP_SHAPES }
             ?.let { "${def.id}: mapShape '$it' is not one of ${MAP_SHAPES.joinToString()}" }) +
-            listOfNotNull(def.mapDepth?.takeIf { schemaProps?.get(it)?.get("type")?.asText() != "integer" }
-                ?.let { "${def.id}: mapDepth '$it' is not an integer prop in its props schema" }) +
+            listOfNotNull(def.mapDepth?.takeIf { p ->
+                val s = schemaProps?.get(p)
+                s?.get("type")?.asText() != "integer" && !(s?.has("enum") == true && s.get("x-depth")?.isObject == true)
+            }?.let { "${def.id}: mapDepth '$it' is not an integer prop, or an enum prop with \"x-depth\", in its props schema" }) +
             listOfNotNull(def.mapDepthFrom?.takeIf { key -> options.none { it.key == key } }
                 ?.let { "${def.id}: mapDepthFrom '$it' is not a link option of ${def.id}" })
         val overview = def.overview.orEmpty().mapNotNull { col ->

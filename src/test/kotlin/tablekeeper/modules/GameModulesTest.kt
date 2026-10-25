@@ -36,10 +36,10 @@ class GameModulesTest {
     }
 
     @Test
-    fun `props schema rejects tier 7 and unknown domain`() {
-        val bad = GameModules.mapper.readTree("""{"tier": 7, "domains": ["Moon"]}""")
+    fun `props schema rejects unknown tier and domain`() {
+        val bad = GameModules.mapper.readTree("""{"tier": 1, "domains": ["Moon"]}""")
         assertTrue(heart.validateProps("heart.landmark", bad).size >= 2)
-        val ok = GameModules.mapper.readTree("""{"tier": 1, "domains": ["Occult", "Desolate"]}""")
+        val ok = GameModules.mapper.readTree("""{"tier": "Tier 1", "domains": ["Occult", "Desolate"]}""")
         assertTrue(heart.validateProps("heart.landmark", ok).isEmpty())
     }
 
@@ -47,10 +47,10 @@ class GameModulesTest {
     fun `form params become typed props`() {
         val (props, errors) = PropsForm.parse(
             heart.propsSchema("heart.landmark"),
-            mapOf("prop.tier" to listOf("2"), "prop.domains" to listOf("Occult", "Wild")),
+            mapOf("prop.stress" to listOf("d6"), "prop.domains" to listOf("Occult", "Wild")),
         )
         assertTrue(errors.isEmpty())
-        assertEquals(2, props.get("tier").asInt())
+        assertEquals("d6", props.get("stress").asText())
         assertEquals(2, props.get("domains").size())
     }
 
@@ -259,6 +259,9 @@ class GameModulesTest {
         assertEquals("dot", heart.mapShape("heart.minor_location"))
         assertEquals(null, heart.mapShape("heart.resource"))
         assertEquals("tier", heart.mapDepth("heart.landmark"))
+        assertEquals(MapDepth(2.0, "Tier 2"), heart.depthOf("heart.landmark", mapOf("tier" to "Tier 2")))
+        assertEquals(null, heart.depthOf("heart.landmark", mapOf("tier" to "Rogue")), "placed freely")
+        assertEquals(MapDepth(1.0, "Tier 1"), heart.depthOf("heart.landmark", mapOf("tier" to 1)), "numbers still work for other modules")
         assertEquals(null, heart.mapDepth("heart.delve"))
         assertEquals("connects:out", heart.mapDepthFrom("heart.delve")?.key)
         assertTrue(PropsForm.fields(heart.propsSchema("heart.delve"), emptyMap()).none { it.name == "tier" }, "delves have no tier")
