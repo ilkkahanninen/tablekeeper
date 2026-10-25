@@ -22,8 +22,8 @@
 {% elseif f.kind == 'bool' %}
   <label class="check"><input type="checkbox" name="{{ f.inputName }}" {% if f.value %}checked{% endif %}> {{ f.label }}</label>
 {% elseif f.kind == 'textarea' %}
-  <label class="wide">{{ f.label }}<textarea name="{{ f.inputName }}" rows="3">{{ f.value }}</textarea></label>
+  <label class="wide">{{ f.label }}<textarea name="{{ f.inputName }}" rows="3">{{ f.value }}</textarea>{% if random[f.name] is not null %}{% include "node/_random.peb" with {"field": f.inputName, "choices": random[f.name]} %}{% endif %}</label>
 {% else %}
-  <label{% if f.row is not null %} class="grow"{% elseif f.wide %} class="wide"{% endif %}>{% if f.row is null %}{{ f.label }}{% endif %}<input name="{{ f.inputName }}" value="{{ f.value }}"{% if f.row is not null %} placeholder="{{ f.label }}" aria-label="{{ f.label }}"{% endif %}></label>
+  <label{% if f.row is not null %} class="grow"{% elseif f.wide %} class="wide"{% endif %}>{% if f.row is null %}{{ f.label }}{% endif %}<span class="with-random"><input name="{{ f.inputName }}" value="{{ f.value }}"{% if f.row is not null %} placeholder="{{ f.label }}" aria-label="{{ f.label }}"{% endif %}>{% if random[f.name] is not null %}{% include "node/_random.peb" with {"field": f.inputName, "choices": random[f.name]} %}{% endif %}</span></label>
 {% endif %}
 </div>

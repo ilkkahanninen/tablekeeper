@@ -1,0 +1,40 @@
+{% extends "layout.peb" %}
+
+{% block title %}{{ table.name }} · {{ campaign.name }}{% endblock %}
+{% block crumbs %}
+  <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
+  <span class="sep">/</span> <a href="/c/{{ campaign.id }}/tables">Tables</a>
+  <span class="sep">/</span> {{ table.name }}
+{% endblock %}
+
+{% block content %}
+{# A random table: one item per line. Autosaves like node pages; only #save-status is swapped. #}
+<form class="node-form" method="post" action="/c/{{ campaign.id }}/tables/{{ table.id }}"
+      hx-post="/c/{{ campaign.id }}/tables/{{ table.id }}" hx-trigger="change, submit"
+      hx-vals='{"autosave": "1"}' hx-target="#save-status">
+  <div id="save-status" aria-live="polite"></div>
+
+  <input class="title-input" name="name" value="{{ table.name }}" aria-label="Name" required>
+
+  <label class="check"><input type="checkbox" name="mix"{% if table.mix %} checked{% endif %}> Mix first and last words</label>
+
+  <label class="wide">Items
+    <textarea name="items" rows="18">{{ table.items }}</textarea>
+  </label>
+
+  {% if options is not empty %}
+    <fieldset class="checklist">
+      <legend>Fields</legend>
+      {% for o in options %}
+        <label class="check"><input type="checkbox" name="fields" value="{{ o.key }}"{% if table.fields contains o.key %} checked{% endif %}> {{ o.label }}</label>
+      {% endfor %}
+    </fieldset>
+  {% endif %}
+
+  <div class="actions">
+    <button type="button" class="danger"
+            hx-post="/c/{{ campaign.id }}/tables/{{ table.id }}/delete"
+            hx-confirm="Delete {{ table.name }}?">Delete</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "layout.peb" %}
+
+{% block title %}Tables · {{ campaign.name }}{% endblock %}
+{% block crumbs %}
+  <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
+  <span class="sep">/</span> Tables
+{% endblock %}
+
+{% block content %}
+<h1>Tables</h1>
+
+<form class="card inline" method="post" action="/c/{{ campaign.id }}/tables">
+  <input name="name" aria-label="Name" required>
+  <button>Add</button>
+</form>
+
+{% if tables is not empty %}
+  <div class="table-scroll">
+    <table class="overview">
+      <thead><tr><th></th><th>Items</th><th>Fields</th></tr></thead>
+      <tbody>
+        {% for t in tables %}
+          <tr>
+            <td><a href="/c/{{ campaign.id }}/tables/{{ t.id }}">{{ t.name }}</a></td>
+            <td>{{ t.list | length }}</td>
+            <td>{% for f in t.fields %}{{ labels[f] | default(f) }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}

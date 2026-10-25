@@ -24,6 +24,8 @@ import tablekeeper.core.Campaign
 import tablekeeper.core.CampaignService
 import tablekeeper.core.Direction
 import tablekeeper.core.GraphService
+import tablekeeper.core.RandomTableService
+import tablekeeper.core.RandomTables
 import tablekeeper.core.Node
 import tablekeeper.core.NodeRef
 import tablekeeper.core.Visibility
@@ -46,6 +48,7 @@ class Deps(
     val templates: Templates,
     val print: PrintService,
     val map: MapService,
+    val tables: RandomTableService,
 )
 
 // View models for the "Linked" sidebar
@@ -204,6 +207,10 @@ fun Application.routes(d: Deps) {
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
+        // Random buttons: field name -> its tables (name + items as JSON, for the buttons' data attribute)
+        "random" to d.tables.forType(c.id, n.type).mapValues { (_, choices) ->
+            choices.map { mapOf("name" to it.name, "items" to GameModules.mapper.writeValueAsString(it.items), "mix" to it.mix) }
+        },
         "checklists" to checklists(c, m, n),
         "quickCreate" to quickCreateOptions(c, m, n).let { options ->
             // Just the type ("Delve"); the relation only where one type is offered through several
@@ -289,6 +296,57 @@ fun Application.routes(d: Deps) {
                 call.html(view.template, mapOf(
                     "campaign" to c, "module" to m, "view" to view, "nodes" to data.nodes, "groups" to data.groups,
                 ))
+            }
+
+            // Random tables: the campaign's own lists; each fills chosen fields through a Random button on node pages
+            route("/tables") {
+                fun ApplicationCall.table(c: Campaign) = d.tables.get(c.id, uuid("tid")) ?: throw NotFound("Table")
+
+                get {
+                    val c = call.campaign()
+                    val m = d.modules.get(c.gameModule)
+                    val labels = RandomTables.fieldOptions(m).associate { it.key to it.label }
+                    call.html("tables.peb", mapOf(
+                        "campaign" to c, "module" to m, "tables" to d.tables.list(c.id),
+                        "labels" to labels,
+                    ))
+                }
+
+                post {
+                    val c = call.campaign()
+                    val name = call.receiveParameters()["name"]?.trim().orEmpty().ifEmpty { throw BadRequest("Name is required") }
+                    call.respondRedirect("/c/${c.id}/tables/${d.tables.create(c.id, name)}")
+                }
+
+                get("/{tid}") {
+                    val c = call.campaign()
+                    val m = d.modules.get(c.gameModule)
+                    val t = call.table(c)
+                    call.html("table.peb", mapOf(
+                        "campaign" to c, "module" to m, "table" to t, "options" to RandomTables.fieldOptions(m), "errors" to emptyList<String>(),
+                    ))
+                }
+
+                // Autosave, like node pages: only the status is swapped
+                post("/{tid}") {
+                    val c = call.campaign()
+                    val t = call.table(c)
+                    val p = call.receiveParameters()
+                    val name = p["name"]?.trim().orEmpty().ifEmpty { t.name }
+                    d.tables.update(c.id, t.id, name, p["items"].orEmpty(), mix = p["mix"] != null)
+                    d.tables.setFields(c.id, t.id, p.getAll("fields").orEmpty())
+                    if (p["autosave"] == "1") call.html("node/_save_status.peb", mapOf("errors" to emptyList<String>()))
+                    else call.respondRedirect("/c/${c.id}/tables/${t.id}")
+                }
+
+                post("/{tid}/delete") {
+                    val c = call.campaign()
+                    d.tables.delete(c.id, call.table(c).id)
+                    if (call.isHtmx()) {
+                        call.response.header("HX-Redirect", "/c/${c.id}/tables")
+                        call.respondText("")
+                    } else call.respondRedirect("/c/${c.id}/tables")
+                }
             }
 
             // Campaign map: places drawn by a server-side layout, so the PDF matches the screen.

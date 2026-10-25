@@ -1,0 +1,12 @@
+{# Random button for a field (variables: field = input name, choices = its tables: name + items JSON).
+   One table rolls directly; several open a menu of table names, and picking one rolls on it. #}
+{% if choices | length == 1 %}
+  <button type="button" class="random" data-for="{{ field }}" data-items="{{ choices[0].items }}"{% if choices[0].mix %} data-mix="true"{% endif %}>Random</button>
+{% else %}
+  <details class="random-menu">
+    <summary class="random">Random ▾</summary>
+    <div class="random-choices">
+      {% for ch in choices %}<button type="button" class="random" data-for="{{ field }}" data-items="{{ ch.items }}"{% if ch.mix %} data-mix="true"{% endif %}>{{ ch.name }}</button>{% endfor %}
+    </div>
+  </details>
+{% endif %}

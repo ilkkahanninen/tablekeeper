@@ -123,6 +123,10 @@ One table per type, in the order of the module's `overviewOrder` (types not list
 
 An unknown prop, relation or type stops the app at startup.
 
+## Random tables
+
+*Tables* in the top bar holds your own lists, separate from the game module. A table is a list with one item per line; blank lines are ignored. Tick the fields it fills, e.g. *NPC: Title* or *NPC: Voice*. Those fields then get a **Random** button on node pages, which fills in a random item and saves. Tick **Mix first and last words** to combine lines: a roll joins one line's first name with another line's surname, so 20 "First Last" lines give 400 names. One-word lines are used whole. A field can have several tables, e.g. elven, dwarf and street names on *NPC: Title*. Its button then reads **Random ▾** and lists the tables; picking one rolls on it. Titles and text fields can be linked; dropdowns, checkboxes and numbers can't.
+
 ## Session packet
 
 One brief landscape A4 document for the next session, with the text in three columns. Add a **Session** (S1, S2…). On its page, tick the landmarks likely to come up and the characters taking part, then **Print**. For Heart the packet has:

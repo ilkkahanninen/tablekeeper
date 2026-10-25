@@ -13,6 +13,7 @@ import tablekeeper.auth.currentUserPlugin
 import tablekeeper.auth.userResolverFor
 import tablekeeper.core.CampaignService
 import tablekeeper.core.GraphService
+import tablekeeper.core.RandomTableService
 import tablekeeper.db.Database
 import tablekeeper.map.MapService
 import tablekeeper.modules.GameModules
@@ -32,7 +33,7 @@ fun main() {
     val graph = GraphService(db)
     val templates = Templates(config.modulesDir, cache = config.templateCache)
     val map = MapService(graph)
-    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates, map), map)
+    val deps = Deps(campaigns, graph, modules, templates, PrintService(graph, templates, map), map, RandomTableService(db))
     val resolver = userResolverFor(config.authMode, campaigns)
 
     embeddedServer(Netty, port = config.port, host = "0.0.0.0") {

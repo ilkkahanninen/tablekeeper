@@ -17,6 +17,7 @@
       <nav class="top-nav">
         <a href="/c/{{ campaign.id }}/map">Map</a>
         {% for v in module.views %}<a href="/c/{{ campaign.id }}/v/{{ v.id }}">{{ v.label }}</a>{% endfor %}
+        <a href="/c/{{ campaign.id }}/tables">Tables</a>
       </nav>
       <form class="top-create" method="post" action="/c/{{ campaign.id }}/nodes">
         <select name="type" aria-label="Type">

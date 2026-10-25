@@ -44,3 +44,40 @@ document.addEventListener("htmx:afterRequest", (e) => {
     if (q) { q.value = ""; q.dispatchEvent(new Event("input", { bubbles: true })); }
   }
 });
+
+// One line's first words and another line's last word: "Alys Pascoe" + "Beatrice Flint" -> "Alys Flint".
+// A one-word line is used whole as the first part, and adds nothing as the last.
+function mixWords(a, b) {
+  const first = a.split(/\s+/), second = b.split(/\s+/);
+  const head = first.length > 1 ? first.slice(0, -1).join(" ") : a;
+  return second.length > 1 ? `${head} ${second[second.length - 1]}` : head;
+}
+
+// A random line, or with mix a combination of two (different) lines; avoids repeating `current` when it can.
+function roll(items, mix, current) {
+  const pick = () => items[Math.floor(Math.random() * items.length)];
+  const once = () => {
+    if (!mix || items.length < 2) return pick();
+    const a = pick();
+    let b = pick();
+    while (b === a) b = pick();
+    return mixWords(a, b);
+  };
+  let value = once();
+  for (let i = 0; i < 10 && value === current && items.length > 1; i++) value = once();
+  return value;
+}
+
+// Random table button: fill its field with a random item (a different one when possible); the field's change autosaves.
+// With several tables the button is a menu (details); picking a table rolls on it and closes the menu.
+document.addEventListener("click", (e) => {
+  // Clicking outside an open menu closes it
+  document.querySelectorAll("details.random-menu[open]").forEach((menu) => { if (!menu.contains(e.target)) menu.open = false; });
+  const button = e.target.closest("button.random");
+  if (!button) return;
+  const field = button.closest("form").querySelector(`[name="${button.dataset.for}"]`);
+  field.value = roll(JSON.parse(button.dataset.items), button.dataset.mix === "true", field.value);
+  field.dispatchEvent(new Event("change", { bubbles: true }));
+  const menu = button.closest("details.random-menu");
+  if (menu) menu.open = false;
+});

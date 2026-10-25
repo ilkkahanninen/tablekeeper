@@ -88,6 +88,20 @@ legend { font-size: .85rem; color: var(--muted); }
 .unlink:hover { color: var(--blood); }
 .htmx-request { opacity: .6; }
 
+/* Random table buttons next to fields */
+.with-random { display: flex; gap: .4rem; align-items: center; }
+.with-random input { flex: 1; min-width: 0; }
+.random { font-size: .8rem; padding: .15rem .55rem; background: transparent; color: var(--blood); border: 1px solid var(--line); white-space: nowrap; align-self: center; }
+.random:hover { border-color: var(--blood); }
+label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top: .25rem; }
+.random-menu { position: relative; }
+.random-menu > summary { list-style: none; cursor: pointer; display: inline-block; }
+.random-menu > summary::-webkit-details-marker { display: none; }
+.random-choices { position: absolute; right: 0; z-index: 10; margin-top: .25rem; display: flex; flex-direction: column; gap: .2rem;
+                  background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: .35rem; min-width: 10rem; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.random-choices .random { text-align: left; color: var(--ink); border-color: transparent; }
+.random-choices .random:hover { border-color: var(--blood); }
+
 /* Campaign home tables */
 .overview-filter { width: 100%; max-width: 24rem; margin: 0 0 1rem; box-sizing: border-box; }
 .overview-section { margin: 0 0 1.5rem; }
