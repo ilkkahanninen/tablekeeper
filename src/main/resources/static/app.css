@@ -59,6 +59,12 @@ legend { font-size: .85rem; color: var(--muted); }
 @media (max-width: 800px) { .node-page { grid-template-columns: 1fr; } }
 .node-form { display: flex; flex-direction: column; gap: .9rem; }
 .title-input { font-size: 1.6rem; font-weight: 600; border: none; border-bottom: 2px solid var(--line); background: transparent; border-radius: 0; padding-left: 0; }
+/* With a Random button the underline runs under the whole row, so titles look the same on every page */
+.title-row { border-bottom: 2px solid var(--line); }
+.title-row .title-input { border-bottom: none; }
+/* A form of stacked fields (e.g. New campaign) */
+.stack { display: flex; flex-direction: column; gap: .75rem; }
+.stack button { align-self: flex-start; }
 .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .75rem; }
 .fields fieldset, .fields .wide { grid-column: 1 / -1; }
 .fields .wide input { width: 100%; box-sizing: border-box; }
@@ -84,7 +90,9 @@ legend { font-size: .85rem; color: var(--muted); }
 .rels { display: flex; flex-wrap: wrap; gap: .25rem; }
 .create-row { display: flex; align-items: center; gap: .3rem; margin-bottom: .5rem; }
 .create-row select { flex: 1; min-width: 0; }
-.unlink { background: transparent; color: var(--muted); border: none; padding: 0 .3rem; float: right; }
+.unlink { background: transparent; color: var(--muted); border: none; padding: 0 .3rem; margin-left: auto; flex: none; }
+/* A linked node's row: icon, name (may wrap), × at the right of the first line */
+#linked li { display: flex; align-items: baseline; gap: .3rem; }
 .unlink:hover { color: var(--blood); }
 .htmx-request { opacity: .6; }
 
@@ -127,6 +135,7 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 .map-card a:hover text { fill: var(--blood); }
 
 /* Debrief (session page): one compact block per character / NPC / item, every control saving on its own */
+.debrief { margin-top: 1.5rem; }   /* clear of the form's Duplicate / Delete row above */
 .debrief h3 { margin-top: 1rem; }
 .debrief-item { padding: .5rem 0; border-bottom: 1px dotted var(--line); }
 .debrief-item.muted .debrief-head a { color: var(--muted); }

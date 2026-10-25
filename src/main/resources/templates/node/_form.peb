@@ -7,7 +7,7 @@
   <div id="save-status" aria-live="polite">{% include "node/_save_status.peb" %}</div>
 
   {% if random["title"] is not null %}
-    <div class="with-random">
+    <div class="with-random title-row">
       <input class="title-input" name="title" value="{{ node.title }}" required>
       {% include "node/_random.peb" with {"field": "title", "choices": random["title"]} %}
     </div>

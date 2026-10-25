@@ -5,15 +5,13 @@
 
 <ul class="list">
   {% for c in campaigns %}
-    <li><a href="/c/{{ c.id }}">{{ c.name }}</a> <span class="muted">{{ c.gameModule }}</span></li>
-  {% else %}
-    <li class="muted">No campaigns yet.</li>
+    <li><a href="/c/{{ c.id }}">{{ c.name }}</a></li>
   {% endfor %}
 </ul>
 
-<form class="card" method="post" action="/campaigns">
+<form class="card stack" method="post" action="/campaigns">
   <h2>New campaign</h2>
-  <label>Name <input name="name" required placeholder="e.g. The Red Line"></label>
+  <label>Name <input name="name" required></label>
   <label>Game
     <select name="module">
       {% for m in modules %}<option value="{{ m.id }}">{{ m.name }}</option>{% endfor %}

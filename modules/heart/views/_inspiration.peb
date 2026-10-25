@@ -33,7 +33,7 @@
       <div class="card">
         <h3 class="group-title">{{ g.label }}</h3>
         <p class="who">
-          {% for c in g.nodes %}{% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.display }}</a>{% else %}{{ c.display }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% for c in g.nodes %}{% include "node/_icon.peb" with {"type": c.node.type, "code": c.node.code} %} {% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.display }}</a>{% else %}{{ c.display }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
         </p>
         {% if g.hint is not null %}
           <ul class="wants">{% for w in g.hint | split('; ') %}<li>{{ w }}</li>{% endfor %}</ul>

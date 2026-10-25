@@ -64,17 +64,19 @@ class ResolvedModule(
     /**
      * Heading for a link in a node's lists, on screen and in print: the linked type's print-summary group ("Fallouts",
      * "Equipment"), or on the `to` side of a `groupByType` edge its plural type label ("NPCs"), else the edge's label
-     * seen from that node ("is located at", "has here").
+     * seen from that node ("Is located at", "Has here"); always capitalised, as a heading.
      */
     fun linkGroupLabel(edgeTypeId: String, direction: Direction, otherType: String): String {
         printSummary(otherType)?.group?.let { return it }
         val e = edgeType(edgeTypeId) ?: return edgeTypeId
-        return when {
+        val label = when {
             e.groupByType && direction == Direction.IN -> plural(otherType)
             direction == Direction.OUT -> e.label
             else -> e.inverseLabel
         }
+        return label.replaceFirstChar { it.uppercase() }   // a heading: "Is located at" like "NPCs"
     }
+
 
     /** Sort key for those lists: edges in module order, and within a type-grouped edge, types in campaign-home order. */
     fun linkGroupRank(edgeTypeId: String, otherType: String): Pair<Int, Int> {
