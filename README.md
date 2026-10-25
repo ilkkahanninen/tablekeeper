@@ -109,6 +109,8 @@ To show where a node belongs in dropdowns and search results, use `context`, nam
 "context": "part_of:out"
 ```
 
+A node type's `displayTitle` sets how its name is shown everywhere except its own title field. It uses the same part rules as `printSummary`, plus `{title}`. Heart characters use `["{title}", "({player})"]`, giving "Thonal (Jori)", or just "Thonal" when no player is set.
+
 An edge type with `"groupByType": true` (core `located_at`) lists its links on the `to` side by type: a landmark shows *Characters*, *NPCs*, *Equipment* and *Resources* instead of one *has here* list, on its page, cards and packets.
 
 ## Campaign home

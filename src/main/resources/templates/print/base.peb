@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>{{ node.code }} {{ node.title }}</title>
+<title>{{ node.code }} {{ displayTitle }}</title>
 <style>
   /* A4 sheet; one A6 card in the top-left corner with cut marks, so packets can later
      tile four cards per page. openhtmltopdf supports CSS 2.1 + paged media: no flexbox/grid. */
@@ -34,7 +34,7 @@
 <body>
 <div class="card">
   <table class="head"><tr>
-    <td><div class="type">{{ typeLabel }}{% if audience == 'players' %} · handout{% endif %}</div><div class="title">{{ node.title }}{% for f in flags %} <span class="flag">{{ f }}</span>{% endfor %}</div></td>
+    <td><div class="type">{{ typeLabel }}{% if audience == 'players' %} · handout{% endif %}</div><div class="title">{{ displayTitle }}{% for f in flags %} <span class="flag">{{ f }}</span>{% endfor %}</div></td>
     <td class="code">{{ node.code }}</td>
   </tr></table>
 

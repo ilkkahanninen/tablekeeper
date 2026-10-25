@@ -10,8 +10,7 @@
         {% for c in g.nodes %}
           <div class="who">
             <span class="code">{{ c.node.code }}</span>
-            {% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.node.title }}</a>{% else %}{{ c.node.title }}{% endif %}
-            {% if c.fields.player.text is not empty %}<span class="muted small">{{ c.fields.player.text }}</span>{% endif %}
+            {% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.display }}</a>{% else %}{{ c.display }}{% endif %}
           </div>
           {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
             <ul class="beats">
@@ -30,7 +29,7 @@
       <div class="card">
         <h3 class="group-title">{{ g.label }}</h3>
         <p class="who">
-          {% for c in g.nodes %}{% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.node.title }}</a>{% else %}{{ c.node.title }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+          {% for c in g.nodes %}{% if links %}<a href="/c/{{ campaign.id }}/n/{{ c.node.id }}">{{ c.display }}</a>{% else %}{{ c.display }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
         </p>
         {% if g.hint is not null %}
           <ul class="wants">{% for w in g.hint | split('; ') %}<li>{{ w }}</li>{% endfor %}</ul>

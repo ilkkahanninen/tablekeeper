@@ -112,6 +112,7 @@
       "extends": "core.pc",
       "label": "Character",
       "codePrefix": "PC",
+      "displayTitle": ["{title}", "({player})"],
       "quickCreate": [
         { "type": "heart.resource",  "rel": "carries:out" },
         { "type": "heart.equipment", "rel": "carries:out" }

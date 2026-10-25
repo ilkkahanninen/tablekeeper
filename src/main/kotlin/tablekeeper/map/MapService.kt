@@ -58,7 +58,7 @@ class MapService(private val graph: GraphService) {
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
                 MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.depth,
-                    labelWidth = labelWidth(n.code, n.title, shape), body = BODY.getValue(shape))
+                    labelWidth = labelWidth(n.code, module.displayTitle(n.type, n.title, n.props), shape), body = BODY.getValue(shape))
             },
             lines.map { (a, b) -> a.toString() to b.toString() },
             WIDTH.toDouble(), HEIGHT.toDouble(), MARGIN,
@@ -71,7 +71,7 @@ class MapService(private val graph: GraphService) {
             WIDTH, HEIGHT,
             places = places.map { (n, shape) ->
                 val p = at(n.id)
-                MapPlace(n.id, n.code, n.title, module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight)
+                MapPlace(n.id, n.code, module.displayTitle(n.type, n.title, n.props), module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight)
             },
             lines = lines.map { (a, b) ->
                 val p = at(a); val q = at(b)

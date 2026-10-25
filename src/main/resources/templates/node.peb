@@ -1,6 +1,6 @@
 {% extends "layout.peb" %}
 
-{% block title %}{{ node.code }} {{ node.title }}{% endblock %}
+{% block title %}{{ node.code }} {{ displayTitle }}{% endblock %}
 {% block crumbs %}
   <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
   <span class="sep">/</span> {{ node.code }}

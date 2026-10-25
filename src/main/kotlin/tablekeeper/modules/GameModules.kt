@@ -9,6 +9,8 @@ import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
 import tablekeeper.core.Direction
+import java.util.UUID
+import tablekeeper.core.Node
 import java.io.File
 
 // ---------- module.json shape ----------
@@ -19,6 +21,11 @@ data class NodeTypeDef(
     val label: String,
     /** Plural label for headings, e.g. "Landmarks". Missing = [label] + "s". */
     val plural: String? = null,
+    /**
+     * How a node's name is shown everywhere but its own title field, as [Parts], e.g. ["{title}", "({player})"]
+     * -> "Thonal (Jori)", just "Thonal" without a player. Missing = inherit; none = the title.
+     */
+    val displayTitle: List<String>? = null,
     val codePrefix: String,
     val extends: String? = null,
     val printTemplate: String? = null,
@@ -107,11 +114,11 @@ data class PrintNestedDef(val rel: String, val show: String)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrintSummaryDef(val group: String? = null, val parts: List<String> = emptyList()) {
     /** Prop names used in [parts]. */
-    val propNames: Set<String> get() = parts.flatMap { p -> PLACEHOLDER.findAll(p).map { it.groupValues[1] } }.toSet()
+    val propNames: Set<String> get() = Parts.names(parts)
 
     companion object {
         /** `{name}` or `{name.value}`. */
-        val PLACEHOLDER = Regex("""\{(\w+)(\.value)?}""")
+        val PLACEHOLDER = Parts.PLACEHOLDER
     }
 }
 
@@ -193,6 +200,7 @@ data class TypePatch(
     val overviewMuted: String? = null,
     val checklists: List<ChecklistDef>? = null,
     val packet: PacketDef? = null,
+    val displayTitle: List<String>? = null,
 ) {
     fun applyTo(def: NodeTypeDef) = def.copy(
         label = label ?: def.label,
@@ -212,6 +220,7 @@ data class TypePatch(
         overviewMuted = overviewMuted ?: def.overviewMuted,
         checklists = checklists ?: def.checklists,
         packet = packet ?: def.packet,
+        displayTitle = displayTitle ?: def.displayTitle,
     )
 }
 
@@ -255,6 +264,16 @@ class ResolvedModule(
     fun label(typeId: String): String = types[typeId]?.label ?: typeId
 
     fun plural(typeId: String): String = types[typeId]?.let { it.plural ?: it.label + "s" } ?: typeId
+
+    /** A node's name as shown everywhere but its own title field: the type's `displayTitle`, else the title. */
+    fun displayTitle(typeId: String, title: String, props: Map<String, Any?>): String {
+        val parts = inherited(typeId) { it.displayTitle } ?: return title
+        val fields = PropsForm.fields(propsSchema(typeId), props).filterNot { it.hidden }.associateBy { it.name }
+        return Parts.fill(parts, fields, " ", extra = mapOf("title" to title)).ifEmpty { title }
+    }
+
+    /** Display titles of [nodes] by id, for pages and prints that list many nodes. */
+    fun displayTitles(nodes: List<Node>): Map<UUID, String> = nodes.associate { it.id to displayTitle(it.type, it.title, it.props) }
 
     fun edgeType(id: String): EdgeTypeDef? = edgeTypes.firstOrNull { it.id == id }
 
@@ -433,6 +452,8 @@ class ResolvedModule(
             if (col.startsWith("@")) "${def.id}: overview '$col' is not a link option of ${def.id}".takeIf { options.none { it.key == col.drop(1) } }
             else "${def.id}: overview prop '$col' is not in its props schema".takeIf { schemaProps?.has(col) != true }
         }
+        val display = def.displayTitle?.let { Parts.names(it) }.orEmpty().filter { it != "title" && schemaProps?.has(it) != true }
+            .map { "${def.id}: displayTitle prop '$it' is not in its props schema" }
         val muted = listOfNotNull(def.overviewMuted?.takeIf { schemaProps?.get(it)?.get("type")?.asText() != "boolean" }
             ?.let { "${def.id}: overviewMuted '$it' is not a boolean prop in its props schema" })
         val checklists = def.checklists.orEmpty().flatMap { c ->
@@ -447,7 +468,7 @@ class ResolvedModule(
                         .takeIf { linkOptions(b.type).none { it.key == b.rel } })
                 }
         }.orEmpty()
-        quick + linked + limits + slots + summary + nested + context + map + overview + muted + checklists + packet
+        quick + linked + limits + slots + summary + nested + context + map + overview + muted + checklists + packet + display
     }
 
     fun view(id: String): ViewDef? = views.firstOrNull { it.id == id }

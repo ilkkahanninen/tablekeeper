@@ -414,6 +414,13 @@ class GameModulesTest {
     }
 
     @Test
+    fun `characters are shown with their player`() {
+        assertEquals("Thonal (Jori)", heart.displayTitle("heart.pc", "Thonal", mapOf("player" to "Jori")))
+        assertEquals("Thonal", heart.displayTitle("heart.pc", "Thonal", emptyMap()), "no player, no brackets")
+        assertEquals("Silvia", heart.displayTitle("core.npc", "Silvia", mapOf("voice" to "Hoarse")), "other types show their title")
+    }
+
+    @Test
     fun `invalid quick-create rel fails module load`() {
         val dir = Files.createTempDirectory("modules").toFile()
         File(dir, "bad").mkdirs()

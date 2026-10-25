@@ -117,6 +117,9 @@ fun Application.routes(d: Deps) {
         limitError(c, m, n.id, n.type, n.title, it.option.edgeType, it.option.direction) == null
     }
 
+    /** Display titles of all the campaign's nodes, e.g. "Thonal (Jori)" (module `displayTitle`). */
+    fun displayTitles(c: Campaign, m: ResolvedModule): Map<UUID, String> = m.displayTitles(d.graph.listNodesWithProps(c.id))
+
     /**
      * Picker labels: "Butcher's Row (Red Market)": the title, plus the far end of the type's `context` link in
      * brackets if it has one. No type label: pickers show the code too, and its prefix already says the type.
@@ -124,11 +127,13 @@ fun Application.routes(d: Deps) {
     fun pickerLabels(c: Campaign, m: ResolvedModule, nodes: List<NodeRef>): Map<UUID, String> {
         val contexts = nodes.mapNotNull { m.context(it.type) }.toSet()
             .associateWith { d.graph.linkedTitles(c.id, it.edgeType, it.direction) }
+        val names = displayTitles(c, m)
         return nodes.associate { n ->
             val context = m.context(n.type)?.let { contexts[it]?.get(n.id) }
-            n.id to "${n.title}${context?.let { " ($it)" }.orEmpty()}"
+            n.id to "${names[n.id] ?: n.title}${context?.let { " ($it)" }.orEmpty()}"
         }
     }
+
 
     /** Link options held in this type's slots; they're set with a dropdown instead of the link picker. */
     fun slotOptions(m: ResolvedModule, n: Node): Set<LinkOption> = m.linkSlots(n.type).flatMap { it.options }.toSet()
@@ -172,32 +177,36 @@ fun Application.routes(d: Deps) {
         if (lists.isEmpty()) return emptyList()
         val links = d.graph.links(c.id, n.id)
         val nodes = d.graph.listNodes(c.id)
+        val names = displayTitles(c, m)
         return lists.map { (def, option) ->
             val linked = links.filter { it.type == option.edgeType && it.direction == option.direction }.map { it.other.id }.toSet()
             ChecklistView(
                 def.types.joinToString(", ") { m.label(it) }, option,
                 nodes.filter { other -> def.types.any { m.isA(other.type, it) } }.sortedBy { it.title }
-                    .map { ChecklistItem(it.id, it.code, it.title, it.id in linked) },
+                    .map { ChecklistItem(it.id, it.code, names[it.id] ?: it.title, it.id in linked) },
             )
         }
     }
 
     /** Links for the sidebar, slot links included so the place or carrier is one click away. */
-    fun linkGroups(c: Campaign, m: ResolvedModule, n: Node): List<UiGroup> =
-        d.graph.links(c.id, n.id)
+    fun linkGroups(c: Campaign, m: ResolvedModule, n: Node): List<UiGroup> {
+        val names = displayTitles(c, m)
+        return d.graph.links(c.id, n.id)
             .sortedWith(compareBy({ m.linkGroupRank(it.type, it.other.type).first }, { m.linkGroupRank(it.type, it.other.type).second }))
             .groupBy { link -> m.linkGroupLabel(link.type, link.direction, link.other.type) }
             .map { (label, links) ->
                 UiGroup(label, links.map {
-                    UiLink(it.edgeId, it.other.id, it.other.code, it.other.title, m.label(it.other.type), it.other.visibility)
+                    UiLink(it.edgeId, it.other.id, it.other.code, names[it.other.id] ?: it.other.title, m.label(it.other.type), it.other.visibility)
                 })
             }
+    }
 
     fun nodeModel(c: Campaign, m: ResolvedModule, n: Node, errors: List<String> = emptyList()) = mapOf(
         "campaign" to c,
         "module" to m,
         "node" to n,
         "typeLabel" to m.label(n.type),
+        "displayTitle" to m.displayTitle(n.type, n.title, n.props),
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
         "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
@@ -260,9 +269,9 @@ fun Application.routes(d: Deps) {
                 val parent = nodes.mapNotNull { n -> m.context(n.type)?.let { o -> linked(n, o).firstOrNull()?.let { n.id to it.id } } }.toMap()
                 val columns = nodes.map { it.type }.distinct().associateWith { Overview.columns(m, it) }
                 fun row(n: Node): OverviewRow = OverviewRow(
-                    n.id, n.code, n.title,
+                    n.id, n.code, m.displayTitle(n.type, n.title, n.props),
                     Overview.cells(columns.getValue(n.type), PropsForm.fields(m.propsSchema(n.type), n.props).associateBy { it.name }) { o ->
-                        linked(n, o).map { it.title }
+                        linked(n, o).map { m.displayTitle(it.type, it.title, it.props) }
                     },
                     children = nodes.filter { parent[it.id] == n.id }.map(::row),
                     muted = m.overviewMuted(n.type)?.let { n.props[it] == true } == true,

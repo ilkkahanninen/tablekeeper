@@ -73,7 +73,7 @@
     <h2>{{ s.label }}</h2>
     {% for item in s.items %}
       <div class="place">
-        <h3><span class="code">{{ item.node.code }}</span> {{ item.node.title }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
+        <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
         {# Pebble's include takes a literal map: pass the place's print model through #}
         {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedProps": item.linkedProps,
             "groups": item.groups, "facts": item.facts, "audience": item.audience} %}

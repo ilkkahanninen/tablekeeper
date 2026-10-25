@@ -15,7 +15,7 @@ import tablekeeper.modules.FormField
 import tablekeeper.map.MapService
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.PacketDef
-import tablekeeper.modules.PrintSummaryDef
+import tablekeeper.modules.Parts
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.views.ModuleViews
@@ -50,6 +50,8 @@ class PrintService(private val graph: GraphService, private val templates: Templ
      * so templates can't accidentally leak GM-only material onto player handouts.
      */
     fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience, withPacket: Boolean = true): Map<String, Any?> {
+        // Names as shown everywhere, e.g. "Thonal (Jori)"; only fetched when something is listed
+        val names by lazy { module.displayTitles(graph.listNodesWithProps(campaign.id)) }
         if (!audience.canSee(node.visibility)) throw HiddenFromAudience()
 
         val all = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
@@ -71,17 +73,18 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             .groupBy { link -> module.printSummary(link.other.type)?.group ?: module.linkGroupLabel(link.type, link.direction, link.other.type) }
             .map { (label, links) ->
                 LinkGroup(label, links.map { link ->
-                    ref(campaign, module, link.other).copy(children = nested(campaign, module, node, link, audience))
+                    ref(campaign, module, link.other, names).copy(children = nested(campaign, module, node, link, audience, names))
                 }.distinctBy { it.code })
             }
 
         val facts = factLinks.map { it.other }.distinctBy { it.id }.mapNotNull { graph.getNode(campaign.id, it.id) }
-            .map { PrintFact(it.code, it.title, it.body, it.visibility) }
+            .map { PrintFact(it.code, names[it.id] ?: it.title, it.body, it.visibility) }
 
         return mapOf(
             "campaign" to campaign,
             "node" to node,
             "typeLabel" to module.label(node.type),
+            "displayTitle" to module.displayTitle(node.type, node.title, node.props),
             "props" to props,
             "flags" to flags,
             "linkedProps" to linkedProps(campaign, module, node, audience).filter { it.sources.isNotEmpty() },
@@ -149,6 +152,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
 
     /** Module `linkedProps` for [node]: a prop's values per linked node the audience can see. */
     fun linkedProps(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): List<LinkedPropValue> {
+        val names by lazy { module.displayTitles(graph.listNodesWithProps(campaign.id)) }
         val rules = module.linkedProps(node.type)
         if (rules.isEmpty()) return emptyList()
         val links = graph.links(campaign.id, node.id).filter { audience.canSee(it.other.visibility) }
@@ -159,7 +163,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
                 .map { link ->
                     val raw = graph.getNode(campaign.id, link.other.id)?.props?.get(rule.prop)
                     val values = (if (raw is List<*>) raw else listOf(raw)).mapNotNull { it?.toString()?.takeIf(String::isNotBlank) }
-                    LinkedPropSource(link.other.id, link.other.code, link.other.title, values)
+                    LinkedPropSource(link.other.id, link.other.code, names[link.other.id] ?: link.other.title, values)
                 }
             LinkedPropValue(rule.prop, rule.label, rule.option.label, sources)
         }
@@ -207,13 +211,13 @@ class PrintService(private val graph: GraphService, private val templates: Templ
     }
 
     /** Nodes linked to [link]'s far end via the card type's `printNested` "show" rel, e.g. a minor location's contents. */
-    private fun nested(campaign: Campaign, module: ResolvedModule, node: Node, link: Link, audience: Audience): List<PrintRef> {
+    private fun nested(campaign: Campaign, module: ResolvedModule, node: Node, link: Link, audience: Audience, names: Map<UUID, String>): List<PrintRef> {
         val key = "${link.type}:${link.direction.name.lowercase()}"
         val shows = module.printNested(node.type).filter { it.rel == key }.map { it.show }
         if (shows.isEmpty()) return emptyList()
         return graph.links(campaign.id, link.other.id)
             .filter { "${it.type}:${it.direction.name.lowercase()}" in shows && it.other.id != node.id && audience.canSee(it.other.visibility) }
-            .map { ref(campaign, module, it.other) }
+            .map { ref(campaign, module, it.other, names) }
             .distinctBy { it.code }
     }
 
@@ -223,20 +227,12 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         return f.text.takeIf { it.isNotBlank() }?.let { PropLine(f.name, f.label, it, details, multi = f.kind == "multi") }
     }
 
-    private fun ref(campaign: Campaign, module: ResolvedModule, n: NodeRef): PrintRef {
+    private fun ref(campaign: Campaign, module: ResolvedModule, n: NodeRef, names: Map<UUID, String>): PrintRef {
         val parts = module.printSummary(n.type)?.parts.orEmpty()
         val summary = if (parts.isEmpty()) "" else graph.getNode(campaign.id, n.id)?.let { other ->
             val fields = PropsForm.fields(module.propsSchema(n.type), other.props).filterNot { it.hidden }.associateBy { it.name }
-            parts.mapNotNull { part ->
-                val values = PrintSummaryDef.PLACEHOLDER.findAll(part).associate { m ->
-                    val f = fields[m.groupValues[1]]
-                    m.value to (if (m.groupValues[2].isEmpty()) f?.text else f?.storedText).orEmpty()
-                }
-                // A part with nothing filled in is dropped, literal text included ("uses: {limitedUses}").
-                if (values.values.all { it.isEmpty() }) null
-                else PrintSummaryDef.PLACEHOLDER.replace(part) { values.getValue(it.value) }.replace(Regex("\\s+"), " ").trim()
-            }.joinToString(" · ")
+            Parts.fill(parts, fields, " · ")
         }.orEmpty()
-        return PrintRef(n.code, n.title, module.label(n.type), summary)
+        return PrintRef(n.code, names[n.id] ?: n.title, module.label(n.type), summary)
     }
 }

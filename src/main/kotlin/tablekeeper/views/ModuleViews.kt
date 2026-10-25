@@ -6,8 +6,8 @@ import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.modules.ViewDef
 
-/** A node on a module view, with its props as form fields (display text, labels, hints) by name. */
-data class ViewNode(val node: Node, val fields: Map<String, FormField>)
+/** A node on a module view, with its props as form fields (display text, labels, hints) by name, and its display title. */
+data class ViewNode(val node: Node, val fields: Map<String, FormField>, val display: String = node.title)
 
 /** View nodes sharing one value of a `groupBy` prop; [hint] is that value's "x-enumDescriptions" text, if any. */
 data class ViewGroup(val value: String, val label: String, val hint: String?, val nodes: List<ViewNode>)
@@ -23,7 +23,7 @@ object ModuleViews {
     /** [view] over those of [nodes] whose type it lists. */
     fun build(module: ResolvedModule, view: ViewDef, nodes: List<Node>): ViewData {
         val viewNodes = nodes.filter { n -> view.types.any { module.isA(n.type, it) } }
-            .map { n -> ViewNode(n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }) }
+            .map { n -> ViewNode(n, PropsForm.fields(module.propsSchema(n.type), n.props).associateBy { it.name }, module.displayTitle(n.type, n.title, n.props)) }
         return ViewData(view, viewNodes, view.groupBy.associateWith { groups(viewNodes, it) })
     }
 
