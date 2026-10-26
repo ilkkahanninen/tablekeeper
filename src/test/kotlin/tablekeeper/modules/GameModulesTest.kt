@@ -630,4 +630,41 @@ class GameModulesTest {
         assertTrue("linkOrder 'Reched via'" in e.message.orEmpty(), e.message)
         dir.deleteRecursively()
     }
+
+    private val morkborg = GameModules.load(modulesDir).get("morkborg")
+
+    @Test
+    fun `morkborg has locations, dungeons with rooms, characters, creatures, items and miseries`() {
+        val ids = morkborg.nodeTypes.map { it.id }.toSet()
+        assertEquals(setOf("mb.location", "mb.dungeon", "mb.room", "mb.pc", "core.npc", "mb.item", "mb.misery", "core.faction", "core.fact", "core.session"), ids)
+        assertTrue(morkborg.isA("mb.dungeon", "core.place"))
+        assertTrue(morkborg.isA("mb.room", "core.place"))
+        // The rules don't tell NPCs from creatures: core's NPC is the Creature, with a stat block
+        assertEquals("Creature", morkborg.label("core.npc"))
+        val stats = PropsForm.fields(morkborg.propsSchema("core.npc"), emptyMap()).map { it.name }
+        assertTrue(listOf("hp", "morale", "armor", "attack", "dead").all { it in stats }, stats.toString())
+        assertEquals("HP 7 · Morale 8 · No armor · Poisoned knife d4",
+            morkborg.summary("core.npc", mapOf("hp" to 7, "morale" to "8", "armor" to "No armor", "attack" to "Poisoned knife d4")))
+    }
+
+    @Test
+    fun `a morkborg room's parent is its dungeon`() {
+        val c = UUID.randomUUID()
+        fun node(type: String, title: String) = Node(UUID.randomUUID(), c, type, title, title, "", emptyMap(), "gm")
+        val tomb = node("mb.dungeon", "Plague crypt")
+        val hall = node("mb.room", "Hall of bones")
+        val graph = CampaignGraph(listOf(tomb, hall), listOf(EdgeRef(hall.id, tomb.id, "room_in")))
+        assertEquals(tomb, morkborg.parent(graph, hall))
+    }
+
+    @Test
+    fun `morkborg sessions print a packet, debrief and record miseries`() {
+        assertEquals(listOf(listOf("mb.location", "mb.dungeon"), listOf("mb.pc")), morkborg.checklists("core.session").map { it.first.types })
+        assertEquals("morkborg/print/session.peb", morkborg.printTemplate("core.session"))
+        assertEquals(3, morkborg.packet("core.session")!!.columns)
+        assertEquals(listOf(listOf("mb.pc"), listOf("core.npc"), listOf("core.item")), morkborg.debrief("core.session").map { it.types })
+        val verse = morkborg.propsSchema("mb.misery")!!["properties"]["verse"]
+        assertEquals(37, verse["enum"].size(), "1:1 to 6:6, then 7:7")
+        assertEquals(37, verse["x-enumDescriptions"].size())
+    }
 }

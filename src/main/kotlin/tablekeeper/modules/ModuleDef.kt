@@ -45,7 +45,8 @@ data class NodeTypeDef(
     val linkOrder: List<String>? = null,
     /** Shown for this type's nodes on screen (instead of their code): one of [ICONS]. Missing = inherit; none = a circle. */
     val icon: String? = null,
-    /** Drawn on the campaign map with this shape: one of [MAP_SHAPES]. Missing = inherit; none = not on the map. */
+    /** Drawn on the campaign map with this shape: one of [MAP_SHAPES]. Missing = inherit; "none" or none at all = not on the map
+     *  (e.g. a dungeon's rooms, places inside one that would crowd it). */
     val mapShape: String? = null,
     /**
      * Prop placing this type vertically on the map, higher values lower, e.g. Heart's "tier": an integer, or an enum
@@ -125,10 +126,10 @@ data class BetweenDef(val type: String, val rel: String)
 /** A place's depth on the map (higher = lower), and the guide label for its level, e.g. 2.0 / "Tier 2". */
 data class MapDepth(val depth: Double, val label: String)
 
-val MAP_SHAPES = setOf("circle", "diamond", "dot")
+val MAP_SHAPES = setOf("circle", "diamond", "dot", "none")
 
 /** Icons bundled in static/icons.svg (from Lucide); a type's `icon` must be one of them. */
-val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem", "sword", "heart-crack", "flag", "scroll-text", "calendar", "circle")
+val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem", "sword", "heart-crack", "flag", "scroll-text", "calendar", "skull", "door-open", "ghost", "hourglass", "circle")
 
 /**
  * On the card, under each node linked via [rel], list the nodes linked to *it* via [show].

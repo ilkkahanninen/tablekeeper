@@ -4,7 +4,7 @@ TTRPG prep and notes as a graph, printed to paper for the table.
 
 You keep places, characters, NPCs, items, facts and sessions as linked notes. Before a session you tick what's likely to come up, and Tablekeeper prints one brief document to bring to the table: the map, what the players' characters want, and everything about the places they'll visit.
 
-The first game is **Heart: The City Beneath**. Games are data-only modules (JSON plus print templates), so another game needs no code changes.
+Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modules (JSON plus print templates), so another game needs no code changes.
 
 ## Features
 
@@ -29,6 +29,13 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
   - **Resources:** die and tags.
   - **Fallouts** on characters and NPCs; one can be shared (tick its characters on the fallout's page).
   - Rule-book hints on hover.
+- **MÖRK BORG:** only what helps plan the next session; abilities, HP and omens stay on the players' sheets.
+  - **Locations** (Galgenbeck, Sarkash…) and **Dungeons** in them, with a state from the Bedeviled Dungeons table.
+  - **Rooms** inside dungeons, each with a description and the creatures and items in it. A dungeon prints with its rooms and what's in them.
+  - **Creatures:** one type for monsters and people, as in the rules: HP, morale, armor, attack, special, worth, and dead.
+  - **Characters:** player, class (the book's six plus Scvmbirther's extras), terrible trait, broken body, bad habit, troubling tale, and dead.
+  - **Items:** weapons, armor, scrolls and treasure, with damage, armor tier, value and effect.
+  - **Miseries:** the Calendar of Nechrubel. Add one from the session it came to pass in, pick its verse (the psalm shows on hover), and the campaign page lists them in verse order.
 - **Random tables:** your own lists, with one item per line, linked to fields like *NPC: Title*.
   - A **Random** button fills the field; with several tables, it shows a menu.
   - New nodes are named by a roll.
@@ -48,6 +55,8 @@ Add a **Session** and tick the landmarks likely to come up and the characters ta
 - **Delves:** those between selected landmarks.
 - **NPCs:** those at the selected landmarks or their minor locations.
 - **Factions:** those at the selected landmarks, or with an NPC in the packet as a member.
+
+A MÖRK BORG session ticks locations, dungeons and characters. Its packet has the same cover, then the selected locations and dungeons (rooms nested with their creatures' stats and items), the characters with what they carry, the creatures at those places or in their rooms, and factions.
 
 ## Run
 
@@ -110,6 +119,7 @@ Kotlin 2.1 (JDK 21), Ktor + htmx, Pebble templates, Postgres 16 (jOOQ as plain S
 modules/                  game modules (plain files)
   core/module.json        shared types: place, pc, npc, item, faction, fact, session + edge types
   heart/                  Heart: module.json, print/ (cards, session packet), views/ (Inspiration)
+  morkborg/               MÖRK BORG: module.json, print/ (dungeon sheet, session packet)
 src/main/kotlin/tablekeeper/
   core/                   campaigns, graph (nodes/edges, in-memory snapshot), random tables, errors
   modules/                module.json shape, resolved module, startup checks, link rules, schema -> form, text parts
@@ -158,7 +168,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `context` | Where a node belongs, shown in brackets in pickers; nests it on the campaign page and map | minor location → its landmark |
 | `overview`, `overviewSort`, `overviewMuted` | Campaign page columns (props or `@rel`), row order, greyed rows | sessions by `date`, dead NPCs |
 | `printTemplate`, `printSummary`, `printNested` | Print card template; how it's listed on other cards (`group` + parts); nested lists | equipment "Kill d8 · Brutal" |
-| `mapShape`, `mapDepth`, `mapBetween` | Map shape; depth from a prop; drawn between linked places | landmarks by tier, delves between |
+| `mapShape`, `mapDepth`, `mapBetween` | Map shape (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off the map); depth from a prop; drawn between linked places | landmarks by tier, delves between |
 | `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time") | Heart session |
 | `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
 
@@ -208,3 +218,5 @@ Unit tests cover module loading and settings, the map layout, campaign-page tabl
 The code is released under the [MIT License](LICENSE). The type icons in `static/icons.svg` are from [Lucide](https://lucide.dev) (ISC License, included in the file).
 
 **Heart: The City Beneath** is © Rowan, Rook and Decard. The game text in `modules/heart/` (class inspiration texts, equipment and resource tag descriptions, resource die descriptions and similar) comes from the rule book. It belongs to its publisher and is **not** covered by the MIT License. Tablekeeper is an unofficial fan tool, not affiliated with or endorsed by Rowan, Rook and Decard.
+
+The MÖRK BORG module (`modules/morkborg/`) quotes the Calendar of Nechrubel and table entries from the MÖRK BORG Bare Bones Edition. Tablekeeper is an independent production and is not affiliated with Ockult Örtmästare Games or Stockholm Kartell. It is published under the MÖRK BORG Third Party License. MÖRK BORG is copyright Ockult Örtmästare Games and Stockholm Kartell.

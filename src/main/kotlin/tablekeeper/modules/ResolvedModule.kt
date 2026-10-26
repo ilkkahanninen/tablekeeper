@@ -171,7 +171,8 @@ class ResolvedModule(
 
     fun printNested(typeId: String): List<PrintNestedDef> = inherited(typeId) { it.printNested }.orEmpty()
 
-    fun mapShape(typeId: String): String? = inherited(typeId) { it.mapShape }
+    /** The type's shape on the map; null = not drawn (no shape, or "none" to leave out an inherited one). */
+    fun mapShape(typeId: String): String? = inherited(typeId) { it.mapShape }?.takeIf { it != "none" }
 
     /** The type's icon on screen, e.g. "castle" for a landmark (an id in static/icons.svg); "circle" if none is set. */
     fun icon(typeId: String): String = inherited(typeId) { it.icon } ?: "circle"
