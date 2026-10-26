@@ -1,5 +1,6 @@
 {
   "id": "heart", "name": "Heart: The City Beneath", "extends": ["core"], "hide": ["core.place", "core.pc", "core.item"],
+  "mapOrientation": "portrait",
   "overviewOrder": [
     "core.session", "heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.fallout", "heart.equipment",
     "heart.resource", "core.faction", "core.fact"
@@ -100,7 +101,7 @@
     {
       "id": "heart.delve", "icon": "route", "overview": {"columns": ["@connects:out", "resistance"]},
       "extends": "core.place", "label": "Delve", "codePrefix": "D",
-      "campaignMap": {"shape": "diamond", "between": "connects:out"},
+      "campaignMap": {"shape": "diamond", "between": "connects:out", "label": false},
       "quickCreate": [
         {"type": "heart.landmark", "rel": "connects:out"},
         {"type": "core.npc", "rel": "located_at:in"},

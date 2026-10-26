@@ -2,7 +2,8 @@
 {#
   Session packet (the default print of a type with a `packet`): one brief landscape A4 document, in two parts (variable `part`):
   - "cover": the session's title, date and notes, and the whole map with the selected places filled red;
-    with a previous session's recap (packet "recap"), that recap beside the map, "Last time";
+    with a previous session's recap (packet "recap"), that recap beside the map, "Last time"; a portrait map (the
+    module's mapOrientation) sits on the left at the page's height, the recap beside it;
   - "columns": each module view over the selected nodes (its `print` partial, e.g. Heart's characters' Inspiration), then a
     section per type of the selected and nearby nodes, each entry drawn by print/_body.peb.
     Laid out as one column on narrow pages, which the app places side by side (packet "columns"). The PDF renders one
@@ -82,7 +83,17 @@
       <h1><span class="code">{{ node.code }}</span> {{ node.title }}{% for p in props %}{% if p.name == 'date' %}<span class="date">{{ p.value }}</span>{% endif %}{% endfor %}</h1>
       {% if node.body is not empty %}<div class="notes">{{ notes | raw }}</div>{% endif %}
     </header>
-    {% if previous is not null %}
+    {% if map.height > map.width %}
+      {# A portrait map (e.g. Heart's tiers) on the left at the page's height; the previous session's recap beside it #}
+      <table class="cover"><tr>
+        <td class="cover-map">{% if map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 396, "svgHeight": 560} %}{% endif %}</td>
+        <td class="last-time">{% if previous is not null %}
+          <h2>Last time</h2>
+          <div class="ref">{{ previous.code }} {{ previous.title }}</div>
+          <div class="notes">{{ previous.notes | raw }}</div>
+        {% endif %}</td>
+      </tr></table>
+    {% elseif previous is not null %}
       {# The previous session's recap beside a smaller map, so the cover stays one page #}
       <table class="cover"><tr>
         <td class="cover-map">{% if map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 760, "svgHeight": 537} %}{% endif %}</td>

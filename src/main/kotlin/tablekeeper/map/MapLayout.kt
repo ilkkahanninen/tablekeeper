@@ -37,6 +37,8 @@ object MapLayout {
     private const val ITERATIONS = 400
     /** Force layouts tried per group, from different start positions; the least tangled wins ([tangle]). */
     private const val ATTEMPTS = 8
+    /** As MapService draws: a line passing this close to another place (in output units) is curved around it. */
+    private const val DRAWN_CLEARANCE = 40.0
     /** Ideal distance between linked places, in layout units (only the proportions matter; [fit] scales). */
     private const val K = 100.0
     /** Vertical distance between consecutive depths. */
@@ -81,16 +83,44 @@ object MapLayout {
             .map { (a, b) -> Spring(a, b, if (small.getValue(a) || small.getValue(b)) K * 0.3 else K) } +
             anchorsOf.values.flatMap { a -> a.indices.flatMap { i -> (i + 1 until a.size).map { j -> Spring(a[i], a[j], 2 * K) } } }
 
-        val groups = components(items.map { it.id }.filter { it in core }, springs.map { it.a to it.b })
-            .map { group -> place(group, springs.filter { it.a in group }, depth) }
-            .sortedWith(compareByDescending<Map<String, Point>> { it.size }.thenBy { it.keys.min() })
-        val (layered, free) = groups.partition { g -> g.keys.any { it in depth } }
-        val points = pack(layered, free, width / height).toMutableMap()
-        placeBetween(points, anchorsOf)
-        clearSmallOfLabels(points, small.filterKeys { it !in parentOf })
-        placeSatellites(points, parentOf, edges.filter { (a, b) -> a in points && b in points })
-        val placed = fit(points, width, height, margin, stretchY = depth.isNotEmpty())
-        return declutter(placed, items.associateBy { it.id }, width, margin)
+        val components = components(items.map { it.id }.filter { it in core }, springs.map { it.a to it.b })
+        // The whole layout from one set of start positions; tried again from others while the drawing is tangled
+        fun attempt(n: Int): Map<String, Point> {
+            val groups = components.map { group -> placeOnce(group, springs.filter { it.a in group }, depth, n) }
+                .sortedWith(compareByDescending<Map<String, Point>> { it.size }.thenBy { it.keys.min() })
+            val (layered, free) = groups.partition { g -> g.keys.any { it in depth } }
+            val points = pack(layered, free, width / height).toMutableMap()
+            placeBetween(points, anchorsOf)
+            clearSmallOfLabels(points, small.filterKeys { it !in parentOf })
+            placeSatellites(points, parentOf, edges.filter { (a, b) -> a in points && b in points })
+            val placed = fit(points, width, height, margin, stretchY = depth.isNotEmpty())
+            return declutter(placed, items.associateBy { it.id }, width, margin)
+        }
+        val drawn = edges.filter { (a, b) -> a in ids && b in ids && a != b }.distinctBy { setOf(it.first, it.second) }
+        var best = attempt(0)
+        var bestScore = drawnTangles(best, drawn)
+        for (n in 1 until ATTEMPTS) {
+            if (bestScore == 0) break
+            val next = attempt(n)
+            val score = drawnTangles(next, drawn)
+            if (score < bestScore) { best = next; bestScore = score }
+        }
+        return best
+    }
+
+    /**
+     * How tangled a finished drawing is: lines that must curve around a place they would run through ([bend]), and lines
+     * crossing each other. Untangled maps keep their first layout; tangled ones are tried from other start positions.
+     */
+    private fun drawnTangles(points: Map<String, Point>, lines: List<Pair<String, String>>): Int {
+        val bent = lines.count { (a, b) -> bend(points.getValue(a), points.getValue(b), points.filterKeys { it != a && it != b }.values, DRAWN_CLEARANCE) != null }
+        val crossings = lines.indices.sumOf { i ->
+            (i + 1 until lines.size).count { j ->
+                val (a, b) = lines[i]; val (c, d) = lines[j]
+                a != c && a != d && b != c && b != d && crosses(points.getValue(a), points.getValue(b), points.getValue(c), points.getValue(d))
+            }
+        }
+        return bent + crossings
     }
 
     /** A force-layout link: [a] and [b] pulled towards [length] apart. */
@@ -205,35 +235,9 @@ object MapLayout {
      * without, the group is centred and turned to lie horizontally.
      */
     /**
-     * A group's layout: the first attempt, unless a later one has fewer crossing links and links through places, so
-     * maps that aren't tangled keep their look.
-     */
-    private fun place(ids: List<String>, springs: List<Spring>, depth: Map<String, Double>): Map<String, Point> {
-        var best = placeOnce(ids, springs, depth, 0)
-        var bestTangles = tangles(best, springs)
-        for (attempt in 1 until ATTEMPTS) {
-            if (bestTangles == 0) break
-            val next = placeOnce(ids, springs, depth, attempt)
-            val tangles = tangles(next, springs)
-            if (tangles < bestTangles) { best = next; bestTangles = tangles }
-        }
-        return best
-    }
-
-    /** Crossing links and links through places in a layout (the whole part of [tangle]). */
-    private fun tangles(points: Map<String, Point>, springs: List<Spring>): Int = (tangle(points, springs) / 10).toInt()
-
-    /**
      * How tangled a layout looks: links crossing each other, and links running (nearly) through another place, which then
      * have to be drawn curving around it; then, between equally tangled ones, shorter links.
      */
-    private fun tangle(points: Map<String, Point>, springs: List<Spring>): Double {
-        val ids = points.keys.toList()
-        val index = ids.withIndex().associate { (i, id) -> id to i }
-        return tangle(DoubleArray(ids.size) { points.getValue(ids[it]).x }, DoubleArray(ids.size) { points.getValue(ids[it]).y },
-            springs.map { Triple(index.getValue(it.a), index.getValue(it.b), it.length) })
-    }
-
     private fun tangle(xs: DoubleArray, ys: DoubleArray, springs: List<Triple<Int, Int, Double>>): Double {
         fun p(i: Int) = Point(xs[i], ys[i])
         val crossings = springs.indices.sumOf { i ->
@@ -467,7 +471,8 @@ object MapLayout {
 
     /**
      * Scales and centres the layout into the box, same scale on both axes so distances stay true. With [stretchY] (a map
-     * with depths), heights are stretched up to twice as much, so the depth bands fill the page even when the map is wide.
+     * with depths), heights are stretched up to three times as much, so the depth bands fill the page even when the map is
+     * wide (or the page is portrait).
      */
     private fun fit(points: Map<String, Point>, width: Double, height: Double, margin: Double, stretchY: Boolean = false): Map<String, Point> {
         val minX = points.values.minOf { it.x }; val maxX = points.values.maxOf { it.x }
@@ -476,7 +481,7 @@ object MapLayout {
         val spanY = maxY - minY
         // A lone place (or one tiny group) shouldn't be blown up to fill the page
         val scale = min(min((width - 2 * margin) / max(spanX, 1.0), (height - 2 * margin) / max(spanY, 1.0)), 3.0)
-        val scaleY = if (stretchY) min((height - 2 * margin) / max(spanY, 1.0), 2 * scale).coerceAtLeast(scale) else scale
+        val scaleY = if (stretchY) min((height - 2 * margin) / max(spanY, 1.0), 3 * scale).coerceAtLeast(scale) else scale
         val offX = (width - spanX * scale) / 2
         val offY = (height - spanY * scaleY) / 2
         return points.mapValues { (_, p) -> Point(offX + (p.x - minX) * scale, offY + (p.y - minY) * scaleY) }

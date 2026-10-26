@@ -36,6 +36,8 @@ class ResolvedModule(
     val generators: List<GeneratorDef> = emptyList(),
     /** Run once when a campaign of this game is created; the game's own, not inherited. */
     val starter: GeneratorDef? = null,
+    /** The campaign map's page: "landscape" or "portrait" (the nearest module that sets it). */
+    val mapOrientation: String = "landscape",
 ) {
     private val schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
     private val schemaCache = ConcurrentHashMap<String, JsonSchema>()
@@ -178,6 +180,9 @@ class ResolvedModule(
     fun icon(typeId: String): String = types[typeId]?.icon ?: "circle"
 
     fun mapDepth(typeId: String): String? = types[typeId]?.campaignMap?.depth
+
+    /** Is the type's name drawn on the campaign map? (Heart's delves aren't.) */
+    fun mapLabel(typeId: String): Boolean = types[typeId]?.campaignMap?.label != false
 
     /**
      * A node's map depth from its type's `mapDepth` prop, with its guide label: an integer as itself ("Tier 2" from

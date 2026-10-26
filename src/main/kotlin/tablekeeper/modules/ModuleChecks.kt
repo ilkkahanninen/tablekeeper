@@ -144,6 +144,7 @@ internal fun ResolvedModule.generatorErrors(): List<String> {
 
 /** Problems with declared views and the overview order; empty list = valid. */
 internal fun ResolvedModule.viewErrors(): List<String> =
+    listOfNotNull("mapOrientation '$mapOrientation' is not one of ${MAP_ORIENTATIONS.joinToString()}".takeIf { mapOrientation !in MAP_ORIENTATIONS }) +
     overviewOrder.filter { it !in types }.map { "overviewOrder: type '$it' is unknown" } +
         views.flatMap { v ->
             v.types.filter { it !in types }.map { "view '${v.id}': type '$it' is unknown" } +

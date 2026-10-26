@@ -62,6 +62,7 @@ class GameModules(private val modules: Map<String, ResolvedModule>) {
                     tables = c.flatMap { it.tables }.associateBy { it.name }.values.toList(),
                     generators = c.flatMap { it.generators }.associateBy { it.id }.values.toList(),
                     starter = self.starter,
+                    mapOrientation = c.lastOrNull { it.mapOrientation != null }?.mapOrientation ?: "landscape",
                 )
             }
             // Modules that extend others re-check inherited types, hence distinct().

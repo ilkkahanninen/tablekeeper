@@ -816,4 +816,20 @@ class GameModulesTest {
         assertTrue("bad.place a: shared field 'nope' is unknown" in e && "bad.place b: shared field 'gone' is unknown" in e, e)
         dir.deleteRecursively()
     }
+
+    @Test
+    fun `heart maps are portrait, other games landscape, and only those two`() {
+        assertEquals("portrait", heart.mapOrientation)
+        assertEquals("landscape", morkborg.mapOrientation)
+        val c = UUID.randomUUID()
+        val market = Node(UUID.randomUUID(), c, "heart.landmark", "L1", "Red Market", "", mapOf("tier" to "Tier 1"), "gm")
+        val view = tablekeeper.map.MapService.view(CampaignGraph(listOf(market), emptyList()), heart)
+        assertTrue(view.height > view.width, "a portrait drawing: ${view.width}×${view.height}")
+
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText("""{"id": "bad", "name": "Bad", "mapOrientation": "diagonal"}""")
+        assertTrue("mapOrientation 'diagonal'" in assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty())
+        dir.deleteRecursively()
+    }
 }

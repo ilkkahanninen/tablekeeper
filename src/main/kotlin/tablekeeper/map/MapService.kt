@@ -8,10 +8,10 @@ import tablekeeper.modules.ResolvedModule
 import java.util.UUID
 import kotlin.math.roundToInt
 
-/** A place on the map; [highlight] marks it as selected, e.g. a landmark featured in a session packet. */
+/** A place on the map; [highlight] marks it as selected, e.g. a landmark featured in a session packet; [label] false: no name drawn. */
 data class MapPlace(
     val id: UUID, val code: String, val title: String, val typeLabel: String,
-    val shape: String, val x: Int, val y: Int, val highlight: Boolean = false,
+    val shape: String, val x: Int, val y: Int, val highlight: Boolean = false, val label: Boolean = true,
 )
 
 /**
@@ -44,7 +44,10 @@ object MapService {
         // Delves are drawn between their landmarks (mapBetween); minor locations around theirs (context)
         val between = places.mapNotNull { (n, _) -> module.mapBetween(n.type)?.let { n.id to onMap.linkedNodes(n.id, it.edgeType, it.direction).map { it.id } } }.toMap()
         val satellites = places.mapNotNull { (n, _) -> module.parent(onMap, n)?.let { n.id to it.id } }.toMap()
-        return draw(module, places, onMap.edges, depths, between, satellites, highlight)
+        val unlabelled = places.filter { (n, _) -> !module.mapLabel(n.type) }.map { it.first.id }.toSet()
+        // A portrait map (Heart's tiers going down) is the same drawing turned upright: A4 portrait proportions
+        val (w, h) = if (module.mapOrientation == "portrait") HEIGHT to WIDTH else WIDTH to HEIGHT
+        return draw(module, places, onMap.edges, depths, between, satellites, highlight, w, h, unlabelled)
     }
 
     /** [node]'s own map (its type's `map`): the nodes it links via the map's rel, in its shape; null if the type has none. */
@@ -71,6 +74,7 @@ object MapService {
     private fun draw(
         module: ResolvedModule, places: List<Pair<Node, String>>, edges: List<EdgeRef>, depths: Map<UUID, MapDepth>,
         between: Map<UUID, List<UUID>>, satellites: Map<UUID, UUID>, highlight: Set<UUID>,
+        width: Int = WIDTH, height: Int = HEIGHT, unlabelled: Set<UUID> = emptySet(),
     ): MapView {
         val shapes = places.associate { (n, shape) -> n.id to shape }
         // Undirected, deduplicated place-to-place links (delve–landmark, minor location–landmark, room–room, ...)
@@ -80,20 +84,21 @@ object MapService {
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
                 MapLayout.Item(n.id.toString(), small = shape == "dot", depth = depths[n.id]?.depth,
-                    labelWidth = labelWidth(n.code, module.displayTitle(n), shape), body = BODY.getValue(shape))
+                    labelWidth = if (n.id in unlabelled) 0.0 else labelWidth(n.code, module.displayTitle(n), shape), body = BODY.getValue(shape))
             },
             lines.map { (a, b) -> a.toString() to b.toString() },
-            WIDTH.toDouble(), HEIGHT.toDouble(), MARGIN,
+            width.toDouble(), height.toDouble(), MARGIN,
             between = between.entries.associate { (k, v) -> k.toString() to v.map { it.toString() } },
             satellites = satellites.entries.associate { (k, v) -> k.toString() to v.toString() },
         )
         fun at(id: UUID) = pos.getValue(id.toString())
 
         return MapView(
-            WIDTH, HEIGHT,
+            width, height,
             places = places.map { (n, shape) ->
                 val p = at(n.id)
-                MapPlace(n.id, n.code, module.displayTitle(n), module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight)
+                MapPlace(n.id, n.code, module.displayTitle(n), module.label(n.type), shape, p.x.roundToInt(), p.y.roundToInt(), n.id in highlight,
+                    label = n.id !in unlabelled)
             },
             lines = lines.map { (a, b) ->
                 val p = at(a); val q = at(b)

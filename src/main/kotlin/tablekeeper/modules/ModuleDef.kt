@@ -82,10 +82,11 @@ data class PrintDef(val template: String? = null, val summary: PrintSummaryDef? 
  * How a type is drawn on the campaign map. [shape]: one of [MAP_SHAPES]; "none" leaves an inherited place off (rooms).
  * [depth]: prop placing it vertically, higher values lower, e.g. Heart's "tier": an integer, or an enum whose "x-depth"
  * maps values to depths ("Tier 2": 2; values left out, like "Rogue", are placed freely). [between]: link to the places it's
- * drawn between, e.g. a delve's landmarks; its depth is their average.
+ * drawn between, e.g. a delve's landmarks; its depth is their average. [label] false: drawn without its name (a delve,
+ * which its line between landmarks already shows; on screen its hover tip names it).
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CampaignMapDef(val shape: String? = null, val depth: String? = null, val between: String? = null)
+data class CampaignMapDef(val shape: String? = null, val depth: String? = null, val between: String? = null, val label: Boolean? = null)
 
 /** A checkbox list of every node of [types]; ticked = linked via [rel], e.g. a session's featured landmarks. */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -142,6 +143,8 @@ data class BetweenDef(val type: String, val rel: String)
 data class MapDepth(val depth: Double, val label: String)
 
 val MAP_SHAPES = setOf("circle", "diamond", "dot", "none")
+
+val MAP_ORIENTATIONS = setOf("landscape", "portrait")
 
 /** Built-in ways a generator's `connect` links a group (generate/), e.g. a dungeon's rooms. */
 val GEN_LAYOUTS = setOf("dungeon")
@@ -273,6 +276,8 @@ data class ModuleDef(
     val generators: List<GeneratorDef> = emptyList(),
     /** What a new campaign of this game starts with (a generator run once at creation), e.g. a first place and session. */
     val starter: GeneratorDef? = null,
+    /** The campaign map's page: "landscape" (default) or "portrait", e.g. Heart's tiers going down. Missing = inherit. */
+    val mapOrientation: String? = null,
     /** Field schemas shared by several types' `props` ("@stress", or {"use": "stress", …changes}); inherited, overridden by name. */
     val fields: Map<String, JsonNode> = emptyMap(),
 )

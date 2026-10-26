@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <title>{{ title }}: map</title>
 <style>
-  @page { size: A4 landscape; margin: 10mm; }
+  @page { size: A4 {% if map.height > map.width %}portrait{% else %}landscape{% endif %}; margin: 10mm; }
   body { font-family: serif; color: #111; margin: 0; }
   h1 { font-size: 13pt; margin: 0 0 2mm; border-bottom: 0.6mm solid #111; padding-bottom: 1mm; }
   .empty { color: #777; }
@@ -15,8 +15,9 @@
   {% if map.places is empty %}
     <p class="empty">No places yet.</p>
   {% else %}
-    {# 1400×990 drawing scaled to fit the page under the heading #}
-    {% include "map/_svg.peb" with {"links": false, "svgWidth": 940, "svgHeight": 665} %}
+    {# The drawing (1400×990, or 990×1400 for a portrait map) scaled to fit the page under the heading #}
+    {% if map.height > map.width %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 670, "svgHeight": 947} %}
+    {% else %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 940, "svgHeight": 665} %}{% endif %}
   {% endif %}
 </body>
 </html>
