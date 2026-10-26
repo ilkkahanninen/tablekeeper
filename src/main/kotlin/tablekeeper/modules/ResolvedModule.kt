@@ -29,8 +29,8 @@ class ResolvedModule(
     private val schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
     private val schemaCache = ConcurrentHashMap<String, JsonSchema>()
 
-    /** Types offered in "New…" menus. */
-    val nodeTypes: List<NodeTypeDef> get() = creatable
+    /** Types offered in "New…" menus, by label. */
+    val nodeTypes: List<NodeTypeDef> = creatable.sortedBy { it.label.lowercase() }
 
     fun type(id: String): NodeTypeDef? = types[id]
 

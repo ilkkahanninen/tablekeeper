@@ -18,17 +18,16 @@ h2 { font-size: 1.05rem; margin: 0 0 .5rem; text-transform: uppercase; letter-sp
 h3 { font-size: .85rem; margin: .75rem 0 .25rem; color: var(--muted); font-weight: normal; }
 
 .top { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .6rem 1.25rem; border-bottom: 1px solid var(--line); background: var(--card); }
-.top-nav { display: flex; gap: .9rem; margin-left: .9rem; font-size: .9rem; }
-/* Quick find: right of the breadcrumbs, its results a menu below */
-.top-find { position: relative; display: flex; align-items: center; margin-left: auto; }
+.top-nav { display: flex; gap: .9rem; margin: 0 .9rem 0 auto; font-size: .9rem; }
+/* Quick find: between the links and Create ▾, its results a menu below */
+.top-find { position: relative; display: flex; align-items: center; }
 .top-find input { font-size: .9rem; padding: .25rem .5rem .25rem 1.7rem; width: 14rem; }
 .top-find .find-icon { position: absolute; left: .5rem; pointer-events: none; }
 .find-results { position: absolute; top: 100%; right: 0; min-width: 22rem; margin-top: .25rem; max-height: 24rem; overflow-y: auto; }
 .find-results:not(:has(*)) { display: none; }
 a.menu-item { text-decoration: none; color: var(--ink); }
-.top-create { display: flex; gap: .35rem; margin-left: .75rem; }
-.top-create select, .top-create input, .top-create button { font-size: .9rem; padding: .25rem .5rem; }
-.top-create input { width: 12rem; }
+.top-create { margin-left: .25rem; }
+.top-create > summary { display: inline-block; font-size: .9rem; padding: .25rem .5rem; }
 .brand { font-weight: 700; color: var(--ink); text-decoration: none; }
 .sep { color: var(--muted); }
 
@@ -54,13 +53,13 @@ input, select, textarea { padding: .35rem .5rem; border: 1px solid var(--line); 
 /* Textareas grow with their text (app.js); rows= is the minimum height */
 textarea { resize: none; overflow-y: hidden; box-sizing: border-box; }
 /* Two button levels, one size: the height of the inputs beside them. Primary (a plain button): the action that completes
-   a small form (Add, Create). Secondary (.secondary): everything else. × icons (.unlink) and menu rows (.menu-item) aren't buttons. */
-button, .secondary { font: inherit; font-size: 1rem; padding: .35rem .8rem; border: 1px solid var(--ink); border-radius: 4px;
+   a small form (Add, Create) and the top bar's Create ▾ (.primary on a non-button, e.g. a menu's summary). Secondary (.secondary): everything else. × icons (.unlink) and menu rows (.menu-item) aren't buttons. */
+button, .primary, .secondary { font: inherit; font-size: 1rem; padding: .35rem .8rem; border: 1px solid var(--ink); border-radius: 4px;
                      background: var(--ink); color: var(--paper); cursor: pointer; }
 .secondary { background: var(--card); color: var(--ink); border-color: var(--line); white-space: nowrap; }
 
 /* Buttons, fields and tables sit slightly above the page; not the borderless title, icons, menu rows or check boxes */
-:where(button, .secondary, input:not([type=checkbox]):not([type=radio]), select, textarea, .overview) { box-shadow: var(--shadow); }   /* :where = no specificity, so the exceptions below win */
+:where(button, .primary, .secondary, input:not([type=checkbox]):not([type=radio]), select, textarea, .overview) { box-shadow: var(--shadow); }   /* :where = no specificity, so the exceptions below win */
 .title-input, .unlink, .menu-item { box-shadow: none; }
 .secondary:hover:not(:disabled) { border-color: var(--ink); }
 .secondary:disabled { color: var(--muted); cursor: not-allowed; }
@@ -127,7 +126,7 @@ summary.result-pick::-webkit-details-marker { display: none; }
 .random { align-self: center; }
 label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top: .25rem; }
 .notes-field .random-row { align-self: flex-end; }
-/* A dropdown menu (Random ▾, a Link box result's relations): a <details> with a .menu below */
+/* A dropdown menu (Random ▾, Create ▾, a Link box result's relations): a <details> with a .menu below */
 .dropdown { position: relative; }
 .dropdown > summary { list-style: none; cursor: pointer; }
 .random-menu > summary { display: inline-block; }

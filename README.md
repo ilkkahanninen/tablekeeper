@@ -84,7 +84,7 @@ After the session, write **What happened** on the session, and use the **Debrief
 ## A quick tour
 
 1. Create a campaign (Heart).
-2. Pick *Landmark* and click **Add** in the top bar, then rename it "Red Market". Set tier *Tier 1* and domains Occult + Desolate.
+2. Pick *Landmark* under **Create** in the top bar and type "Red Market" (the new name is selected). Set tier *Tier 1* and domains Occult + Desolate.
 3. On Red Market, click **NPC** under **Add new** and type "Silvia" (the new name is selected, ready to type over). Her **Location** now says Red Market.
 4. Create a *Delve* the same way. Its Tier and Domains rows show Red Market's.
 5. Under **Tables**, add a list of names, tick *NPC: Title*, and use **Random** on an NPC.

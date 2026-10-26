@@ -14,6 +14,11 @@
     {% block crumbs %}{% endblock %}
     {# On every campaign page: campaign-wide pages, and create any kind of node (named from its random tables, or "New <type>"), then open it #}
     {% if campaign is not null and module is not null %}
+      <nav class="top-nav">
+        <a href="/c/{{ campaign.id }}/map">Map</a>
+        {% for v in module.views %}<a href="/c/{{ campaign.id }}/v/{{ v.id }}">{{ v.label }}</a>{% endfor %}
+        <a href="/c/{{ campaign.id }}/tables">Tables</a>
+      </nav>
       {# Quick find: "/" or Ctrl/⌘ K from anywhere (app.js) #}
       <div class="top-find" role="search">
         <span class="type-icon find-icon" aria-hidden="true"><svg><use href="/static/icons.svg#search"/></svg></span>
@@ -21,18 +26,13 @@
                hx-get="/c/{{ campaign.id }}/find" hx-trigger="input changed delay:150ms, focus" hx-target="#find-results">
         <div id="find-results" class="menu find-results" role="listbox"></div>
       </div>
-      <nav class="top-nav">
-        <a href="/c/{{ campaign.id }}/map">Map</a>
-        {% for v in module.views %}<a href="/c/{{ campaign.id }}/v/{{ v.id }}">{{ v.label }}</a>{% endfor %}
-        <a href="/c/{{ campaign.id }}/tables">Tables</a>
-      </nav>
-      <form class="top-create" method="post" action="/c/{{ campaign.id }}/nodes">
-        <select name="type" aria-label="Type">
-          {# Preselect the current page's type: the node's own, or the type a module view lists #}
-          {% for t in module.nodeTypes %}<option value="{{ t.id }}"{% if (node is not null and node.type == t.id) or (view is not null and view.types contains t.id) %} selected{% endif %}>{{ t.label }}</option>{% endfor %}
-        </select>
-        <button>Add</button>
-      </form>
+      {# Create ▾: a menu of node types (icon + name, A–Z); picking one posts its "type" and opens the new node #}
+      <details class="dropdown top-create">
+        <summary class="primary">Create ▾</summary>
+        <form class="menu dropdown-choices" method="post" action="/c/{{ campaign.id }}/nodes">
+          {% for t in module.nodeTypes %}<button class="menu-item" name="type" value="{{ t.id }}"><span class="type-icon" aria-hidden="true"><svg><use href="/static/icons.svg#{{ module.icon(t.id) }}"/></svg></span> {{ t.label }}</button>{% endfor %}
+        </form>
+      </details>
     {% endif %}
   </header>
   <main>
