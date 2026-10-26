@@ -1,15 +1,15 @@
 {% extends "print/base.peb" %}
 {# Fallback card for any node type without its own printTemplate. #}
 {% block main %}
-  {% if props is not empty or linkedProps is not empty %}
+  {% if props is not empty %}
   <table class="props">
     {% for p in props %}
       {% if p.details is empty %}<tr><td class="k">{{ p.label }}</td><td>{% if p.track is not null %}{% include "print/_track.peb" %}{% elseif p.items is not empty %}{% include "print/_items.peb" %}{% elseif p.html is not empty %}<div class="body">{{ p.html | raw }}</div>{% else %}{{ p.value }}{% endif %}</td></tr>
       {% elseif not p.multi %}{% for t in p.details %}<tr><td class="k">{{ p.label }}</td><td><span class="t">{{ t.option }}</span>: {{ t.text }}</td></tr>{% endfor %}
       {% endif %}
     {% endfor %}
-    {% include "print/_linked_props.peb" %}
   </table>
+  {% include "print/_linked_props.peb" %}
   {% endif %}
 
   {# Multi-choice props with option descriptions (e.g. resource tags) get their own section, so the meaning is on the card. #}

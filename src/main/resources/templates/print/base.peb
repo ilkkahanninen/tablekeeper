@@ -16,6 +16,10 @@
   .props { width: 100%; border-collapse: collapse; margin-bottom: 2mm; }
   .props td { padding: 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
   .props td.k { width: 32mm; color: #555; font-size: 7.5pt; text-transform: uppercase; }
+  /* Values from linked nodes (print/_linked_props.peb): a row per linked node, a column per value */
+  table.linked { border-collapse: collapse; margin: 0 0 2mm; }
+  .linked th { text-align: left; font-weight: normal; font-size: 7.5pt; text-transform: uppercase; color: #555; padding: 0.4mm 4mm 0.6mm 0; border-bottom: 0.2mm solid #aaa; }
+  .linked td { padding: 0.6mm 4mm 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
   .body { margin: 2mm 0; }
   /* Formatted notes (Notes.html): paragraphs and lists; [[mentions]] in bold */
   .body p, .notes p { margin: 0 0 1.5mm; }

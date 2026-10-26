@@ -30,6 +30,10 @@
 
   /* Place body (shared _place.peb), as on the cards but on A4 */
   .props { border-collapse: collapse; margin-bottom: 1.5mm; }
+  /* Values from linked nodes (print/_linked_props.peb): a row per linked node, a column per value */
+  table.linked { border-collapse: collapse; margin: 0 0 2mm; }
+  .linked th { text-align: left; font-weight: normal; font-size: 7.5pt; text-transform: uppercase; color: #555; padding: 0.4mm 4mm 0.6mm 0; border-bottom: 0.2mm solid #aaa; }
+  .linked td { padding: 0.6mm 4mm 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
   .props td { padding: 0.4mm 3mm 0.4mm 0; vertical-align: top; }
   .props td.k { color: #555; font-size: 7.5pt; text-transform: uppercase; white-space: nowrap; }
   .props .t, .detail .t, .fact .t { font-weight: bold; }
@@ -138,7 +142,7 @@
       <div class="place">
         <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
         {# Pebble's include takes a literal map: pass the place's print model through #}
-        {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedProps": item.linkedProps,
+        {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedPropTables": item.linkedPropTables,
             "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes} %}
       </div>
     {% endfor %}

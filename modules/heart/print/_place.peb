@@ -1,6 +1,6 @@
 {#
   Landmark / delve body: props (resistance as a track to tick off), linked props, notes, haunts / events (one tick box each), links (minor locations nested with their
-  contents), facts with tick boxes. Model: a node print model (node, props, linkedProps, groups, facts, audience).
+  contents), facts with tick boxes. Model: a node print model (node, props, linkedPropTables, groups, facts, audience).
   Used by the A4 print (landmark.peb) and the session packet (session.peb), so both print the same content.
 #}
   <table class="props">
@@ -9,8 +9,8 @@
       <tr><td class="k">{{ p.label }}</td><td>{% if p.track is not null %}{% include "print/_track.peb" %}{% else %}{{ p.value }}{% endif %}</td></tr>
       {% endif %}
     {% endfor %}
-    {% include "print/_linked_props.peb" %}
   </table>
+  {% include "print/_linked_props.peb" %}
 
   {% if node.body is not empty %}<div class="body">{{ notes | raw }}</div>{% endif %}
 

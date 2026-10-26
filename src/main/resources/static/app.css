@@ -99,8 +99,9 @@ textarea.line { min-width: 0; flex: 1; }
 .link-slots form { margin: 0 0 .9rem; max-width: 24rem; }
 .checklist { margin: 0 0 .9rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .2rem .9rem; }
 .checklist form { margin: 0; }
-.linked-prop { margin: 0 0 .75rem; }
-.linked-prop .k { font-size: .85rem; color: var(--muted); margin-right: .4rem; }
+/* Values from linked nodes (a delve's Tier and Domains from its landmarks): a campaign-style table at its natural width */
+.linked-props .overview { width: auto; margin: 0 0 1rem; }
+.linked-props .overview th:first-child, .linked-props .overview td:first-child { width: auto; }
 .link-picker { display: flex; gap: .4rem; margin-bottom: .5rem; }
 .link-picker input { flex: 1; min-width: 0; }
 .results .result { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .3rem; padding: .3rem 0; border-bottom: 1px dotted var(--line); }

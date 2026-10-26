@@ -1,6 +1,10 @@
-{# Table rows for linked props, one per linked node; include inside <table class="props">. #}
-{% for lp in linkedProps %}
-  {% for s in lp.sources %}
-    <tr><td class="k">{% if loop.first %}{{ lp.label }}{% endif %}</td><td>{{ s.title }} <span class="ref">({{ s.code }})</span>: {% if s.values is empty %}–{% else %}{{ s.values | join(", ") }}{% endif %}</td></tr>
-  {% endfor %}
+{# Values from linked nodes (module "linkedProps") as a table per link: a row per linked node, a column per value,
+   e.g. a delve's landmarks with their Tier and Domains. Variable: linkedPropTables (print model). #}
+{% for t in linkedPropTables %}
+  <table class="linked">
+    <tr><th></th>{% for col in t.columns %}<th>{{ col }}</th>{% endfor %}</tr>
+    {% for r in t.rows %}
+      <tr><td>{{ r.title }} <span class="ref">({{ r.code }})</span></td>{% for cell in r.cells %}<td>{{ cell }}</td>{% endfor %}</tr>
+    {% endfor %}
+  </table>
 {% endfor %}

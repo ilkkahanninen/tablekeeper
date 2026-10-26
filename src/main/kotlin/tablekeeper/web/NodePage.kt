@@ -14,6 +14,7 @@ import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.print.Packet
 import tablekeeper.print.PrintService
+import tablekeeper.print.linkedPropTables
 import java.util.UUID
 
 // View models for the "Linked" sidebar
@@ -76,7 +77,7 @@ class NodePage(
             val repeated = options.groupingBy { it.type.id }.eachCount().filterValues { it > 1 }.keys
             options.map { CreateChoice(it.key, if (it.type.id in repeated) "${it.type.label} · ${it.option.label}" else it.type.label) }
         },
-        "linkedProps" to print.linkedProps(c, m, n),
+        "linkedPropTables" to linkedPropTables(print.linkedProps(c, m, n)),
         "groups" to linkGroups(c, m, n),
         "debrief" to debrief(c, m, n),
         "errors" to errors,

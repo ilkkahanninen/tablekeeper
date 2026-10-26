@@ -50,6 +50,24 @@ data class LinkedPropSource(val id: UUID, val type: String, val code: String, va
 /** A linked prop, kept per linked node: a delve's domains shift from one landmark's to the other's. */
 data class LinkedPropValue(val name: String, val label: String, val via: String, val sources: List<LinkedPropSource>)
 /** [notes]: the fact's text as HTML (formatting and `[[mentions]]`, see [Notes.inline]). */
+/** Values a node takes from the nodes it links one way (module `linkedProps`): a column per prop, a row per linked node. */
+data class LinkedPropTable(val columns: List<String>, val rows: List<LinkedPropRow>)
+data class LinkedPropRow(val id: UUID, val type: String, val code: String, val title: String, val cells: List<String>)
+
+/**
+ * Linked props through the same link as one table each, e.g. a delve's Tier and Domains, one row per landmark.
+ * A node without values for a prop gets an empty cell; a link with no linked nodes gives no table.
+ */
+fun linkedPropTables(linkedProps: List<LinkedPropValue>): List<LinkedPropTable> =
+    linkedProps.groupBy { it.via }.values.mapNotNull { props ->
+        val sources = props.flatMap { it.sources }.distinctBy { it.id }
+        if (sources.isEmpty()) return@mapNotNull null
+        LinkedPropTable(props.map { it.label }, sources.map { s ->
+            LinkedPropRow(s.id, s.type, s.code, s.title,
+                props.map { p -> p.sources.firstOrNull { it.id == s.id }?.values.orEmpty().joinToString(", ") })
+        })
+    }
+
 data class PrintFact(val code: String, val title: String, val body: String, val visibility: String, val notes: String = "")
 
 /** The previous node's recap on a packet cover ("Last time"), e.g. S1's "What happened". */
@@ -78,9 +96,13 @@ data class PrintModel(
     val notes: String = "",
     val packet: PacketModel? = null,
 ) {
+    /** [linkedProps] as tables: a row per linked node, a column per prop (e.g. a delve's landmarks with Tier and Domains). */
+    val linkedPropTables: List<LinkedPropTable> get() = linkedPropTables(linkedProps)
+
     fun asMap(): Map<String, Any?> = mapOf(
         "campaign" to campaign, "node" to node, "typeLabel" to typeLabel, "displayTitle" to displayTitle,
-        "props" to props, "flags" to flags, "linkedProps" to linkedProps, "groups" to groups, "facts" to facts,
+        "props" to props, "flags" to flags, "linkedProps" to linkedProps, "linkedPropTables" to linkedPropTables,
+        "groups" to groups, "facts" to facts,
         "audience" to audience, "notes" to notes,
     ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous) }.orEmpty()
 }

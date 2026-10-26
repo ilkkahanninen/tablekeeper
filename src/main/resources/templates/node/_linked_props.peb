@@ -1,19 +1,19 @@
-{# Read-only values from linked nodes (module "linkedProps"), one line per linked node. Sent out-of-band after link changes. #}
+{# Read-only values from linked nodes (module "linkedProps"): a table per link, a row per linked node, a column per value
+   (e.g. a delve's landmarks with their Tier and Domains). Sent out-of-band after link changes. #}
 <div id="linked-props" class="linked-props"{% if oob %} hx-swap-oob="true"{% endif %}>
-  {% for lp in linkedProps %}
-    <div class="linked-prop">
-      <span class="k">{{ lp.label }}</span>
-      <ul class="plain">
-        {% for s in lp.sources %}
-          <li>
-            {% include "node/_icon.peb" with {"type": s.type, "code": s.code} %}
-            <a href="/c/{{ campaign.id }}/n/{{ s.id }}">{{ s.title }}</a>:
-            {% if s.values is empty %}<span class="muted">none set</span>{% else %}{{ s.values | join(", ") }}{% endif %}
-          </li>
-        {% else %}
-          <li class="muted">none yet</li>
-        {% endfor %}
-      </ul>
+  {% for t in linkedPropTables %}
+    <div class="table-scroll">
+      <table class="overview">
+        <thead><tr><th></th>{% for col in t.columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+        <tbody>
+          {% for r in t.rows %}
+            <tr>
+              <td>{% include "node/_icon.peb" with {"type": r.type, "code": r.code} %} <a href="/c/{{ campaign.id }}/n/{{ r.id }}">{{ r.title }}</a></td>
+              {% for cell in r.cells %}<td>{{ cell }}</td>{% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   {% endfor %}
 </div>
