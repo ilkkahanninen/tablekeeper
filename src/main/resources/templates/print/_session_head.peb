@@ -1,0 +1,2 @@
+{# A session packet's cover heading: its code, title and date. #}
+<header><h1><span class="code">{{ node.code }}</span> {{ node.title }}{% for p in props %}{% if p.name == 'date' %}<span class="date">{{ p.value }}</span>{% endif %}{% endfor %}</h1></header>

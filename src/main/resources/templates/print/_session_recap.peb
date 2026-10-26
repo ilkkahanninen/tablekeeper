@@ -1,0 +1,7 @@
+{# A session packet's cover text: the previous session's recap ("Last time"), then this session's notes ("This time"). #}
+{% if previous is not null %}
+  <h2>Last time</h2>
+  <div class="ref">{{ previous.code }} {{ previous.title }}</div>
+  <div class="notes">{{ previous.notes | raw }}</div>
+{% endif %}
+{% if node.body is not empty %}<h2 class="this-time">This time</h2><div class="notes">{{ notes | raw }}</div>{% endif %}
