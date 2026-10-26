@@ -5,6 +5,7 @@
   --line: #d9d0c2;
   --blood: #8c1c13;
   --card: #fffdf8;
+  --shadow: 0 1px 2px rgba(29, 26, 23, .07);   /* very gentle lift for buttons, fields and tables */
   font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   color: var(--ink);
   background: var(--paper);
@@ -56,7 +57,11 @@ textarea { resize: none; overflow-y: hidden; box-sizing: border-box; }
    a small form (Add, Create). Secondary (.secondary): everything else. × icons (.unlink) and menu rows (.menu-item) aren't buttons. */
 button, .secondary { font: inherit; font-size: 1rem; padding: .35rem .8rem; border: 1px solid var(--ink); border-radius: 4px;
                      background: var(--ink); color: var(--paper); cursor: pointer; }
-.secondary { background: transparent; color: var(--ink); border-color: var(--line); white-space: nowrap; }
+.secondary { background: var(--card); color: var(--ink); border-color: var(--line); white-space: nowrap; }
+
+/* Buttons, fields and tables sit slightly above the page; not the borderless title, icons, menu rows or check boxes */
+:where(button, .secondary, input:not([type=checkbox]):not([type=radio]), select, textarea, .overview) { box-shadow: var(--shadow); }   /* :where = no specificity, so the exceptions below win */
+.title-input, .unlink, .menu-item { box-shadow: none; }
 .secondary:hover:not(:disabled) { border-color: var(--ink); }
 .secondary:disabled { color: var(--muted); cursor: not-allowed; }
 fieldset { border: 1px solid var(--line); border-radius: 4px; display: flex; flex-wrap: wrap; gap: .25rem .9rem; }
