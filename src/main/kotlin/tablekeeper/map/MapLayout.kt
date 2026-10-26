@@ -240,6 +240,7 @@ object MapLayout {
             }
         }
         if (layered) {
+            untangleLevels(xs, ys, target, pairs)
             spreadLevels(xs, target)
             val mx = xs.average()
             for (i in 0 until n) xs[i] -= mx
@@ -259,6 +260,31 @@ object MapLayout {
         val steps = (1..12).map { it * K * 0.1 }
         val y = (listOf(ys[i]) + steps.map { ys[i] - it } + steps.map { ys[i] + it }).firstOrNull(::clear) ?: return
         ys[i] = y
+    }
+
+    /**
+     * Places on one level only move sideways, and they push each other away, so in the force layout they can't pass one
+     * another: wherever they start, they keep that order, e.g. a landmark stuck between two others its delves join, so
+     * both delves bow over it. Swap neighbours on a level whenever that shortens their links, until no swap helps.
+     */
+    private fun untangleLevels(xs: DoubleArray, ys: DoubleArray, target: DoubleArray, springs: List<Triple<Int, Int, Double>>) {
+        val touching = xs.indices.associateWith { i -> springs.filter { it.first == i || it.second == i } }
+        fun length(i: Int) = touching.getValue(i).sumOf { (a, b, _) -> kotlin.math.hypot(xs[a] - xs[b], ys[a] - ys[b]) }
+        val levels = target.indices.filter { !target[it].isNaN() }.groupBy { target[it] }.values
+        repeat(xs.size * xs.size) {
+            var swapped = false
+            for (level in levels) {
+                val order = level.sortedBy { xs[it] }
+                for (k in 0 until order.size - 1) {
+                    val a = order[k]; val b = order[k + 1]
+                    val before = length(a) + length(b)
+                    xs[a] = xs[b].also { xs[b] = xs[a] }
+                    if (length(a) + length(b) < before - 0.01) { swapped = true; break }
+                    xs[a] = xs[b].also { xs[b] = xs[a] }   // no better: swap back
+                }
+            }
+            if (!swapped) return
+        }
     }
 
     /**

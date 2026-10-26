@@ -137,4 +137,28 @@ class MapLayoutTest {
     fun `a single place sits in the middle`() {
         assertEquals(MapLayout.Point(700.0, 495.0), MapLayout.layout(listOf(MapLayout.Item("L1")), emptyList(), 1400.0, 990.0, 130.0)["L1"])
     }
+
+    @Test
+    fun `places on a tier line up in the order their delves chain them, whatever ids they have`() {
+        // As in a real campaign: tier 2 is a chain Last Orders – Hautausmaa – Ghorryn – Luolasto – Pumppuasema,
+        // and Pumppuasema also leads up to a tier 1 temple. Ghorryn must sit between the other two, so both delves
+        // are straight; ids seed the start positions, so try many.
+        repeat(40) { seed ->
+            fun id(name: String) = "$name-$seed"
+            val items = listOf(
+                MapLayout.Item(id("temple"), depth = 1.0),
+                MapLayout.Item(id("lastOrders"), depth = 2.0), MapLayout.Item(id("ghorryn"), depth = 2.0), MapLayout.Item(id("pumppu"), depth = 2.0),
+                MapLayout.Item(id("hautausmaa")), MapLayout.Item(id("luolasto")), MapLayout.Item(id("kaivos")),
+            )
+            val between = mapOf(
+                id("hautausmaa") to listOf(id("lastOrders"), id("ghorryn")),
+                id("luolasto") to listOf(id("pumppu"), id("ghorryn")),
+                id("kaivos") to listOf(id("temple"), id("pumppu")),
+            )
+            val edges = between.flatMap { (d, ls) -> ls.map { d to it } }
+            val x = MapLayout.layout(items, edges, 1400.0, 990.0, 130.0, between = between).mapValues { it.value.x }
+            val (lo, g, p) = listOf("lastOrders", "ghorryn", "pumppu").map { x.getValue(id(it)) }
+            assertTrue(g in minOf(lo, p)..maxOf(lo, p), "seed $seed: Ghorryn $g between Last Orders $lo and Pumppuasema $p")
+        }
+    }
 }
