@@ -1,9 +1,10 @@
 {# A map drawing (the campaign's, or a node's own). Variables: map (MapView), campaign, links (on screen: places link to their pages and labels leave out codes).
    Highlighted places (selected in a session packet) are filled red. #}
 <svg class="map" xmlns="http://www.w3.org/2000/svg" viewBox="{{ map.x }} {{ map.y }} {{ map.width }} {{ map.height }}"{% if svgWidth is not null %} width="{{ svgWidth }}" height="{{ svgHeight }}"{% endif %} font-family="serif">
+  {# Depth bands (Heart's tiers): each labelled at its top left, a dotted line between neighbouring bands #}
   {% for lv in map.levels %}
-    <line x1="0" y1="{{ lv.y }}" x2="{{ map.width }}" y2="{{ lv.y }}" stroke="#d9d0c2" stroke-width="1.5" stroke-dasharray="2 8"/>
-    <text x="12" y="{{ lv.y - 8 }}" font-size="15" fill="#9a9086" letter-spacing="1">{{ lv.label | upper }}</text>
+    {% if not loop.first %}<line x1="0" y1="{{ lv.top }}" x2="{{ map.width }}" y2="{{ lv.top }}" stroke="#d9d0c2" stroke-width="1.5" stroke-dasharray="2 8"/>{% endif %}
+    <text x="12" y="{{ lv.top + 24 }}" font-size="15" fill="#9a9086" letter-spacing="1">{{ lv.label | upper }}</text>
   {% endfor %}
   {% for l in map.lines %}
     {% set stroke = l.minor ? '#9a9086' : '#1d1a17' %}

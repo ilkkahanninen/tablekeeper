@@ -59,7 +59,8 @@ class MapLayoutTest {
         val p = MapLayout.layout(tiered, listOf("D1" to "L1", "D1" to "L2", "M1" to "L1"), 1400.0, 990.0, 130.0)
         val y = p.mapValues { it.value.y }
         assertTrue(y.getValue("L1") < y.getValue("D1") && y.getValue("D1") < y.getValue("L2"), "$y")
-        assertEquals(y.getValue("L9"), y.getValue("L2"), 0.001, "same tier, same height")
+        // Same tier, same band: within the band's half height (scaled to the page) of each other
+        assertTrue(kotlin.math.abs(y.getValue("L9") - y.getValue("L2")) < y.getValue("L2") - y.getValue("D1"), "same band: $y")
         // Places sharing a tier keep apart sideways
         val x = p.mapValues { it.value.x }
         assertTrue(kotlin.math.abs(x.getValue("L9") - x.getValue("L2")) > 100, "$x")
@@ -160,5 +161,24 @@ class MapLayoutTest {
             val (lo, g, p) = listOf("lastOrders", "ghorryn", "pumppu").map { x.getValue(id(it)) }
             assertTrue(g in minOf(lo, p)..maxOf(lo, p), "seed $seed: Ghorryn $g between Last Orders $lo and Pumppuasema $p")
         }
+    }
+
+    @Test
+    fun `a loop of landmarks over two tiers is drawn without lines bending around places`() {
+        // A real campaign's map: tier 2 Last Orders, Ghorryn, TBA, Pumppuasema; tier 3 Päätepysäkki; delves join them in a
+        // loop (Last Orders–Ghorryn–TBA–Päätepysäkki–Last Orders), and a branch climbs to tiers 1 and 0.
+        val tiers = mapOf("derelict" to 0.0, "temple" to 1.0, "redcap" to 1.0, "pumppu" to 2.0, "ghorryn" to 2.0,
+            "lastOrders" to 2.0, "tba" to 2.0, "terminus" to 3.0)
+        val between = mapOf(
+            "portaat" to listOf("temple", "derelict"), "metsa" to listOf("temple", "redcap"), "kaivos" to listOf("pumppu", "temple"),
+            "luolasto" to listOf("pumppu", "ghorryn"), "hautausmaa" to listOf("lastOrders", "ghorryn"),
+            "rautatie" to listOf("terminus", "lastOrders"), "ghorrynTba" to listOf("tba", "ghorryn"), "tbaTerminus" to listOf("tba", "terminus"),
+        )
+        val items = tiers.map { (id, t) -> MapLayout.Item(id, depth = t, labelWidth = 100.0, body = 26.0) } +
+            between.keys.map { MapLayout.Item(it, labelWidth = 100.0, body = 17.0) }
+        val edges = between.flatMap { (d, ls) -> ls.map { d to it } }
+        val p = MapLayout.layout(items, edges, 1400.0, 990.0, 130.0, between = between)
+        val bent = edges.filter { (a, b) -> MapLayout.bend(p.getValue(a), p.getValue(b), p.filterKeys { it != a && it != b }.values, 40.0) != null }
+        assertEquals(emptyList(), bent, "lines running through other places")
     }
 }

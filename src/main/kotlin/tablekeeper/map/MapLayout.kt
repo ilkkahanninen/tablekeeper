@@ -2,6 +2,7 @@ package tablekeeper.map
 
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
@@ -12,10 +13,12 @@ import kotlin.random.Random
  * Deterministic map layout. Start positions are seeded from node ids and the iteration count is fixed, so the same
  * places and links always give the same map; it only moves when links change.
  *
- * 1. The core places (landmarks) get a force layout (Fruchterman–Reingold). Delves are not in it: their landmarks are
+ * 1. The core places (landmarks) get a force layout (Fruchterman–Reingold), tried from several start positions, keeping
+ *    the one with the fewest crossing links and links running through places. Delves are not in it: their landmarks are
  *    linked directly instead, on springs twice as long, since a delve will sit between them. Each connected group is
  *    laid out on its own and the groups are packed side by side, so an unconnected place can't squeeze the rest.
- *    A place with a [Item.depth] (Heart's tier) is fixed at that height, deeper lower; links only move it sideways.
+ *    A place with a [Item.depth] (Heart's tier) stays in that depth's band, deeper lower: links move it sideways, and up
+ *    or down within the band, so a tier needn't be a straight row.
  *    Groups without depths are turned so their longest spread runs horizontally.
  * 2. Delves go to the middle of their landmarks, and minor locations are fanned out above their landmark.
  * 3. The result is fitted to the page, and labels are pushed apart where they would overlap.
@@ -32,10 +35,16 @@ object MapLayout {
     data class Point(val x: Double, val y: Double)
 
     private const val ITERATIONS = 400
+    /** Force layouts tried per group, from different start positions; the least tangled wins ([tangle]). */
+    private const val ATTEMPTS = 8
     /** Ideal distance between linked places, in layout units (only the proportions matter; [fit] scales). */
     private const val K = 100.0
     /** Vertical distance between consecutive depths. */
     private const val LEVEL = K * 1.3
+    /** How far up or down a place may move from its depth's height: its band, with a gap left between bands. */
+    const val BAND_HALF = LEVEL * 0.4
+    /** How strongly a place is drawn back to its band's middle (force per layout unit off it). */
+    private const val BAND_PULL = 1.5
     /** Minimum sideways distance between places on the same level, so their labels don't collide. */
     private const val MIN_GAP = K * 1.2
     /** Roughly half a place label's width, for keeping minor locations off other places' labels. */
@@ -80,7 +89,7 @@ object MapLayout {
         placeBetween(points, anchorsOf)
         clearSmallOfLabels(points, small.filterKeys { it !in parentOf })
         placeSatellites(points, parentOf, edges.filter { (a, b) -> a in points && b in points })
-        val placed = fit(points, width, height, margin)
+        val placed = fit(points, width, height, margin, stretchY = depth.isNotEmpty())
         return declutter(placed, items.associateBy { it.id }, width, margin)
     }
 
@@ -195,7 +204,65 @@ object MapLayout {
      * Force layout of one connected group, centred horizontally. With depths, y is absolute (depth × [LEVEL]);
      * without, the group is centred and turned to lie horizontally.
      */
+    /**
+     * A group's layout: the first attempt, unless a later one has fewer crossing links and links through places, so
+     * maps that aren't tangled keep their look.
+     */
     private fun place(ids: List<String>, springs: List<Spring>, depth: Map<String, Double>): Map<String, Point> {
+        var best = placeOnce(ids, springs, depth, 0)
+        var bestTangles = tangles(best, springs)
+        for (attempt in 1 until ATTEMPTS) {
+            if (bestTangles == 0) break
+            val next = placeOnce(ids, springs, depth, attempt)
+            val tangles = tangles(next, springs)
+            if (tangles < bestTangles) { best = next; bestTangles = tangles }
+        }
+        return best
+    }
+
+    /** Crossing links and links through places in a layout (the whole part of [tangle]). */
+    private fun tangles(points: Map<String, Point>, springs: List<Spring>): Int = (tangle(points, springs) / 10).toInt()
+
+    /**
+     * How tangled a layout looks: links crossing each other, and links running (nearly) through another place, which then
+     * have to be drawn curving around it; then, between equally tangled ones, shorter links.
+     */
+    private fun tangle(points: Map<String, Point>, springs: List<Spring>): Double {
+        val ids = points.keys.toList()
+        val index = ids.withIndex().associate { (i, id) -> id to i }
+        return tangle(DoubleArray(ids.size) { points.getValue(ids[it]).x }, DoubleArray(ids.size) { points.getValue(ids[it]).y },
+            springs.map { Triple(index.getValue(it.a), index.getValue(it.b), it.length) })
+    }
+
+    private fun tangle(xs: DoubleArray, ys: DoubleArray, springs: List<Triple<Int, Int, Double>>): Double {
+        fun p(i: Int) = Point(xs[i], ys[i])
+        val crossings = springs.indices.sumOf { i ->
+            (i + 1 until springs.size).count { j ->
+                val (a, b) = springs[i]; val (c, d) = springs[j]
+                a != c && a != d && b != c && b != d && crosses(p(a), p(b), p(c), p(d))
+            }
+        }
+        val throughPlaces = springs.sumOf { (a, b) -> xs.indices.count { it != a && it != b && passesNear(p(a), p(b), p(it), K * 0.35) } }
+        val length = springs.sumOf { (a, b) -> hypot(xs[a] - xs[b], ys[a] - ys[b]) }
+        return (crossings + throughPlaces) * 10.0 + length / (K * max(springs.size, 1))
+    }
+
+    private fun crosses(p1: Point, p2: Point, p3: Point, p4: Point): Boolean {
+        fun side(a: Point, b: Point, c: Point) = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
+        return side(p1, p2, p3) * side(p1, p2, p4) < 0 && side(p3, p4, p1) * side(p3, p4, p2) < 0
+    }
+
+    /** Does the segment [a]–[b] pass within [clearance] of [p], away from its ends? */
+    private fun passesNear(a: Point, b: Point, p: Point, clearance: Double): Boolean {
+        val vx = b.x - a.x; val vy = b.y - a.y
+        val len2 = vx * vx + vy * vy
+        if (len2 < 1.0) return false
+        val t = ((p.x - a.x) * vx + (p.y - a.y) * vy) / len2
+        return t > 0.05 && t < 0.95 && kotlin.math.abs((p.x - a.x) * vy - (p.y - a.y) * vx) / sqrt(len2) < clearance
+    }
+
+    /** One force layout of a group from start positions seeded by the ids and [attempt]. */
+    private fun placeOnce(ids: List<String>, springs: List<Spring>, depth: Map<String, Double>, attempt: Int): Map<String, Point> {
         val n = ids.size
         val target = DoubleArray(n) { depth[ids[it]]?.times(LEVEL) ?: Double.NaN }
         val layered = target.any { !it.isNaN() }
@@ -203,9 +270,9 @@ object MapLayout {
         val index = ids.withIndex().associate { (i, id) -> id to i }
         val pairs = springs.map { Triple(index.getValue(it.a), index.getValue(it.b), it.length) }
         val spread = K * sqrt(n.toDouble())
-        val xs = DoubleArray(n) { Random(ids[it].hashCode()).nextDouble() * spread }
+        val xs = DoubleArray(n) { Random(ids[it].hashCode() + attempt * 7919).nextDouble() * spread }
         val ys = DoubleArray(n) {
-            if (!target[it].isNaN()) target[it] else Random(ids[it].hashCode() * 31 + 7).nextDouble() * spread
+            if (!target[it].isNaN()) target[it] else Random(ids[it].hashCode() * 31 + 7 + attempt * 7919).nextDouble() * spread
         }
 
         repeat(ITERATIONS) { step ->
@@ -229,14 +296,16 @@ object MapLayout {
                 dx[i] -= ex * f; dy[i] -= ey * f
                 dx[j] += ex * f; dy[j] += ey * f
             }
+            // A place with a depth is drawn back to its band's middle, so it leaves it only where that helps
+            for (i in 0 until n) if (!target[i].isNaN()) dy[i] += (target[i] - ys[i]) * BAND_PULL
             val temperature = spread / 5 * (1 - step.toDouble() / ITERATIONS) + 0.5
             for (i in 0 until n) {
-                // A place with a depth only moves sideways, so only its sideways force counts toward the step
-                if (!target[i].isNaN()) dy[i] = 0.0
                 val d = max(sqrt(dx[i] * dx[i] + dy[i] * dy[i]), 0.01)
                 val move = min(d, temperature)
                 xs[i] += dx[i] / d * move
                 ys[i] += dy[i] / d * move
+                // A place with a depth stays in its band
+                if (!target[i].isNaN()) ys[i] = ys[i].coerceIn(target[i] - BAND_HALF, target[i] + BAND_HALF)
             }
         }
         if (layered) {
@@ -263,34 +332,40 @@ object MapLayout {
     }
 
     /**
-     * Places on one level only move sideways, and they push each other away, so in the force layout they can't pass one
-     * another: wherever they start, they keep that order, e.g. a landmark stuck between two others its delves join, so
-     * both delves bow over it. Swap neighbours on a level whenever that shortens their links, until no swap helps.
+     * Places on one level hardly move vertically (their band is narrow), and they push each other away, so in the force
+     * layout they can't pass one another: wherever they start, they keep that order, e.g. a landmark stuck between two
+     * others its delves join, so both delves bow over it. Fix the order afterwards: swap any two places on a level, or move
+     * one up or down its band, whenever that makes the map less tangled ([tangle]), until nothing helps.
      */
     private fun untangleLevels(xs: DoubleArray, ys: DoubleArray, target: DoubleArray, springs: List<Triple<Int, Int, Double>>) {
-        val touching = xs.indices.associateWith { i -> springs.filter { it.first == i || it.second == i } }
-        fun length(i: Int) = touching.getValue(i).sumOf { (a, b, _) -> kotlin.math.hypot(xs[a] - xs[b], ys[a] - ys[b]) }
         val levels = target.indices.filter { !target[it].isNaN() }.groupBy { target[it] }.values
-        repeat(xs.size * xs.size) {
-            var swapped = false
+        fun score() = tangle(xs, ys, springs)
+        var best = score()
+        repeat(4 * xs.size) {
+            var improved = false
             for (level in levels) {
-                val order = level.sortedBy { xs[it] }
-                for (k in 0 until order.size - 1) {
-                    val a = order[k]; val b = order[k + 1]
-                    val before = length(a) + length(b)
-                    xs[a] = xs[b].also { xs[b] = xs[a] }
-                    if (length(a) + length(b) < before - 0.01) { swapped = true; break }
-                    xs[a] = xs[b].also { xs[b] = xs[a] }   // no better: swap back
+                for (a in level) for (b in level) if (a < b) {
+                    xs[a] = xs[b].also { xs[b] = xs[a] }; ys[a] = ys[b].also { ys[b] = ys[a] }
+                    // Each keeps to its own band's height range (same band: the swap keeps both inside it)
+                    val s = score()
+                    if (s < best - 1e-6) { best = s; improved = true }
+                    else { xs[a] = xs[b].also { xs[b] = xs[a] }; ys[a] = ys[b].also { ys[b] = ys[a] } }
+                }
+                for (a in level) for (y in listOf(target[a] - BAND_HALF, target[a], target[a] + BAND_HALF)) {
+                    val old = ys[a]
+                    ys[a] = y
+                    val s = score()
+                    if (s < best - 1e-6) { best = s; improved = true } else ys[a] = old
                 }
             }
-            if (!swapped) return
+            if (!improved) return
         }
     }
 
     /**
      * Places on the same level can be pulled on top of each other by links pointing up and down
      * (a delve between its two landmarks). Push them apart left to right to at least [MIN_GAP],
-     * keeping their order and the level's centre.
+     * keeping their order and the level's centre. Their band is too narrow for labels to pass above or below.
      */
     private fun spreadLevels(xs: DoubleArray, target: DoubleArray) {
         target.indices.filter { !target[it].isNaN() }.groupBy { target[it] }.values.forEach { level ->
@@ -390,16 +465,20 @@ object MapLayout {
         return Point((a.x + b.x) / 2 + nx * offset, (a.y + b.y) / 2 + ny * offset)
     }
 
-    /** Scales and centres the layout into the box, same scale on both axes so distances stay true. */
-    private fun fit(points: Map<String, Point>, width: Double, height: Double, margin: Double): Map<String, Point> {
+    /**
+     * Scales and centres the layout into the box, same scale on both axes so distances stay true. With [stretchY] (a map
+     * with depths), heights are stretched up to twice as much, so the depth bands fill the page even when the map is wide.
+     */
+    private fun fit(points: Map<String, Point>, width: Double, height: Double, margin: Double, stretchY: Boolean = false): Map<String, Point> {
         val minX = points.values.minOf { it.x }; val maxX = points.values.maxOf { it.x }
         val minY = points.values.minOf { it.y }; val maxY = points.values.maxOf { it.y }
         val spanX = maxX - minX
         val spanY = maxY - minY
         // A lone place (or one tiny group) shouldn't be blown up to fill the page
         val scale = min(min((width - 2 * margin) / max(spanX, 1.0), (height - 2 * margin) / max(spanY, 1.0)), 3.0)
+        val scaleY = if (stretchY) min((height - 2 * margin) / max(spanY, 1.0), 2 * scale).coerceAtLeast(scale) else scale
         val offX = (width - spanX * scale) / 2
-        val offY = (height - spanY * scale) / 2
-        return points.mapValues { (_, p) -> Point(offX + (p.x - minX) * scale, offY + (p.y - minY) * scale) }
+        val offY = (height - spanY * scaleY) / 2
+        return points.mapValues { (_, p) -> Point(offX + (p.x - minX) * scale, offY + (p.y - minY) * scaleY) }
     }
 }

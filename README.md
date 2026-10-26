@@ -43,7 +43,7 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
   - A **Random** button fills the field; with several tables, it shows a menu.
   - New nodes are named by a roll.
   - *Mix first and last words* turns 20 "First Last" names into 400.
-- **Map:** **Map** above the campaign page's title. An automatic, repeatable layout: landmarks sit by tier, delves between them, and minor locations around them. Available on screen and as an A4 PDF. Some node types have a map of their own (a MÖRK BORG dungeon's rooms), linked next to **Print** on their page.
+- **Map:** **Map** above the campaign page's title. An automatic, repeatable layout: landmarks sit in their tier's band (not on one line, so the map uses the page), delves between them, and minor locations around them. Available on screen and as an A4 PDF. Some node types have a map of their own (a MÖRK BORG dungeon's rooms), linked next to **Print** on their page.
 - **Inspiration:** what the party wants from play. Beats by calling, the rule book's class texts, and each character's fallouts.
 - **Session packet** and **debrief:** see below.
 - **Print:** any node as an A4 GM sheet (as many pages as it needs).

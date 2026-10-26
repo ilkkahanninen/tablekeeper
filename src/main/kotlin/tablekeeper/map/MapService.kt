@@ -21,8 +21,8 @@ data class MapPlace(
 data class MapLine(val x1: Int, val y1: Int, val x2: Int, val y2: Int, val minor: Boolean,
                    val cx: Int? = null, val cy: Int? = null)
 
-/** A horizontal guide for one depth, e.g. "Tier 2", at the height its places were drawn. */
-data class MapLevel(val label: String, val y: Int)
+/** One depth's band, e.g. "Tier 2": from [top] to [bottom], around the places drawn at that depth. */
+data class MapLevel(val label: String, val top: Int, val bottom: Int)
 
 /** A drawing: the part [x], [y], [width] × [height] of the 1400×990 layout (a node's map is cropped to its places). */
 data class MapView(val width: Int, val height: Int, val places: List<MapPlace>, val lines: List<MapLine>,
@@ -101,11 +101,22 @@ object MapService {
                 MapLine(p.x.roundToInt(), p.y.roundToInt(), q.x.roundToInt(), q.y.roundToInt(),
                     minor = shapes[a] == "dot" || shapes[b] == "dot", cx = c?.x?.roundToInt(), cy = c?.y?.roundToInt())
             },
-            // One guide per depth value, labelled with the prop's title: "Tier 2"
-            levels = depths.entries.groupBy({ it.value }, { it.key }).map { (depth, ids) ->
-                MapLevel(depth.label, ids.map { at(it).y }.average().roundToInt())
-            }.sortedBy { it.y },
+            levels = bands(depths.entries.groupBy({ it.value }, { it.key }).mapValues { (_, ids) -> ids.map { at(it).y } }),
         )
+    }
+
+    /**
+     * A band per depth, labelled with the prop's title ("Tier 2"), down the page in depth order: each from halfway
+     * between its places and the depth above's to halfway to the depth below's; the first and last reach a little past
+     * their places (and labels).
+     */
+    private fun bands(ys: Map<MapDepth, List<Double>>): List<MapLevel> {
+        val levels = ys.entries.sortedBy { it.key.depth }.map { Triple(it.key.label, it.value.min(), it.value.max()) }
+        return levels.mapIndexed { i, (label, min, max) ->
+            val top = levels.getOrNull(i - 1)?.let { (it.third + min) / 2 } ?: (min - BAND_PAD)
+            val bottom = levels.getOrNull(i + 1)?.let { (max + it.second) / 2 } ?: (max + BAND_PAD + 20)
+            MapLevel(label, top.roundToInt(), bottom.roundToInt())
+        }
     }
 
     /** Rough label width in drawing units, matching map/_svg.peb's font sizes (code in a smaller monospace, then the title). */
@@ -120,6 +131,8 @@ object MapService {
     private const val MARGIN = 130.0
     /** How close a line may pass another place's centre before it's curved around it (a landmark's radius is 26). */
     private const val CLEARANCE = 40.0
+    /** Drawing units the first and last bands reach past their places. */
+    private const val BAND_PAD = 50.0
     /** Half-size of each shape as drawn in map/_svg.peb. */
     private val BODY = mapOf("circle" to 26.0, "diamond" to 17.0, "dot" to 7.0)
     /** How far below a place's centre its label ends, as drawn in map/_svg.peb. */
