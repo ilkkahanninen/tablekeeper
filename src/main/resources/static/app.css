@@ -68,6 +68,12 @@ legend { font-size: .85rem; color: var(--muted); }
 
 .node-page { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1.5rem; }
 @media (max-width: 800px) { .node-page { grid-template-columns: 1fr; } }
+/* Type line and title across both columns; the ⋯ menu (Duplicate, Delete) at the title's right */
+.node-head { grid-column: 1 / -1; }
+.node-title { display: flex; align-items: center; gap: .75rem; }
+.node-title .title-form { flex: 1; min-width: 0; margin: 0; }
+.node-menu > summary { display: inline-flex; align-items: center; padding: .35rem .55rem; }
+.node-menu .type-icon { color: var(--ink); width: 1.1em; height: 1.1em; }
 .node-form { display: flex; flex-direction: column; gap: .9rem; }
 .node-form > #save-status:not(:has(*)) { display: none; }   /* no errors: no empty row (and gap) at the top of the form */
 .title-input { font-size: 1.6rem; font-weight: 600; border: none; border-bottom: 2px solid var(--line); background: transparent; border-radius: 0; padding-left: 0; }
@@ -163,7 +169,7 @@ a.secondary { display: inline-block; text-decoration: none; }
 .map-card a:hover text { fill: var(--blood); }
 
 /* Debrief (session page): one compact block per character / NPC / item, every control saving on its own */
-.debrief { margin-top: 1.5rem; }   /* clear of the form's Duplicate / Delete row above */
+.debrief { margin-top: 1.5rem; }
 .debrief h3 { margin-top: 1rem; }
 .debrief-item { padding: .5rem 0; border-bottom: 1px dotted var(--line); }
 .debrief-item.muted .debrief-head a { color: var(--muted); }
