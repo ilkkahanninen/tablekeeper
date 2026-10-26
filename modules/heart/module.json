@@ -228,9 +228,9 @@
       "id": "heart.fallout", "icon": "heart-crack",
       "label": "Fallout",
       "codePrefix": "FO",
-      "linkSlots": [{ "label": "Character", "rels": ["suffers:in"] }],
+      "checklists": [{ "rel": "suffers:in", "types": ["heart.pc"] }],
       "printSummary": { "group": "Fallouts", "parts": ["{type}", "{resistance}", "{description}"] },
-      "overview": ["type", "resistance"],
+      "overview": ["type", "resistance", "@suffers:in"],
       "props": {
         "type": "object",
         "additionalProperties": false,

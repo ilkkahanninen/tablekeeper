@@ -147,6 +147,17 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         call.redirect("/c/${c.id}/n/${copy.id}")
     }
 
+    // Remove a linked node from this one (a session debrief's ×, e.g. a healed fallout); the node itself stays, to reuse later
+    post("/unlink") {
+        val g = call.game()
+        val n = call.node(g.campaign)
+        val p = call.receiveParameters()
+        val option = g.module.requireLinkOption(n, p["rel"])
+        val other = otherNode(g, p["other"], option)
+        linker.unlink(g.campaign.id, n, option, other)
+        if (p["quiet"] == "1") call.quiet(p) else call.linksChanged(g, n)
+    }
+
     // The [[ picker in notes: nodes whose title or code matches what's typed after [[
     get("/mentions") {
         val (c, m) = call.game()

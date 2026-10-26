@@ -26,7 +26,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
   - **NPCs:** voice, appearance and dead.
   - **Equipment:** category, quality die, tags and limited uses.
   - **Resources:** die and tags.
-  - **Fallouts** on characters and NPCs.
+  - **Fallouts** on characters and NPCs; one can be shared (tick its characters on the fallout's page).
   - Rule-book hints on hover.
 - **Random tables:** your own lists, with one item per line, linked to fields like *NPC: Title*.
   - A **Random** button fills the field; with several tables, it shows a menu.

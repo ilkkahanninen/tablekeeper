@@ -112,7 +112,8 @@ data class DebriefDef(
 
 /**
  * Nodes linked via [rel], with their [fields] editable in place; [create] = a type you can add a new one of, e.g. "heart.fallout";
- * [remove]: each gets a button that deletes it (a healed fallout).
+ * [remove]: each gets a button that removes it from this node (a fallout healed for one character); the linked node
+ * itself is kept, to reuse later.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DebriefLinkDef(val rel: String, val fields: List<String> = emptyList(), val create: String? = null, val remove: Boolean = false)

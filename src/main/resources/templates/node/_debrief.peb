@@ -27,9 +27,11 @@
               <div class="debrief-linked">
                 {% include "node/_icon.peb" with {"type": li.node.type, "code": li.node.code} %} <a href="/c/{{ campaign.id }}/n/{{ li.node.id }}">{{ li.display }}</a>
                 {% for r in li.rows %}{% include "node/_debrief_row.peb" with {"target": li.node, "r": r} %}{% endfor %}
+                {# Removes it from this character only; the fallout itself stays, to reuse later #}
                 {% if l.remove %}<button class="unlink" aria-label="Remove {{ li.display }}" title="Remove"
-                        hx-post="/c/{{ campaign.id }}/n/{{ li.node.id }}/delete" hx-vals='{"quiet": "1", "refresh": "1"}' hx-swap="none"
-                        hx-confirm="Remove {{ li.node.code }} {{ li.display }}?">×</button>{% endif %}
+                        hx-post="/c/{{ campaign.id }}/n/{{ it.node.id }}/unlink"
+                        hx-vals='{"quiet": "1", "refresh": "1", "rel": "{{ l.option.key }}", "other": "{{ li.node.id }}"}' hx-swap="none"
+                        hx-confirm="Remove {{ li.node.code }} {{ li.display }} from {{ it.display }}?">×</button>{% endif %}
               </div>
             {% endfor %}
             {% if l.createKey is not null %}
