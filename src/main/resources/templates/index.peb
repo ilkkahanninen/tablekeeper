@@ -3,11 +3,18 @@
 {% block content %}
 <h1>Campaigns</h1>
 
-<ul class="list">
-  {% for c in campaigns %}
-    <li><a href="/c/{{ c.id }}">{{ c.name }}</a></li>
-  {% endfor %}
-</ul>
+{% if campaigns is not empty %}
+  <section class="overview-section table-scroll">
+    <table class="overview">
+      <thead><tr><th>Campaign</th><th>Game</th></tr></thead>
+      <tbody>
+        {% for c in campaigns %}
+          <tr><td><a href="/c/{{ c.id }}">{{ c.name }}</a></td><td>{{ games[c.gameModule] | default(c.gameModule) }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+{% endif %}
 
 <form class="card stack" method="post" action="/campaigns">
   <h2>New campaign</h2>

@@ -135,6 +135,7 @@ fun Application.routes(d: Deps) = with(d) {
             call.html("index.peb", mapOf(
                 "campaigns" to campaigns.list(call.user),
                 "modules" to modules.all,
+                "games" to modules.all.associate { it.id to it.name },   // module id -> name, for the Game column
             ))
         }
 

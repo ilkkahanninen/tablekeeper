@@ -41,8 +41,6 @@ a.menu-item { text-decoration: none; color: var(--ink); }
 
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1rem; margin: 0 0 1rem; }
 .card.inline { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
-.list { padding-left: 0; list-style: none; }
-.list li { padding: .3rem 0; border-bottom: 1px dotted var(--line); }
 .plain { list-style: none; padding: 0; margin: 0; }
 .plain li { padding: .2rem 0; }
 
