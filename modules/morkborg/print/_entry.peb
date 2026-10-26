@@ -2,7 +2,9 @@
   A node's body in MÖRK BORG prints: props (stats, a dungeon's state), option descriptions, notes, links (a dungeon's
   rooms nested with the creatures and items in them), facts with tick boxes. Model: a node print model.
   Used by the A4 print (place.peb) and the session packet (session.peb), so both print the same content.
+  Variables beyond the print model: mapWidth, the width to draw the node's own map at (nodeMap: a dungeon's rooms), first.
 #}
+  {% if nodeMap is not null %}{% include "map/_svg.peb" with {"map": nodeMap, "links": false, "svgWidth": mapWidth, "svgHeight": (mapWidth * nodeMap.height / nodeMap.width)} %}{% endif %}
   {% if props is not empty %}
   <table class="props">
     {% for p in props %}

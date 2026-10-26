@@ -41,6 +41,8 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
             s?.get("type")?.asText() != "integer" && !(s?.has("enum") == true && s.get("x-depth")?.isObject == true)
         }?.let { "$t: mapDepth '$it' is not an integer prop, or an enum prop with \"x-depth\", in its props schema" } +
         rel("mapBetween", def.mapBetween) +
+        rel("map places", def.map?.places) +
+        def.map?.shape?.takeIf { it !in MAP_SHAPES || it == "none" }?.let { "$t: map shape '$it' is not one of ${(MAP_SHAPES - "none").joinToString()}" } +
         def.overview.orEmpty().map { col ->
             if (col.startsWith("@")) "$t: overview '$col' is not a link option of $t".takeIf { col.drop(1) !in options }
             else prop("overview", col)

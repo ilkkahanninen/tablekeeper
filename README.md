@@ -31,7 +31,7 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
   - Rule-book hints on hover.
 - **MÖRK BORG:** only what helps plan the next session; abilities, HP and omens stay on the players' sheets.
   - **Locations** (Galgenbeck, Sarkash…) and **Dungeons** in them, with a state from the Bedeviled Dungeons table.
-  - **Rooms** inside dungeons, each with a description and the creatures and items in it. A dungeon prints with its rooms and what's in them.
+  - **Rooms** inside dungeons, each with a description and the creatures and items in it. Rooms link to each other (**connects to**, both ways), and the dungeon's **Map** draws them with those passages. A dungeon prints with its room map, then its rooms and what's in them; so does its section in a session packet.
   - **Creatures:** one type for monsters and people, as in the rules: HP, morale, armor, attack, special, worth, and dead.
   - **Characters:** player, class (the book's six plus Scvmbirther's extras), terrible trait, broken body, bad habit, troubling tale, and dead.
   - **Items:** weapons, armor, scrolls and treasure, with damage, armor tier, value and effect.
@@ -40,7 +40,7 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
   - A **Random** button fills the field; with several tables, it shows a menu.
   - New nodes are named by a roll.
   - *Mix first and last words* turns 20 "First Last" names into 400.
-- **Map:** an automatic, repeatable layout. Landmarks sit by tier, delves between them, and minor locations around them. Available on screen and as an A4 PDF.
+- **Map:** **Map** above the campaign page's title. An automatic, repeatable layout: landmarks sit by tier, delves between them, and minor locations around them. Available on screen and as an A4 PDF. Some node types have a map of their own (a MÖRK BORG dungeon's rooms), linked next to **Print** on their page.
 - **Inspiration:** what the party wants from play. Beats by calling, the rule book's class texts, and each character's fallouts.
 - **Session packet** and **debrief:** see below.
 - **Print:** any node as an A4 GM sheet (as many pages as it needs).
@@ -168,7 +168,8 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `context` | Where a node belongs, shown in brackets in pickers; nests it on the campaign page and map | minor location → its landmark |
 | `overview`, `overviewSort`, `overviewMuted` | Campaign page columns (props or `@rel`), row order, greyed rows | sessions by `date`, dead NPCs |
 | `printTemplate`, `printSummary`, `printNested` | Print card template; how it's listed on other cards (`group` + parts); nested lists | equipment "Kill d8 · Brutal" |
-| `mapShape`, `mapDepth`, `mapBetween` | Map shape (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off the map); depth from a prop; drawn between linked places | landmarks by tier, delves between |
+| `mapShape`, `mapDepth`, `mapBetween` | Campaign map: shape (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off the map); depth from a prop; drawn between linked places | landmarks by tier, delves between |
+| `map` | The type's own map: `{ "places": "<rel>", "shape": "circle" }` draws the nodes linked that way and the links between them; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms |
 | `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time") | Heart session |
 | `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
 

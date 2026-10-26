@@ -65,10 +65,10 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
         call.html("_find.peb", mapOf("campaign" to c, "module" to m, "choices" to choices))
     }
 
-    // Campaign map: places drawn by a server-side layout, so the PDF matches the screen.
+    // Campaign map (linked above the campaign page's title): places drawn by a server-side layout, so the PDF matches the screen.
     get("/map") {
         val (c, m) = call.game()
-        call.html("map.peb", mapOf("campaign" to c, "module" to m, "map" to MapService.view(graph.snapshot(c.id), m)))
+        call.html("map.peb", mapOf("campaign" to c, "module" to m, "map" to MapService.view(graph.snapshot(c.id), m), "base" to "/c/${c.id}"))
     }
 
     // The whole campaign as a JSON file, to keep as a backup or import elsewhere (home page)
@@ -80,6 +80,6 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
 
     get("/map.pdf") {
         val (c, m) = call.game()
-        call.pdf("${slug(c.name)}-map") { print.mapPdf(c, m) }
+        call.pdf("${slug(c.name)}-map") { print.mapPdf(c, c.name, MapService.view(graph.snapshot(c.id), m)) }
     }
 }

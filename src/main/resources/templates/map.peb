@@ -1,13 +1,14 @@
 {% extends "layout.peb" %}
-
-{% block title %}Map · {{ campaign.name }}{% endblock %}
+{# A map page: the campaign's (base = the campaign), or a node's own, e.g. a dungeon's rooms (node set, base = the node). #}
+{% block title %}Map · {% if node is not null %}{{ displayTitle }}{% else %}{{ campaign.name }}{% endif %}{% endblock %}
 {% block crumbs %}
   <span class="sep">/</span> <a href="/c/{{ campaign.id }}">{{ campaign.name }}</a>
+  {% if node is not null %}<span class="sep">/</span> <a href="{{ base }}">{{ displayTitle }}</a>{% endif %}
   <span class="sep">/</span> Map
 {% endblock %}
 
 {% block content %}
-<h1>Map{% if map.places is not empty %} <a class="small" href="/c/{{ campaign.id }}/map.pdf" target="_blank">Print</a>{% endif %}</h1>
+<h1>Map{% if map.places is not empty %} <a class="small" href="{{ base }}/map.pdf" target="_blank">Print</a>{% endif %}</h1>
 {% if map.places is not empty %}
   <div class="card map-card">{% include "map/_svg.peb" with {"links": true} %}</div>
 {% endif %}

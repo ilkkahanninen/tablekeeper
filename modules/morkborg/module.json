@@ -68,6 +68,7 @@
       "overview": ["state"],
       "printTemplate": "morkborg/print/place.peb",
       "printNested": [{ "rel": "room_in:in", "show": "located_at:in" }],
+      "map": { "places": "room_in:in", "shape": "circle" },
       "linkOrder": ["Rooms", "*", "Featured in"],
       "quickCreate": [
         { "type": "mb.room",   "rel": "room_in:in" },
@@ -91,6 +92,7 @@
       "mapShape": "none",
       "context": "room_in:out",
       "linkSlots": [{ "label": "Dungeon", "rels": ["room_in:out"] }],
+      "linkOrder": ["Connects to", "*"],
       "printSummary": { "parts": ["{description}"] },
       "quickCreate": [
         { "type": "core.npc",  "rel": "located_at:in" },
@@ -213,6 +215,7 @@
   "edgeTypes": [
     { "id": "part_of",      "label": "is in",           "inverseLabel": "dungeons", "from": ["mb.dungeon"], "to": ["mb.location"] },
     { "id": "room_in",      "label": "is a room of",    "inverseLabel": "rooms",    "from": ["mb.room"],    "to": ["mb.dungeon"] },
+    { "id": "connects",     "label": "connects to",     "inverseLabel": "connects to", "from": ["mb.room"], "to": ["mb.room"] },
     { "id": "came_to_pass", "label": "came to pass in", "inverseLabel": "miseries", "from": ["mb.misery"],  "to": ["core.session"] }
   ]
 }

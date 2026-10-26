@@ -667,4 +667,49 @@ class GameModulesTest {
         assertEquals(37, verse["enum"].size(), "1:1 to 6:6, then 7:7")
         assertEquals(37, verse["x-enumDescriptions"].size())
     }
+
+    @Test
+    fun `a morkborg dungeon has a map of its rooms, heart types have none`() {
+        val (option, shape) = morkborg.nodeMap("mb.dungeon")!!
+        assertEquals("room_in:in", option.key)
+        assertEquals("circle", shape)
+        assertNull(morkborg.nodeMap("mb.location"))
+        assertTrue(heart.nodeTypes.all { heart.nodeMap(it.id) == null })
+        assertNull(morkborg.mapShape("mb.room"), "rooms stay off the campaign map")
+    }
+
+    @Test
+    fun `a dungeon map draws its rooms and the passages between them`() {
+        val c = UUID.randomUUID()
+        fun node(type: String, title: String) = Node(UUID.randomUUID(), c, type, title, title, "", emptyMap(), "gm")
+        val crypt = node("mb.dungeon", "Plague crypt")
+        val other = node("mb.dungeon", "Death church")
+        val hall = node("mb.room", "Hall"); val ossuary = node("mb.room", "Ossuary"); val nave = node("mb.room", "Nave")
+        val altar = node("mb.room", "Altar")   // in the other dungeon
+        val graph = CampaignGraph(listOf(crypt, other, hall, ossuary, nave, altar), listOf(
+            EdgeRef(hall.id, crypt.id, "room_in"), EdgeRef(ossuary.id, crypt.id, "room_in"), EdgeRef(nave.id, crypt.id, "room_in"),
+            EdgeRef(altar.id, other.id, "room_in"),
+            EdgeRef(hall.id, ossuary.id, "connects"), EdgeRef(nave.id, ossuary.id, "connects"), EdgeRef(nave.id, altar.id, "connects"),
+        ))
+        val map = tablekeeper.map.MapService.nodeView(graph, morkborg, crypt)!!
+        assertEquals(setOf("Hall", "Ossuary", "Nave"), map.places.map { it.title }.toSet())
+        assertTrue(map.places.all { it.shape == "circle" })
+        assertEquals(2, map.lines.size, "Hall–Ossuary and Ossuary–Nave; the passage out to another dungeon's room isn't drawn")
+        assertNull(tablekeeper.map.MapService.nodeView(graph, morkborg, hall), "rooms have no map of their own")
+        // One two-way link: a room lists the rooms it connects to whichever end it was made from
+        assertEquals(listOf("connects:out"), morkborg.linkOptions("mb.room").filter { it.edgeType == "connects" }.map { it.key })
+    }
+
+    @Test
+    fun `a map over an unknown rel or with no shape fails module load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", "map": {"places": "rooms:in", "shape": "none"}}]}"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
+        assertTrue("map places 'rooms:in' is not a link option" in e.message.orEmpty(), e.message)
+        assertTrue("map shape 'none'" in e.message.orEmpty(), e.message)
+        dir.deleteRecursively()
+    }
 }

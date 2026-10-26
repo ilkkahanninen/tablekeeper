@@ -10,7 +10,7 @@
 <div class="node-page">
   {# Across both columns: the type line, then the title with the node's ⋯ menu on its right #}
   <div class="node-head">
-    <p class="muted small">{% include "node/_icon.peb" with {"type": node.type, "code": node.code} %} {{ typeLabel }} · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
+    <p class="muted small">{% include "node/_icon.peb" with {"type": node.type, "code": node.code} %} {{ typeLabel }} · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a>{% if hasMap %} · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/map">Map</a>{% endif %}</p>
     <div class="title-bar">
       {% include "node/_title.peb" %}
       <details class="dropdown more-menu">

@@ -12,10 +12,9 @@
   <header class="top">
     <a class="brand" href="/">Tablekeeper</a>
     {% block crumbs %}{% endblock %}
-    {# On every campaign page: campaign-wide pages, and create any kind of node (named from its random tables, or "New <type>"), then open it #}
+    {# On every campaign page: campaign-wide pages (the map is linked from the campaign page), and create any kind of node (named from its random tables, or "New <type>"), then open it #}
     {% if campaign is not null and module is not null %}
       <nav class="top-nav">
-        <a href="/c/{{ campaign.id }}/map">Map</a>
         {% for v in module.views %}<a href="/c/{{ campaign.id }}/v/{{ v.id }}">{{ v.label }}</a>{% endfor %}
         <a href="/c/{{ campaign.id }}/tables">Tables</a>
       </nav>

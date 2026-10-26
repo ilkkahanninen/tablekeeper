@@ -196,6 +196,10 @@ class ResolvedModule(
     /** The type's `mapBetween` link option, e.g. a delve's "connects" (to the landmarks it's drawn between). */
     fun mapBetween(typeId: String): LinkOption? = inherited(typeId) { it.mapBetween }?.let { linkOption(typeId, it) }
 
+    /** The type's own map (`map`): the link option to its places and their shape; null = its nodes have no map. */
+    fun nodeMap(typeId: String): Pair<LinkOption, String>? =
+        inherited(typeId) { it.map }?.let { d -> linkOption(typeId, d.places)?.let { it to d.shape } }
+
     /** The type's `context` link option, e.g. a minor location's "is part of" (its landmark). */
     fun context(typeId: String): LinkOption? = inherited(typeId) { it.context }?.let { linkOption(typeId, it) }
 

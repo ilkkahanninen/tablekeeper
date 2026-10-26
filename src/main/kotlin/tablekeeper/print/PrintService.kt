@@ -81,6 +81,7 @@ data class PacketModel(val map: MapView, val views: List<ViewData>, val sections
  * so templates read `item.props`, `item.groups`…; a node's own print gets them as top-level variables ([asMap]).
  * [flags]: ticked checkboxes with an "x-trueLabel" (e.g. "dead"), shown next to the title instead of as rows.
  * [notes]: the node's notes as HTML: formatting, and `[[mentions]]` of nodes the audience may see in bold ([Notes.html]).
+ * [nodeMap]: the node's own map (its type's `map`, e.g. a dungeon's rooms), when it has places; `map` is a packet's campaign map.
  */
 data class PrintModel(
     val campaign: Campaign,
@@ -95,6 +96,7 @@ data class PrintModel(
     val audience: String,
     val notes: String = "",
     val packet: PacketModel? = null,
+    val nodeMap: MapView? = null,
 ) {
     /** [linkedProps] as tables: a row per linked node, a column per prop (e.g. a delve's landmarks with Tier and Domains). */
     val linkedPropTables: List<LinkedPropTable> get() = linkedPropTables(linkedProps)
@@ -103,7 +105,7 @@ data class PrintModel(
         "campaign" to campaign, "node" to node, "typeLabel" to typeLabel, "displayTitle" to displayTitle,
         "props" to props, "flags" to flags, "linkedProps" to linkedProps, "linkedPropTables" to linkedPropTables,
         "groups" to groups, "facts" to facts,
-        "audience" to audience, "notes" to notes,
+        "audience" to audience, "notes" to notes, "nodeMap" to nodeMap,
     ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous) }.orEmpty()
 }
 
@@ -155,6 +157,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             audience = audience.name.lowercase(),
             notes = Notes.html(node.body, mentions),
             packet = module.packet(node.type)?.takeIf { withPacket }?.let { packet(campaign, module, node, it, audience, all) },
+            nodeMap = MapService.nodeView(all.filter { audience.canSee(it.visibility) }, module, node)?.takeIf { it.places.isNotEmpty() },
         )
     }
 
@@ -246,9 +249,9 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         return Imposition.columns(cover, parts, columns)
     }
 
-    /** The campaign map as a one-page PDF. */
-    fun mapPdf(campaign: Campaign, module: ResolvedModule): ByteArray =
-        pdf(templates.render("print/map.peb", mapOf("campaign" to campaign, "map" to MapService.view(graph.snapshot(campaign.id), module))))
+    /** A map (the campaign's, or a node's own) as a one-page PDF headed "[title] · Map". */
+    fun mapPdf(campaign: Campaign, title: String, map: MapView): ByteArray =
+        pdf(templates.render("print/map.peb", mapOf("campaign" to campaign, "title" to title, "map" to map)))
 
     private fun template(module: ResolvedModule, node: Node) = module.printTemplate(node.type) ?: "print/generic.peb"
 

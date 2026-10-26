@@ -55,6 +55,8 @@ data class NodeTypeDef(
     val mapDepth: String? = null,
     /** Link to the places this type is drawn between on the map, e.g. a delve's landmarks; its depth is their average. Missing = inherit. */
     val mapBetween: String? = null,
+    /** This type's nodes have a map of their own (a dungeon's rooms), shown from their page and on their prints. Missing = inherit. */
+    val map: NodeMapDef? = null,
     /**
      * Columns of this type's table on the campaign home: prop names, or "@rel" for linked titles
      * (e.g. "@connects:out"). Link slots are added automatically. Missing = inherit.
@@ -137,6 +139,10 @@ val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrintNestedDef(val rel: String, val show: String)
+
+/** A node's own map: the nodes it links via [places] (e.g. a dungeon's rooms, "room_in:in"), drawn as [shape], and the links between them. */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class NodeMapDef(val places: String, val shape: String = "circle")
 
 /**
  * When a node of this type is listed on another node's card: list it under [group] instead of the

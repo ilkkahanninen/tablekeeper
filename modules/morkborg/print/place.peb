@@ -1,8 +1,8 @@
 {% extends "print/base.peb" %}
 {#
-  MÖRK BORG dungeon print (A4): its rooms with what's in them. Lives in the module folder, so it can be edited without
+  MÖRK BORG dungeon print (A4): its room map, then its rooms with what's in them. Lives in the module folder, so it can be edited without
   rebuilding the app. The body is shared with the session packet: see _entry.peb.
 #}
 {% block main %}
-  {% include "morkborg/print/_entry.peb" %}
+  {% include "morkborg/print/_entry.peb" with {"mapWidth": 680} %}
 {% endblock %}

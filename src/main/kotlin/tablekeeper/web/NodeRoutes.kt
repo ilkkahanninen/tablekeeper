@@ -11,7 +11,9 @@ import io.ktor.server.routing.post
 import tablekeeper.core.Audience
 import tablekeeper.core.BadRequest
 import tablekeeper.core.Json
+import tablekeeper.core.NotFound
 import tablekeeper.core.Visibility
+import tablekeeper.map.MapService
 import tablekeeper.modules.PropsForm
 
 /** Under /c/{cid}/n/{nid}: a node's page, its links, and its print. */
@@ -175,6 +177,22 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
     get("/print") {
         val (c, m) = call.game()
         call.respondText(print.html(c, m, call.node(c), Audience.of(call.request.queryParameters["audience"])), ContentType.Text.Html)
+    }
+
+    // The node's own map (its type's "map", e.g. a dungeon's rooms), linked next to Print on its page
+    get("/map") {
+        val (c, m) = call.game()
+        val n = call.node(c)
+        val map = MapService.nodeView(graph.snapshot(c.id), m, n) ?: throw NotFound("Map")
+        call.html("map.peb", mapOf("campaign" to c, "module" to m, "map" to map, "node" to n, "displayTitle" to m.displayTitle(n),
+            "base" to "/c/${c.id}/n/${n.id}"))
+    }
+
+    get("/map.pdf") {
+        val (c, m) = call.game()
+        val n = call.node(c)
+        val map = MapService.nodeView(graph.snapshot(c.id), m, n) ?: throw NotFound("Map")
+        call.pdf("${n.code}-${slug(n.title)}-map") { print.mapPdf(c, m.displayTitle(n), map) }
     }
 
     get("/print.pdf") {

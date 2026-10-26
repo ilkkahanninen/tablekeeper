@@ -96,7 +96,8 @@
         <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
         {# Pebble's include takes a literal map: pass the entry's print model through #}
         {% include "morkborg/print/_entry.peb" with {"node": item.node, "props": item.props, "linkedPropTables": item.linkedPropTables,
-            "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes} %}
+            "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes,
+            "nodeMap": item.nodeMap, "mapWidth": 320} %}
       </div>
     {% endfor %}
   {% endif %}{% endfor %}

@@ -62,6 +62,8 @@ class NodePage(
         "node" to n,
         "typeLabel" to m.label(n.type),
         "displayTitle" to m.displayTitle(n),
+        // A Map link next to Print: the type has a map of its own (e.g. a dungeon's rooms)
+        "hasMap" to (m.nodeMap(n.type) != null),
         // Notes and long-text props as shown when not editing: formatting, and [[mentions]] as links to the nodes
         "notes" to format(n.body),
         "fieldViews" to PropsForm.fields(m.propsSchema(n.type), n.props).filter { it.kind == "textarea" || it.kind == "list" }

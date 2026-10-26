@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>{{ campaign.name }}: map</title>
+<title>{{ title }}: map</title>
 <style>
   @page { size: A4 landscape; margin: 10mm; }
   body { font-family: serif; color: #111; margin: 0; }
@@ -11,7 +11,7 @@
 </style>
 </head>
 <body>
-  <h1>{{ campaign.name }} · Map</h1>
+  <h1>{{ title }} · Map</h1>
   {% if map.places is empty %}
     <p class="empty">No places yet.</p>
   {% else %}

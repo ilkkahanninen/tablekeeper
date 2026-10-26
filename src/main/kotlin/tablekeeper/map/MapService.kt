@@ -1,6 +1,9 @@
 package tablekeeper.map
 
 import tablekeeper.core.CampaignGraph
+import tablekeeper.core.EdgeRef
+import tablekeeper.core.Node
+import tablekeeper.modules.MapDepth
 import tablekeeper.modules.ResolvedModule
 import java.util.UUID
 import kotlin.math.roundToInt
@@ -21,30 +24,57 @@ data class MapLine(val x1: Int, val y1: Int, val x2: Int, val y2: Int, val minor
 /** A horizontal guide for one depth, e.g. "Tier 2", at the height its places were drawn. */
 data class MapLevel(val label: String, val y: Int)
 
+/** A drawing: the part [x], [y], [width] × [height] of the 1400×990 layout (a node's map is cropped to its places). */
 data class MapView(val width: Int, val height: Int, val places: List<MapPlace>, val lines: List<MapLine>,
-                   val levels: List<MapLevel> = emptyList())
+                   val levels: List<MapLevel> = emptyList(), val x: Int = 0, val y: Int = 0)
 
 /**
- * The campaign map: node types with a module `mapShape` are places, and links between places are lines.
+ * Maps. The campaign map: node types with a module `mapShape` are places, and links between places are lines.
  * Places whose type has a `mapDepth` prop (Heart's tier) are drawn lower the higher it is; `mapBetween` types (delves)
- * take the average depth of what they link to. GM view.
+ * take the average depth of what they link to. A node's own map ([nodeView], the type's `map`, e.g. a dungeon's rooms):
+ * the nodes it links that way, and the links between them. GM view.
  */
 object MapService {
 
     fun view(graph: CampaignGraph, module: ResolvedModule, highlight: Set<UUID> = emptySet()): MapView {
         val onMap = graph.filter { module.mapShape(it.type) != null }
         val places = onMap.nodes.map { n -> n to module.mapShape(n.type)!! }
-        val shapes = places.associate { (n, shape) -> n.id to shape }
-
-        // Undirected, deduplicated place-to-place links (delve–landmark, minor location–landmark, ...)
-        val lines = onMap.edges.filter { it.fromId in shapes && it.toId in shapes }
-            .map { setOf(it.fromId, it.toId) }.distinct().filter { it.size == 2 }.map { it.toList() }
-
         // Depth = the type's mapDepth prop, e.g. a landmark's tier; unset tiers (and ones like Rogue) leave the place free
         val depths = places.mapNotNull { (n, _) -> module.depthOf(n.type, n.props)?.let { n.id to it } }.toMap()
         // Delves are drawn between their landmarks (mapBetween); minor locations around theirs (context)
         val between = places.mapNotNull { (n, _) -> module.mapBetween(n.type)?.let { n.id to onMap.linkedNodes(n.id, it.edgeType, it.direction).map { it.id } } }.toMap()
         val satellites = places.mapNotNull { (n, _) -> module.parent(onMap, n)?.let { n.id to it.id } }.toMap()
+        return draw(module, places, onMap.edges, depths, between, satellites, highlight)
+    }
+
+    /** [node]'s own map (its type's `map`): the nodes it links via the map's rel, in its shape; null if the type has none. */
+    fun nodeView(graph: CampaignGraph, module: ResolvedModule, node: Node): MapView? {
+        val (option, shape) = module.nodeMap(node.type) ?: return null
+        val places = graph.linkedNodes(node.id, option.edgeType, option.direction).map { it to shape }
+        return crop(draw(module, places, graph.edges, emptyMap(), emptyMap(), emptyMap(), emptySet()))
+    }
+
+    /** [map] cut down to its places and their labels (a few rooms would otherwise sit small in a page-sized drawing). */
+    private fun crop(map: MapView): MapView {
+        if (map.places.isEmpty()) return map
+        val pad = 40
+        val left = map.places.minOf { it.x - maxOf(BODY.getValue(it.shape), labelWidth(it.code, it.title, it.shape) / 2).roundToInt() } - pad
+        val right = map.places.maxOf { it.x + maxOf(BODY.getValue(it.shape), labelWidth(it.code, it.title, it.shape) / 2).roundToInt() } + pad
+        val top = map.places.minOf { it.y - BODY.getValue(it.shape).roundToInt() } - pad
+        val bottom = map.places.maxOf { it.y + LABEL_BELOW.getValue(it.shape) } + pad
+        // Not flatter than 2:1, so a row of rooms keeps some height around it
+        val height = maxOf(bottom - top, (right - left) / 2)
+        return map.copy(x = left, y = (top + bottom - height) / 2, width = right - left, height = height)
+    }
+
+    private fun draw(
+        module: ResolvedModule, places: List<Pair<Node, String>>, edges: List<EdgeRef>, depths: Map<UUID, MapDepth>,
+        between: Map<UUID, List<UUID>>, satellites: Map<UUID, UUID>, highlight: Set<UUID>,
+    ): MapView {
+        val shapes = places.associate { (n, shape) -> n.id to shape }
+        // Undirected, deduplicated place-to-place links (delve–landmark, minor location–landmark, room–room, ...)
+        val lines = edges.filter { it.fromId in shapes && it.toId in shapes }
+            .map { setOf(it.fromId, it.toId) }.distinct().filter { it.size == 2 }.map { it.toList() }
 
         val pos = MapLayout.layout(
             places.map { (n, shape) ->
@@ -91,4 +121,6 @@ object MapService {
     private const val CLEARANCE = 40.0
     /** Half-size of each shape as drawn in map/_svg.peb. */
     private val BODY = mapOf("circle" to 26.0, "diamond" to 17.0, "dot" to 7.0)
+    /** How far below a place's centre its label ends, as drawn in map/_svg.peb. */
+    private val LABEL_BELOW = mapOf("circle" to 56, "diamond" to 44, "dot" to 28)
 }
