@@ -43,6 +43,8 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
         rel("mapBetween", def.mapBetween) +
         rel("map places", def.map?.places) +
         def.map?.shape?.takeIf { it !in MAP_SHAPES || it == "none" }?.let { "$t: map shape '$it' is not one of ${(MAP_SHAPES - "none").joinToString()}" } +
+        def.map?.let { m -> m.highlight?.takeIf { h -> linkOption(t, m.places)?.let { o -> placeTypes(o).none { propSchema(it, h)?.get("type")?.asText() == "boolean" } } ?: false } }
+            ?.let { "$t: map highlight '$it' is not a boolean prop of its places" } +
         def.overview.orEmpty().map { col ->
             if (col.startsWith("@")) "$t: overview '$col' is not a link option of $t".takeIf { col.drop(1) !in options }
             else prop("overview", col)
@@ -85,6 +87,58 @@ private fun ResolvedModule.debriefErrors(t: String, g: DebriefDef): List<String?
                 },
             ) + l.fields.filter { f -> l.create != null && l.create in types && !hasProp(listOf(l.create), f) }
                 .map { "$t: debrief link field '$it' is not a prop of ${l.create}" }
+        }
+}
+
+/** Types that can sit at the far end of [option], e.g. a dungeon's rooms for "room_in:in". */
+private fun ResolvedModule.placeTypes(option: LinkOption): List<String> = types.keys.filter { acceptsOther(option, it) }
+
+/** The type a generator group makes: its own, or the first type its generator makes (null: unknown or circular). */
+private fun ResolvedModule.groupType(g: GenNodeDef, seen: Set<String> = emptySet()): String? =
+    g.type ?: g.generator?.takeIf { it !in seen }?.let { generator(it) }?.nodes?.firstOrNull()?.let { groupType(it, seen + g.generator!!) }
+
+/** Does generator [id] use generator [target], itself or through the generators it uses? */
+private fun ResolvedModule.uses(id: String, target: String, seen: Set<String> = emptySet()): Boolean =
+    id == target || (id !in seen && generator(id)?.nodes.orEmpty().any { n -> n.generator?.let { uses(it, target, seen + id) } == true })
+
+/** Problems with starter tables and generators; empty list = valid. */
+internal fun ResolvedModule.generatorErrors(): List<String> {
+    val fillable = fillableFields().map { it.key }.toSet()
+    return tables.flatMap { tb -> tb.fields.filter { it !in fillable }.map { "table '${tb.name}': field '$it' is not a title or text field of a type" } } +
+        generators.flatMap { g ->
+            val seen = mutableSetOf<String>()
+            g.nodes.flatMap { n ->
+                val where = "generator '${g.id}' ${n.id}"
+                val type = groupType(n)
+                val errors = when {
+                    (n.type == null) == (n.generator == null) -> listOf("$where: give either a type or a generator")
+                    n.generator != null && generator(n.generator) == null -> listOf("$where: generator '${n.generator}' is unknown")
+                    n.generator != null && uses(n.generator, g.id) -> listOf("$where: generator '${n.generator}' uses '${g.id}' in turn")
+                    type == null || type !in types -> listOf("$where: type '${n.type}' is unknown")
+                    else -> listOfNotNull(
+                        "$where: count must be n or [min, max]".takeIf { n.count.size !in 1..2 || n.count.any { it < 0 } || n.count.first() > n.count.last() },
+                        n.link?.let { l ->
+                            when {
+                                l.to !in seen -> "$where: link to '${l.to}' is not an earlier group"
+                                linkOption(type, l.rel) == null -> "$where: link '${l.rel}' is not a link option of $type"
+                                l.pick !in setOf("first", "random") -> "$where: link pick '${l.pick}' is not first or random"
+                                else -> null
+                            }
+                        },
+                    ) + (n.fill + n.chance.keys + n.first.keys + n.row?.columns.orEmpty()).distinct().filter { f -> f != "title" && propSchema(type, f) == null }
+                        .map { "$where: field '$it' is not a prop of $type" }
+                }
+                seen += n.id
+                errors
+            } + g.connect?.let { c ->
+                val group = g.nodes.firstOrNull { it.id == c.nodes }
+                listOfNotNull(
+                    "generator '${g.id}': connect '${c.nodes}' is not a group".takeIf { group == null },
+                    "generator '${g.id}': connect '${c.rel}' is not a link option of ${group?.let(::groupType)}"
+                        .takeIf { group != null && groupType(group).let { it != null && it in types && linkOption(it, c.rel) == null } },
+                    "generator '${g.id}': layout '${c.layout}' is not one of ${GEN_LAYOUTS.joinToString()}".takeIf { c.layout !in GEN_LAYOUTS },
+                )
+            }.orEmpty()
         }
 }
 

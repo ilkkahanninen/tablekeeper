@@ -25,11 +25,15 @@
                hx-get="/c/{{ campaign.id }}/find" hx-trigger="input changed delay:150ms, focus" hx-target="#find-results">
         <div id="find-results" class="menu find-results" role="listbox"></div>
       </div>
-      {# Create ▾: a menu of node types (icon + name, A–Z); picking one posts its "type" and opens the new node #}
+      {# Create ▾: a menu of node types (icon + name, A–Z); picking one posts its "type" and opens the new node. Then the game's
+         generators, which post to their own route (formaction) and open what they made. #}
       <details class="dropdown top-create">
         <summary class="primary">Create ▾</summary>
         <form class="menu dropdown-choices" method="post" action="/c/{{ campaign.id }}/nodes">
           {% for t in module.nodeTypes %}<button class="menu-item" name="type" value="{{ t.id }}"><span class="type-icon" aria-hidden="true"><svg><use href="/static/icons.svg#{{ module.icon(t.id) }}"/></svg></span> {{ t.label }}</button>{% endfor %}
+          {# The game's generators: a whole thing (a dungeon with its rooms) in one click #}
+          {% if module.generators is not empty %}<hr class="menu-sep">{% endif %}
+          {% for g in module.generators %}<button class="menu-item" formaction="/c/{{ campaign.id }}/generate/{{ g.id }}"><span class="type-icon" aria-hidden="true"><svg><use href="/static/icons.svg#dices"/></svg></span> Generate {{ g.label | lower }}</button>{% endfor %}
         </form>
       </details>
     {% endif %}

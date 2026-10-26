@@ -712,4 +712,57 @@ class GameModulesTest {
         assertTrue("map shape 'none'" in e.message.orEmpty(), e.message)
         dir.deleteRecursively()
     }
+
+    @Test
+    fun `morkborg ships its dungeon tables and a dungeon generator`() {
+        assertEquals(listOf("Dungeon names", "Who lurks", "Room features", "Traps", "Bestiary"), morkborg.tables.map { it.name })
+        val bestiary = morkborg.tables.single { it.name == "Bestiary" }
+        assertEquals(12, bestiary.items.size)
+        assertTrue(bestiary.items.all { it.split("|").size == 7 }, "name | HP | morale | armor | attack | special | worth")
+        assertTrue(morkborg.tables.first().mix, "names mix the book's two columns")
+        assertEquals(listOf("dungeon", "rooms", "creatures"), morkborg.generator("dungeon")!!.nodes.map { it.id })
+        assertEquals("creature", morkborg.generator("dungeon")!!.nodes.last().generator)
+        assertEquals("entrance", morkborg.nodeMap("mb.dungeon")!!.highlight)
+        assertTrue(heart.generators.isEmpty())
+    }
+
+    @Test
+    fun `bad tables and generators fail module load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad",
+                "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P"}],
+                "tables": [{"name": "Names", "items": ["A"], "fields": ["bad.place:smell"]}],
+                "generators": [{"id": "g", "label": "G", "nodes": [
+                  {"id": "a", "type": "bad.place", "fill": ["size"], "link": {"rel": "relates_to:out", "to": "b"}},
+                  {"id": "b", "type": "bad.nope"}],
+                  "connect": {"nodes": "a", "rel": "relates_to:out", "layout": "spiral"}}]}"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty()
+        listOf("field 'bad.place:smell'", "field 'size' is not a prop", "link to 'b' is not an earlier group", "type 'bad.nope' is unknown", "layout 'spiral'")
+            .forEach { assertTrue(it in e, "$it in: $e") }
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `bad nested generators and row columns fail module load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad",
+                "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P"}],
+                "generators": [
+                  {"id": "g", "label": "G", "nodes": [
+                    {"id": "both", "type": "bad.place", "generator": "h"},
+                    {"id": "ghost", "generator": "nope"},
+                    {"id": "loop", "generator": "h"},
+                    {"id": "row", "type": "bad.place", "row": {"table": "T", "columns": ["title", "hp"]}}]},
+                  {"id": "h", "label": "H", "nodes": [{"id": "back", "generator": "g"}]}]}"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty()
+        listOf("both: give either a type or a generator", "ghost: generator 'nope' is unknown", "loop: generator 'h' uses 'g' in turn",
+            "row: field 'hp' is not a prop").forEach { assertTrue(it in e, "$it in: $e") }
+        dir.deleteRecursively()
+    }
 }

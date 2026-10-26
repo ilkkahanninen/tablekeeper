@@ -102,7 +102,7 @@ class GraphService(private val db: DSLContext) {
         )
     }
 
-    /** All edges touching a node, seen from that node. */
+    /** All edges touching a node, seen from that node: by link type, then by code in number order (R2 before R10). */
     fun links(campaignId: UUID, nodeId: UUID): List<Link> =
         db.fetch(
             """select e.id as edge_id, e.type as edge_type, 'OUT' as dir, $refCols
@@ -111,8 +111,7 @@ class GraphService(private val db: DSLContext) {
                union all
                select e.id, e.type, 'IN', $refCols
                from edges e join nodes n on n.id = e.from_id
-               where e.campaign_id = ? and e.to_id = ?
-               order by 2, 6""",
+               where e.campaign_id = ? and e.to_id = ?""",
             campaignId, nodeId, campaignId, nodeId,
         ).map {
             Link(
@@ -121,7 +120,7 @@ class GraphService(private val db: DSLContext) {
                 direction = Direction.valueOf(it.get("dir", String::class.java)),
                 other = toRef(it),
             )
-        }
+        }.sortedWith(compareBy<Link>({ it.type }, { codeOrder(it.other.code).first }, { codeOrder(it.other.code).second }))
 
     /** Every edge in the campaign, for whole-graph views like the map. */
     fun listEdges(campaignId: UUID): List<EdgeRef> =
@@ -200,3 +199,7 @@ class GraphService(private val db: DSLContext) {
         visibility = r.get("visibility", String::class.java),
     )
 }
+
+/** A code's prefix and number, to sort codes in number order: "R10" -> ("R", 10). */
+internal fun codeOrder(code: String): Pair<String, Int> =
+    Regex("^(.*?)(\\d+)$").find(code)?.let { it.groupValues[1] to it.groupValues[2].toInt() } ?: (code to 0)

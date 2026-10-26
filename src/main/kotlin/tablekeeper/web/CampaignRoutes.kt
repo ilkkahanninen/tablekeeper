@@ -46,6 +46,14 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
         call.respondRedirect("/c/${c.id}/n/${n.id}?new=1")   // a new node opens with its title selected
     }
 
+    // A module's generator (Create ▾ → Generate dungeon): makes its nodes and links, then opens the first with its name selected
+    post("/generate/{gid}") {
+        val (c, m) = call.game()
+        val def = m.generator(call.parameters["gid"].orEmpty()) ?: throw NotFound("Generator")
+        val first = generate.run(c, m, def)
+        call.respondRedirect("/c/${c.id}/n/${first.id}?new=1")
+    }
+
     // Module views, e.g. Heart's GM inspiration page: the module's template over the campaign's nodes of some types.
     get("/v/{view}") {
         val (c, m) = call.game()

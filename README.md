@@ -35,6 +35,9 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
   - **Creatures:** one type for monsters and people, as in the rules: HP, morale, armor, attack, special, worth, and dead.
   - **Characters:** player, class (the book's six plus Scvmbirther's extras), terrible trait, broken body, bad habit, troubling tale, and dead.
   - **Items:** weapons, armor, scrolls and treasure, with damage, armor tier, value and effect.
+  - **Generate dungeon** (in **Create ▾**): a whole dungeon in one click, from the book's tables. It gets a name ("The Plague maze"), a state and who lurks there. Its ten rooms each have a feature, and some have a trap. They grow from the entrance (filled red on the map) in corridors and side branches, with a loop or two. Two to four creatures wait in rooms, each made by **Generate creature**.
+  - **Generate creature** (in **Create ▾**): one of the book's creatures with its whole stat block (HP, morale, armor, attack, special, worth), from the **Bestiary** table, one creature per line: `Goblin | 6 | 7 | Ropy skin -d2 | Knife/shortbow d4 | … | Head 7s, …`. Add your own monsters there in the same columns.
+  - A new campaign gets the tables on its **Tables** page (an older one: **Add the game's tables**), so you can edit or extend them.
   - **Miseries:** the Calendar of Nechrubel. Add one from the session it came to pass in, pick its verse (the psalm shows on hover), and the campaign page lists them in verse order.
 - **Random tables:** your own lists, with one item per line, linked to fields like *NPC: Title*.
   - A **Random** button fills the field; with several tables, it shows a menu.
@@ -169,7 +172,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `overview`, `overviewSort`, `overviewMuted` | Campaign page columns (props or `@rel`), row order, greyed rows | sessions by `date`, dead NPCs |
 | `printTemplate`, `printSummary`, `printNested` | Print card template; how it's listed on other cards (`group` + parts); nested lists | equipment "Kill d8 · Brutal" |
 | `mapShape`, `mapDepth`, `mapBetween` | Campaign map: shape (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off the map); depth from a prop; drawn between linked places | landmarks by tier, delves between |
-| `map` | The type's own map: `{ "places": "<rel>", "shape": "circle" }` draws the nodes linked that way and the links between them; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms |
+| `map` | The type's own map: `{ "places": "<rel>", "shape": "circle", "highlight": "<boolean prop>" }` draws the nodes linked that way and the links between them, highlighted ones filled red; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms, entrance |
 | `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time") | Heart session |
 | `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
 
@@ -180,6 +183,15 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 - `patchTypes`: change settings on inherited types.
 - `overviewOrder`: campaign page order.
 - `views`: extra pages with a template, `types`, `groupBy` and `links`.
+- `tables`: starter random tables (`name`, `items`, `mix`, `fields` as `"<type>:<field>"`), added to the game's new campaigns.
+- `generators`: one-click **Generate …** entries in **Create ▾**. Each `nodes` group makes `count` nodes (`n` or `[min, max]`) of a `type`:
+  - `fill` rolls fields on the campaign's tables (an enum without one gets a random value), and `chance` fills a field only that often.
+  - `first` sets values on the group's first node, `title` is a fallback pattern (`"Room {n}"`), and `link` (`rel`, `to` an earlier group, `pick` `first` or `random`) links each node.
+  - `row` (`table` by name, `columns`) fills several fields from one roll on a table of `|`-separated rows, typed by the props schema; without that table the group falls back to `fill` and `title`.
+  - `generator` instead of `type`: each node of the group is made by another generator, whose first node is the group's member (a dungeon's creatures).
+  - `connect` links a group with a built-in `layout` (`dungeon`).
+
+  See MÖRK BORG's dungeon and creature generators.
 
 **Field options** (inside `props`), in addition to the widgets chosen by schema type (`integer` → number, `enum` → select, `array` of `enum` → checkboxes, `boolean` → checkbox, `string` → text):
 

@@ -8,8 +8,12 @@ import tablekeeper.core.CampaignGraph
 import tablekeeper.core.Direction
 import tablekeeper.core.Link
 import tablekeeper.core.Node
+import tablekeeper.core.TableSeed
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+
+/** A type's own map, resolved: the [option] to its places, their [shape], and the boolean prop that [highlight]s one. */
+data class NodeMap(val option: LinkOption, val shape: String, val highlight: String?)
 
 /** A field a random table can fill: [key] "core.npc:voice", [label] "NPC: Voice". */
 data class FieldOption(val key: String, val label: String)
@@ -25,6 +29,10 @@ class ResolvedModule(
     val views: List<ViewDef> = emptyList(),
     /** Type ids first on the campaign home; the nearest module that declares an order wins. */
     val overviewOrder: List<String> = emptyList(),
+    /** Starter random tables for new campaigns, inherited ones included. */
+    val tables: List<TableSeed> = emptyList(),
+    /** One-click generators (Create ▾), inherited ones included. */
+    val generators: List<GeneratorDef> = emptyList(),
 ) {
     private val schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
     private val schemaCache = ConcurrentHashMap<String, JsonSchema>()
@@ -196,9 +204,11 @@ class ResolvedModule(
     /** The type's `mapBetween` link option, e.g. a delve's "connects" (to the landmarks it's drawn between). */
     fun mapBetween(typeId: String): LinkOption? = inherited(typeId) { it.mapBetween }?.let { linkOption(typeId, it) }
 
-    /** The type's own map (`map`): the link option to its places and their shape; null = its nodes have no map. */
-    fun nodeMap(typeId: String): Pair<LinkOption, String>? =
-        inherited(typeId) { it.map }?.let { d -> linkOption(typeId, d.places)?.let { it to d.shape } }
+    /** The type's own map (`map`): the link option to its places, their shape and highlight prop; null = its nodes have no map. */
+    fun nodeMap(typeId: String): NodeMap? =
+        inherited(typeId) { it.map }?.let { d -> linkOption(typeId, d.places)?.let { NodeMap(it, d.shape, d.highlight) } }
+
+    fun generator(id: String): GeneratorDef? = generators.firstOrNull { it.id == id }
 
     /** The type's `context` link option, e.g. a minor location's "is part of" (its landmark). */
     fun context(typeId: String): LinkOption? = inherited(typeId) { it.context }?.let { linkOption(typeId, it) }

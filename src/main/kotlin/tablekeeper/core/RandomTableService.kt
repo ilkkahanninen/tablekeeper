@@ -11,6 +11,9 @@ data class RandomTable(val id: UUID, val name: String, val items: String, val fi
     val list: List<String> get() = RandomTables.items(items)
 }
 
+/** A starter table a game module ships (module "tables"), added to its new campaigns ([RandomTableService.seed]). */
+data class TableSeed(val name: String, val items: List<String> = emptyList(), val mix: Boolean = false, val fields: List<String> = emptyList())
+
 /** One table offered by a field's Random button: its [id], [name], [items] and whether it [mix]es lines. */
 data class RandomChoice(val id: UUID, val name: String, val items: List<String>, val mix: Boolean = false)
 
@@ -82,6 +85,16 @@ class RandomTableService(private val db: DSLContext) {
                     campaignId, f, campaignId, id,
                 )
             }
+        }
+    }
+
+    /** Adds the [seeds] the campaign has no table of that name for (a game's starter tables), each with its items and fields. */
+    fun seed(campaignId: UUID, seeds: List<TableSeed>) {
+        val have = list(campaignId).map { it.name }.toSet()
+        seeds.filter { it.name !in have }.forEach { s ->
+            val id = create(campaignId, s.name)
+            update(campaignId, id, s.name, s.items.joinToString("\n"), s.mix)
+            setFields(campaignId, id, s.fields)
         }
     }
 

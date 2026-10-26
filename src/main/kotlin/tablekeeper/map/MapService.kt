@@ -49,9 +49,10 @@ object MapService {
 
     /** [node]'s own map (its type's `map`): the nodes it links via the map's rel, in its shape; null if the type has none. */
     fun nodeView(graph: CampaignGraph, module: ResolvedModule, node: Node): MapView? {
-        val (option, shape) = module.nodeMap(node.type) ?: return null
+        val (option, shape, highlight) = module.nodeMap(node.type) ?: return null
         val places = graph.linkedNodes(node.id, option.edgeType, option.direction).map { it to shape }
-        return crop(draw(module, places, graph.edges, emptyMap(), emptyMap(), emptyMap(), emptySet()))
+        val lit = places.filter { (n, _) -> highlight != null && n.props[highlight] == true }.map { it.first.id }.toSet()
+        return crop(draw(module, places, graph.edges, emptyMap(), emptyMap(), emptyMap(), lit))
     }
 
     /** [map] cut down to its places and their labels (a few rooms would otherwise sit small in a page-sized drawing). */

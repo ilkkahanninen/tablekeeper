@@ -33,6 +33,7 @@ import tablekeeper.core.GraphService
 import tablekeeper.core.Node
 import tablekeeper.core.NotFound
 import tablekeeper.core.RandomTableService
+import tablekeeper.generate.GenerateService
 import tablekeeper.modules.GameModules
 import tablekeeper.modules.LinkOption
 import tablekeeper.modules.Linker
@@ -59,6 +60,7 @@ class Deps(
 ) {
     val linker = Linker(graph)
     val nodePage = NodePage(graph, linker, tables, print)
+    val generate = GenerateService(graph, tables, linker)
 
     suspend fun ApplicationCall.html(template: String, model: Map<String, Any?>) =
         respondText(templates.render(template, model), ContentType.Text.Html)
@@ -144,6 +146,7 @@ fun Application.routes(d: Deps) = with(d) {
             val name = p["name"]?.trim().orEmpty().ifEmpty { throw BadRequest("Name is required") }
             val module = modules.get(p["module"] ?: "heart")
             val c = campaigns.create(call.user, name, module.id)
+            tables.seed(c.id, module.tables)   // the game's starter random tables, e.g. MÖRK BORG's dungeon tables
             call.respondRedirect("/c/${c.id}")
         }
 

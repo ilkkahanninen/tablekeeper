@@ -14,6 +14,10 @@
   <button>Add</button>
 </form>
 
+{% if missingSeeds > 0 %}
+  <form method="post" action="/c/{{ campaign.id }}/tables/seed"><button class="secondary">Add the game's tables</button></form>
+{% endif %}
+
 {% if tables is not empty %}
   <div class="table-scroll">
     <table class="overview">

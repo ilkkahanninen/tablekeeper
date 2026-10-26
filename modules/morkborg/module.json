@@ -4,6 +4,31 @@
   "extends": ["core"],
   "hide": ["core.place", "core.pc", "core.item"],
   "overviewOrder": ["core.session", "mb.location", "mb.dungeon", "mb.room", "mb.pc", "core.npc", "mb.item", "mb.misery", "core.faction", "core.fact"],
+  "tables": [
+    { "name": "Dungeon names", "mix": true, "fields": ["mb.dungeon:title"],
+      "items": ["The Slaughter pit", "The Death church", "The Night temple", "The Hadean tunnels", "The Hell crypt", "The Plague grave", "The Sin fort", "The Doom ziggurat", "The Dark den", "The Murder maze", "The Torture house", "The Slave waste"] },
+    { "name": "Who lurks", "fields": ["mb.dungeon:lurker"],
+      "items": ["Animated suits of armor battling goblins", "Nechrubel-worshipping lich with a skeletal court", "Heretic cult lead by a possessed 11-year old", "A vengeful cabal of undead porcelain dolls", "Desperate thieves guild dying slowly of cholera", "A meaty mass of slime, larvae and spider legs", "Wickheads running from foreboding darkness", "A Bark-Witch and her root-children", "Four-legged pale gremlins stinking of dirt", "Tergol's escaped experiment", "Disease spreading ochre-beetles", "Dissident courtiers dedicated to the occult"] },
+    { "name": "Room features", "fields": ["mb.room:description"],
+      "items": ["Inscriptions, the motifs are vomit-inducing", "Inscriptions, the motifs are terrifying", "Inscriptions, the motifs are hypnotic", "Inscriptions, the motifs are childish", "Inscriptions, the motifs are teleportation causing", "Bloodied beds", "Flooded", "Leaning", "Stinks", "Fire damage", "Obvious traps", "Full of blood", "Torture chamber", "Sooty walls", "Freezing draft", "Creaking doors", "Compact darkness", "Locked sarcophagi", "Shelves with obscure literature", "Shelves with rotting food", "Abyssal pits", "Mirrors everywhere", "Ungodly yet exquisite chandeliers", "Utterly silent", "Full of debris", "Sacrificial altar, cracked", "Sacrificial altar, fresh blood", "Remains of a throne", "Smoke-filled", "Bonfire in the center"] },
+    { "name": "Traps", "fields": ["mb.room:trap"],
+      "items": ["Wall-holes shoot poisonous arrows", "Bells and marbles on the floor", "Scorpion-filled basket poised to fall", "Fish hooks hanging at eye level", "Chest marked with explosive runes", "Lock trapped with vial of poison gas", "Jewel removal leads to roof collapse", "Slanted floor, translucent oil, pit", "Snake-cages on collapsing ceiling tiles", "Evil urns release cold ghosts", "Coins coated in grime and poison"] },
+    { "name": "Bestiary", "fields": [],
+      "items": ["Goblin | 6 | 7 | Ropy skin -d2 | Knife/shortbow d4 | Quick: attacks and defence against it are DR14. Its curse: kill it within d6 days of its attack or become a goblin. | Head 7s, captured 150s, dead 20s", "Scum | 7 | 8 | No armor | Poisoned knife d4 | Poisoned knife: Toughness DR10 or infected. The PC with the highest Presence tests DR14 at the start of battle, or a random PC is backstabbed for normal damage +3. | Captured 50–120s, dead 20–70s (wanted)", "Berserker | 13 | 9 | Hardened skin -d2 | Long flail d8, heavy mace d6, chained sword d6 or huge warhammer d10 | Attacks twice per round but doesn't defend (DR10 to hit). | Dead 20s, captured 55s, blood 3s per litre", "Wraith | 15 | – | No armor | Touch d4 | Swift, elusive and hard to hit (DR14); always wins initiative. Its touch drains Strength, Presence and Agility by 1 for the fight. | Captured 120s, skull 70s, ectoplasm 25s", "Blood-drenched skeleton | 7 | 8 | No armor | Shortsword d4, knife d4 or bony knuckles d2 | Soundless, attacks by surprise and mimics voices it has heard. Piercing weapons hit on DR14; 5 or more damage destroys it. | Captured 35s, destroyed 7s", "Undead necromancer | 15 | – | Barrier (necro) -d4 | Strike d6 | Paralyzing touch: Presence DR14 every round to break free. No one can use Powers near it; each round it can steal a nearby scroll's Power and use it against its owner. | Captured 200s, remains 130s, skull 100s", "Troll | 32 | special | Thick hide -d2 | Fist 2d6 | Easy to hit (DR10). Cowardly: retreats when badly wounded, heals into a larger troll and returns with +d6 damage, never forgetting who hurt it. | Captured 200s, corpse 70s, horn 25s", "Zombie | 7 | – | Leather scraps -d2 | Claw/bite d2 | Anyone bitten tests Toughness DR8 or dies within two days and rises as a zombie. | Captured 30s, blood 5s per litre", "Undead doll | 11 | – | Porcelain -d2 | Claws/piercing bite d4 | Mad gaze: Presence DR12 at the start of combat or frozen with fear for d4 rounds. | Head 20s, captured 80s", "Grotesque | 18 | – | Clay/stone -d6 | Claws d6 or eye-beam d8 | Slow and easy to hit (DR10). Its terrifying gaze is used on 1–2 on d6 each round and always hits. | Captured 190s, dead (intact) 100s, dead (in pieces) 10s", "Wickhead knife-wielder | 10 | 7 | No armor | Knife with dried blood d4 | Sneaks up silent as the grave; 25% chance its wounds become infected. Can douse nearby lights, ignite its own blinding light, attack and vanish. | Captured 60s, decapitated lantern 15s, corpse 20s", "Wyvern | 25 | 10 | Thick hide -d4 | Bite/sting d6 | 60% chance she bites. Venomous sting: Toughness DR14 or paralyzed for one painful hour. Where the wyvern fly, crops die. | Captured 200s, corpse 100s, poison gland 60s, tail spike 60s"] }
+  ],
+  "generators": [
+    { "id": "dungeon", "label": "Dungeon",
+      "nodes": [
+        {"id": "dungeon", "type": "mb.dungeon", "fill": ["title", "state", "lurker"]},
+        {"id": "rooms", "type": "mb.room", "count": 10, "title": "Room {n}", "fill": ["description", "trap"], "chance": {"trap": 0.3}, "first": {"title": "Entrance", "entrance": true}, "link": {"rel": "room_in:out", "to": "dungeon"}},
+        {"id": "creatures", "generator": "creature", "count": [2, 4], "link": {"rel": "located_at:out", "to": "rooms", "pick": "random"}}
+      ],
+      "connect": {"nodes": "rooms", "rel": "connects:out", "layout": "dungeon"} },
+    { "id": "creature", "label": "Creature",
+      "nodes": [
+        {"id": "creature", "type": "core.npc", "row": {"table": "Bestiary", "columns": ["title", "hp", "morale", "armor", "attack", "special", "value"]}}
+      ] }
+  ],
   "patchTypes": [
     {
       "id": "core.session",
@@ -68,7 +93,7 @@
       "overview": ["state"],
       "printTemplate": "morkborg/print/place.peb",
       "printNested": [{ "rel": "room_in:in", "show": "located_at:in" }],
-      "map": { "places": "room_in:in", "shape": "circle" },
+      "map": { "places": "room_in:in", "shape": "circle", "highlight": "entrance" },
       "linkOrder": ["Rooms", "*", "Featured in"],
       "quickCreate": [
         { "type": "mb.room",   "rel": "room_in:in" },
@@ -80,7 +105,8 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "state": { "enum": ["Still active", "Inactive: invaded", "Inactive: ended in disaster", "Inactive: no longer needed", "Inactive: a Misery was fulfilled"], "title": "State" }
+          "state":  { "enum": ["Still active", "Inactive: invaded", "Inactive: ended in disaster", "Inactive: no longer needed", "Inactive: a Misery was fulfilled"], "title": "State" },
+          "lurker": { "type": "string", "title": "Who or what lurks", "x-wide": true }
         }
       }
     },
@@ -93,7 +119,7 @@
       "context": "room_in:out",
       "linkSlots": [{ "label": "Dungeon", "rels": ["room_in:out"] }],
       "linkOrder": ["Connects to", "*"],
-      "printSummary": { "parts": ["{description}"] },
+      "printSummary": { "parts": ["{entrance}", "{description}", "Trap: {trap}"] },
       "quickCreate": [
         { "type": "core.npc",  "rel": "located_at:in" },
         { "type": "mb.item",   "rel": "located_at:in" },
@@ -103,7 +129,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "description": { "type": "string", "title": "Description", "x-widget": "textarea" }
+          "entrance":    { "type": "boolean", "title": "Entrance", "x-trueLabel": "entrance" },
+          "description": { "type": "string", "title": "Description", "x-widget": "textarea" },
+          "trap":        { "type": "string", "title": "Trap", "x-wide": true }
         }
       }
     },

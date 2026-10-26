@@ -53,10 +53,13 @@ class GameModules(private val modules: Map<String, ResolvedModule>) {
                     edgeTypes = edges.values.toList(),
                     views = c.flatMap { it.views }.associateBy { it.id }.values.toList(),
                     overviewOrder = c.lastOrNull { it.overviewOrder.isNotEmpty() }?.overviewOrder.orEmpty(),
+                    // A game overrides an inherited table or generator by reusing its name / id
+                    tables = c.flatMap { it.tables }.associateBy { it.name }.values.toList(),
+                    generators = c.flatMap { it.generators }.associateBy { it.id }.values.toList(),
                 )
             }
             // Modules that extend others re-check inherited types, hence distinct().
-            val errors = resolved.values.flatMap { it.configErrors() + it.viewErrors() }.distinct()
+            val errors = resolved.values.flatMap { it.configErrors() + it.viewErrors() + it.generatorErrors() }.distinct()
             require(errors.isEmpty()) { "Invalid game modules:\n" + errors.joinToString("\n") }
             return GameModules(resolved)
         }

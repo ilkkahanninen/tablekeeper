@@ -203,6 +203,7 @@ a.secondary { display: inline-block; text-decoration: none; }
 .menu { z-index: 10; padding: .2rem 0; background: var(--card); border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
 .menu-item { display: block; width: 100%; text-align: left; background: transparent; color: var(--ink); border: none; border-radius: 0; padding: .35rem .6rem; white-space: nowrap; }
 .menu-item.active, .menu-item:hover { background: var(--paper); }
+.menu-sep { border: none; border-top: 1px solid var(--line); margin: .2rem 0; }
 
 /* Type icons (node/_icon.peb): on screen a node shows its type's icon, not its code; the tip says both */
 .type-icon { display: inline-block; width: 1em; height: 1em; vertical-align: -0.15em; color: var(--muted); flex: none; }

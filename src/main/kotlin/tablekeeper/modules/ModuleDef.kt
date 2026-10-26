@@ -1,10 +1,12 @@
 package tablekeeper.modules
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import tablekeeper.core.Direction
 import tablekeeper.core.Link
+import tablekeeper.core.TableSeed
 
 // The shape of module.json, and the link options resolved from it.
 
@@ -130,6 +132,9 @@ data class MapDepth(val depth: Double, val label: String)
 
 val MAP_SHAPES = setOf("circle", "diamond", "dot", "none")
 
+/** Built-in ways a generator's `connect` links a group (generate/), e.g. a dungeon's rooms. */
+val GEN_LAYOUTS = setOf("dungeon")
+
 /** Icons bundled in static/icons.svg (from Lucide); a type's `icon` must be one of them. */
 val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem", "sword", "heart-crack", "flag", "scroll-text", "calendar", "skull", "door-open", "ghost", "hourglass", "circle")
 
@@ -140,9 +145,58 @@ val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrintNestedDef(val rel: String, val show: String)
 
-/** A node's own map: the nodes it links via [places] (e.g. a dungeon's rooms, "room_in:in"), drawn as [shape], and the links between them. */
+/**
+ * A node's own map: the nodes it links via [places] (e.g. a dungeon's rooms, "room_in:in"), drawn as [shape], and the links
+ * between them; places whose boolean prop [highlight] is set are filled red (a dungeon's entrance).
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class NodeMapDef(val places: String, val shape: String = "circle")
+data class NodeMapDef(val places: String, val shape: String = "circle", val highlight: String? = null)
+
+/**
+ * A generator: one click (Create ▾) makes [nodes] and links them, with no input; the first node made is opened.
+ * Content comes from the campaign's random tables (the module's starter `tables` are added to new campaigns).
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GeneratorDef(val id: String, val label: String, val nodes: List<GenNodeDef>, val connect: GenConnectDef? = null)
+
+/**
+ * One group of nodes a generator makes, named [id] within it: [count] nodes of [type] ([n] or [min, max]).
+ * [fill]: fields rolled from the campaign's tables for that field ("title" from the type's title tables); an enum prop
+ * without a table gets a random value. [chance]: a field filled only that often (0..1). [first]: values for the group's
+ * first node ("title" its title, the rest props), e.g. a dungeon's entrance. [title]: title pattern when none is rolled,
+ * "{n}" counting the nodes without a [first] title. [link]: each node links to a node of an earlier group.
+ * [row]: several fields from one roll on a table of rows (a bestiary). [generator] instead of [type]: each node of the
+ * group is made by that generator (its first node is the group's member), e.g. a dungeon's creatures.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GenNodeDef(
+    val id: String,
+    val type: String? = null,
+    val generator: String? = null,
+    @JsonFormat(with = [JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY])
+    val count: List<Int> = listOf(1),
+    val fill: List<String> = emptyList(),
+    val chance: Map<String, Double> = emptyMap(),
+    val first: Map<String, Any?> = emptyMap(),
+    val title: String? = null,
+    val row: GenRowDef? = null,
+    val link: GenLinkDef? = null,
+)
+
+/**
+ * A roll on the campaign table named [table] whose lines are rows of "|"-separated columns, filling [columns] in order
+ * ("title" or props), e.g. a bestiary: "Goblin | 6 | 7 | Ropy skin -d2 | …". Missing table: the group's `fill` and `title`.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GenRowDef(val table: String, val columns: List<String>)
+
+/** Links each node of a group via [rel] to the group [to]'s first node, or with [pick] "random" to a random one (not its first, if it has others). */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GenLinkDef(val rel: String, val to: String, val pick: String = "first")
+
+/** Links the nodes of group [nodes] to each other via [rel], in a built-in [layout] ("dungeon": rooms from the first, the entrance). */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class GenConnectDef(val nodes: String, val rel: String, val layout: String)
 
 /**
  * When a node of this type is listed on another node's card: list it under [group] instead of the
@@ -201,6 +255,10 @@ data class ModuleDef(
     val views: List<ViewDef> = emptyList(),
     /** Type ids listed first on the campaign home, in this order; other types follow. */
     val overviewOrder: List<String> = emptyList(),
+    /** Starter random tables, added to new campaigns of this game (and on the Tables page to older ones). */
+    val tables: List<TableSeed> = emptyList(),
+    /** One-click generators in the Create ▾ menu, e.g. a whole dungeon. */
+    val generators: List<GeneratorDef> = emptyList(),
 )
 
 /**

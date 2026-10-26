@@ -18,10 +18,20 @@ fun Route.tableRoutes(d: Deps) = with(d) {
 
     get {
         val (c, m) = call.game()
+        val list = tables.list(c.id)
         call.html("tables.peb", mapOf(
-            "campaign" to c, "module" to m, "tables" to tables.list(c.id),
+            "campaign" to c, "module" to m, "tables" to list,
             "labels" to m.fillableFields().associate { it.key to it.label },
+            // The game's starter tables this campaign hasn't got (by name): older campaigns, or deleted ones
+            "missingSeeds" to m.tables.count { s -> list.none { it.name == s.name } },
         ))
+    }
+
+    // "Add the game's tables": the module's starter tables the campaign lacks
+    post("/seed") {
+        val (c, m) = call.game()
+        tables.seed(c.id, m.tables)
+        call.respondRedirect("/c/${c.id}/tables")
     }
 
     post {
