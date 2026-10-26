@@ -80,11 +80,11 @@ document.addEventListener("htmx:beforeSwap", (e) => {
 // With several tables the button is a menu (details); picking a table rolls on it and closes the menu.
 document.addEventListener("click", (e) => {
   // Clicking outside an open menu closes it
-  document.querySelectorAll("details.random-menu[open]").forEach((menu) => { if (!menu.contains(e.target)) menu.open = false; });
+  document.querySelectorAll("details.dropdown[open]").forEach((menu) => { if (!menu.contains(e.target)) menu.open = false; });
   const button = e.target.closest("button.random");
   if (!button) return;
   const field = button.closest("form").querySelector(`[name="${button.dataset.for}"]`);
-  const menu = button.closest("details.random-menu");
+  const menu = button.closest("details.dropdown");
   if (menu) menu.open = false;
   // The roll (incl. mixing lines) happens on the server, the same code that names new nodes
   fetch(`${button.dataset.roll}?avoid=${encodeURIComponent(field.value)}`)

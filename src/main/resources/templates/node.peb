@@ -24,13 +24,9 @@
       <h2>Link</h2>
       <form class="link-picker"
             hx-get="/c/{{ campaign.id }}/n/{{ node.id }}/link-search"
-            hx-trigger="input delay:200ms, change, submit, links-changed from:body"
+            hx-trigger="input delay:200ms, submit, links-changed from:body"
             hx-target="#link-results">
         <input id="link-q" name="q" type="search" aria-label="Find or create" autocomplete="off">
-        <select name="rel" aria-label="Relation">
-          <option value="">Any</option>
-          {% for o in linkOptions %}<option value="{{ o.key }}">{{ o.label }}</option>{% endfor %}
-        </select>
       </form>
       {% include "node/_create.peb" %}
       <div id="link-results"></div>

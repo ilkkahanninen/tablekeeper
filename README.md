@@ -15,7 +15,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
 - **Node pages:**
   - Fields save as you leave them.
   - **Notes** and every other long-text field (Haunts, Events, What happened, a fallout's description…) show formatted until you click them: `**bold**`, `*italic*`, `- ` lists, and `[[Red Market]]` (or `[[L3]]`) as a link. Typing `[[` offers matching nodes; renaming a node updates its mentions. A mentioned node lists who mentions it under **Mentioned in**. Prints show the same formatting, mentions in bold.
-  - The **Link** box finds something to link, with a button per possible relation, or creates it.
+  - The **Link** box finds something to link or creates it: click a result to link it (if it can be linked several ways, pick one from its menu).
   - Dropdowns like **Location** or **Location / carried by** handle "one of these" links.
   - **Links** lists everything connected, grouped by type (*NPCs*, *Resources*…).
 - **Heart:**

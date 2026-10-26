@@ -1,17 +1,29 @@
-{# Link box results: existing matches, with a button per relation they can take. #}
+{# Link box results: click a node to link it. With one possible relation that's it; with several, a menu of them.
+   A relation already full (a link limit, e.g. a delve with two landmarks) is disabled, its reason as the tip. #}
 <ul class="plain results">
   {% for r in results %}
     <li class="result">
-      <span>{% include "node/_icon.peb" with {"type": r.type, "code": r.code} %} {{ r.title }}</span>
-      <span class="rels">
-        {% for ch in r.choices %}
-          <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links" hx-target="#linked" hx-swap="outerHTML">
-            <input type="hidden" name="rel" value="{{ ch.option.key }}">
-            <input type="hidden" name="other" value="{{ r.id }}">
-            <button class="secondary"{% if ch.blocked is not null %} disabled title="{{ ch.blocked }}"{% endif %}>{{ ch.option.label }}</button>
-          </form>
-        {% endfor %}
-      </span>
+      {% if r.choices | length == 1 %}
+        {% set ch = r.choices[0] %}
+        <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links" hx-target="#linked" hx-swap="outerHTML">
+          <input type="hidden" name="rel" value="{{ ch.option.key }}">
+          <input type="hidden" name="other" value="{{ r.id }}">
+          <button class="result-pick"{% if ch.blocked is not null %} disabled title="{{ ch.blocked }}"{% else %} title="{{ ch.option.label | capitalize }}"{% endif %}>{% include "node/_icon.peb" with {"type": r.type, "code": r.code} %} {{ r.title }}</button>
+        </form>
+      {% else %}
+        <details class="dropdown">
+          <summary class="result-pick">{% include "node/_icon.peb" with {"type": r.type, "code": r.code} %} {{ r.title }} ▾</summary>
+          <div class="menu dropdown-choices">
+            {% for ch in r.choices %}
+              <form hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/links" hx-target="#linked" hx-swap="outerHTML">
+                <input type="hidden" name="rel" value="{{ ch.option.key }}">
+                <input type="hidden" name="other" value="{{ r.id }}">
+                <button class="menu-item"{% if ch.blocked is not null %} disabled title="{{ ch.blocked }}"{% endif %}>{{ ch.option.label | capitalize }}</button>
+              </form>
+            {% endfor %}
+          </div>
+        </details>
+      {% endif %}
     </li>
   {% endfor %}
 </ul>

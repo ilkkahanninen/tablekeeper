@@ -67,7 +67,6 @@ class NodePage(
         "fieldViews" to PropsForm.fields(m.propsSchema(n.type), n.props).filter { it.kind == "textarea" || it.kind == "list" }
             .associate { it.name to format(it.value.toString()) },
         "rows" to PropsForm.rows(PropsForm.fields(m.propsSchema(n.type), n.props)),
-        "linkOptions" to orderedLinkOptions(m, n),
         "slots" to slots(c, m, n),
         // Random buttons: field name -> its tables (each button asks the server for a roll)
         "random" to tables.forType(c.id, n.type),
@@ -123,20 +122,21 @@ class NodePage(
     }
 
     /**
-     * Link box results for [q] through [rel] (empty = Any: every relation this node can take, most useful first),
-     * filtered by the module's endpoint rules. A relation whose limit is full at either end is disabled, with the reason.
+     * Link box results for [q]: nodes this one can link, each with every relation it can take, most useful first
+     * (the page links directly when there's one, else offers a menu). A relation whose limit is full at either end is
+     * disabled, with the reason.
      */
-    fun search(c: Campaign, m: ResolvedModule, n: Node, rel: String, q: String): List<SearchResult> {
-        val options = if (rel.isEmpty()) orderedLinkOptions(m, n) else listOf(m.requireLinkOption(n, rel))
+    fun search(c: Campaign, m: ResolvedModule, n: Node, q: String): List<SearchResult> {
+        val options = orderedLinkOptions(m, n)
         // This node already full for an option (e.g. a delve with two landmarks): that option is disabled everywhere
         val ownFull = options.associateWith { linker.limitError(c.id, m, n, it) }
-        val found = if (rel.isEmpty() && q.isEmpty()) emptyList() else graph.search(c.id, q, n.id, limit = 100)
+        val found = if (q.isEmpty()) emptyList() else graph.search(c.id, q, n.id, limit = 100)
             .filter { other -> options.any { m.acceptsOther(it, other.type) } }
             .take(20)
         val labels = pickerLabels(c, m, found)
         return found.map { other ->
             SearchResult(other.id, other.type, other.code, labels.getValue(other.id),
-                options.filter { m.acceptsOther(it, other.type) }.take(3).map { o ->
+                options.filter { m.acceptsOther(it, other.type) }.map { o ->
                     // Far end already full (e.g. a delve with two landmarks) also disables the option
                     RelationChoice(o, ownFull[o] ?: linker.limitError(c.id, m, other.id, other.type, other.code, o.edgeType, o.direction.opposite))
                 })

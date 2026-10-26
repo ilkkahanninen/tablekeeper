@@ -69,7 +69,7 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val (c, m) = call.game()
         val n = call.node(c)
         val q = call.request.queryParameters
-        val results = nodePage.search(c, m, n, q["rel"].orEmpty(), q["q"].orEmpty().trim())
+        val results = nodePage.search(c, m, n, q["q"].orEmpty().trim())
         call.html("node/_link_results.peb", mapOf("campaign" to c, "module" to m, "node" to n, "results" to results))
     }
 

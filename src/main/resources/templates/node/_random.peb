@@ -3,9 +3,9 @@
 {% if choices | length == 1 %}
   <button type="button" class="secondary random" data-for="{{ field }}"{% if append %} data-append{% endif %} data-roll="/c/{{ campaign.id }}/tables/{{ choices[0].id }}/roll">Random</button>
 {% else %}
-  <details class="random-menu">
+  <details class="dropdown random-menu">
     <summary class="secondary">Random ▾</summary>
-    <div class="menu random-choices">
+    <div class="menu dropdown-choices">
       {% for ch in choices %}<button type="button" class="menu-item random" data-for="{{ field }}"{% if append %} data-append{% endif %} data-roll="/c/{{ campaign.id }}/tables/{{ ch.id }}/roll">{{ ch.name }}</button>{% endfor %}
     </div>
   </details>
