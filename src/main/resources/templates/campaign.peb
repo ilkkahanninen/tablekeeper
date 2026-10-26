@@ -4,10 +4,21 @@
 {% block crumbs %}<span class="sep">/</span> {{ campaign.name }}{% endblock %}
 
 {% block content %}
-{# The name autosaves like a node's title; #save-status shows nothing unless something goes wrong #}
-<form class="title-form" hx-post="/c/{{ campaign.id }}" hx-trigger="change, submit" hx-target="#save-status">
-  <input class="title-input" name="name" value="{{ campaign.name }}" aria-label="Name" required>
-</form>
+{# The name autosaves like a node's title; #save-status shows nothing unless something goes wrong. The ⋯ menu as on node pages:
+   Export (the whole campaign as one file, a backup or to import as a copy on the home page) and Delete #}
+<div class="title-bar page-title">
+  <form class="title-form" hx-post="/c/{{ campaign.id }}" hx-trigger="change, submit" hx-target="#save-status">
+    <input class="title-input" name="name" value="{{ campaign.name }}" aria-label="Name" required>
+  </form>
+  <details class="dropdown more-menu">
+    <summary class="secondary" aria-label="More" title="More"><span class="type-icon" aria-hidden="true"><svg><use href="/static/icons.svg#ellipsis"/></svg></span></summary>
+    <div class="menu dropdown-choices">
+      <a class="menu-item" href="/c/{{ campaign.id }}/export.json">Export</a>
+      <button type="button" class="menu-item" hx-post="/c/{{ campaign.id }}/delete"
+              hx-confirm="Delete {{ campaign.name }} and everything in it? This can't be undone; Export first to keep a copy.">Delete</button>
+    </div>
+  </details>
+</div>
 <div id="save-status" aria-live="polite"></div>
 
 {% if sections is not empty %}
@@ -38,7 +49,7 @@
         </tbody>
       </table>
     </div>
-    {# Same as Add in the top bar, for this table's type: named from its random tables (or "New ..."), then opened #}
+    {# Same as Create ▾ in the top bar, for this table's type: named from its random tables (or "New ..."), then opened #}
     {% if s.creatable %}
       <form class="section-create" method="post" action="/c/{{ campaign.id }}/nodes">
         <input type="hidden" name="type" value="{{ s.typeId }}">
@@ -47,11 +58,4 @@
     {% endif %}
   </section>
 {% endfor %}
-
-{# As on node pages. Export: the whole campaign as one file, a backup or to import as a copy (home page) #}
-<div class="actions page-actions">
-  <a class="secondary" href="/c/{{ campaign.id }}/export.json">Export</a>
-  <button type="button" class="secondary" hx-post="/c/{{ campaign.id }}/delete"
-          hx-confirm="Delete {{ campaign.name }} and everything in it? This can't be undone; Export first to keep a copy.">Delete</button>
-</div>
 {% endblock %}

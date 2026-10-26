@@ -11,9 +11,9 @@
   {# Across both columns: the type line, then the title with the node's ⋯ menu on its right #}
   <div class="node-head">
     <p class="muted small">{% include "node/_icon.peb" with {"type": node.type, "code": node.code} %} {{ typeLabel }} · <a href="/c/{{ campaign.id }}/n/{{ node.id }}/print.pdf" target="_blank">Print</a></p>
-    <div class="node-title">
+    <div class="title-bar">
       {% include "node/_title.peb" %}
-      <details class="dropdown node-menu">
+      <details class="dropdown more-menu">
         <summary class="secondary" aria-label="More" title="More"><span class="type-icon" aria-hidden="true"><svg><use href="/static/icons.svg#ellipsis"/></svg></span></summary>
         <div class="menu dropdown-choices">
           {# Duplicate waits for an autosave still on its way (hx-sync), so the copy has the last edit #}
