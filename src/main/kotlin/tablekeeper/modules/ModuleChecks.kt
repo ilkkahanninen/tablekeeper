@@ -32,6 +32,8 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
             listOf(rel("printNested rel", n.rel), "$t: printNested show '${n.show}' is not an edge type and direction".takeIf { n.show !in edgeKeys })
         } +
         rel("context", def.context) +
+        def.linkOrder.orEmpty().filter { it != "*" && it !in possibleLinkGroups(t) }
+            .map { "$t: linkOrder '$it' is not a heading its links can have (${possibleLinkGroups(t).sorted().joinToString()})" } +
         def.icon?.takeIf { it !in ICONS }?.let { "$t: icon '$it' is not one of ${ICONS.joinToString()}" } +
         def.mapShape?.takeIf { it !in MAP_SHAPES }?.let { "$t: mapShape '$it' is not one of ${MAP_SHAPES.joinToString()}" } +
         def.mapDepth?.takeIf { p ->

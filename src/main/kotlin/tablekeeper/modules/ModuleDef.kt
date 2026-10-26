@@ -38,6 +38,11 @@ data class NodeTypeDef(
     val printNested: List<PrintNestedDef>? = null,
     /** Link whose far end is shown in brackets in pickers, e.g. "part_of:out" = a minor location's landmark. */
     val context: String? = null,
+    /**
+     * Order of the headings in this type's Links box and print lists, e.g. ["Reached via", "Resources", "*", "Featured in"]:
+     * listed headings in this order, "*" for the others in their default order (end if missing). Missing = inherit.
+     */
+    val linkOrder: List<String>? = null,
     /** Shown for this type's nodes on screen (instead of their code): one of [ICONS]. Missing = inherit; none = a circle. */
     val icon: String? = null,
     /** Drawn on the campaign map with this shape: one of [MAP_SHAPES]. Missing = inherit; none = not on the map. */

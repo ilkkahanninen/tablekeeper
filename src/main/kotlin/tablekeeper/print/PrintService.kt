@@ -137,7 +137,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
 
         val links = graph.links(campaign.id, node.id).filter { audience.canSee(it.other.visibility) }
         val (factLinks, otherLinks) = links.partition { module.isA(it.other.type, "core.fact") }
-        val groups = module.groupLinks(otherLinks).map { (label, ls) ->
+        val groups = module.groupLinks(node.type, otherLinks).map { (label, ls) ->
             LinkGroup(label, ls.map { link ->
                 ref(module, all, link.other, names, mentions).copy(children = nested(campaign, module, all, node, link, audience, names, mentions))
             }.distinctBy { it.code })

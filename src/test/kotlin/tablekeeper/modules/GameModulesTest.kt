@@ -526,7 +526,7 @@ class GameModulesTest {
             link("located_at", Direction.IN, ref("core.npc", "Silvia")),
             link("connects", Direction.IN, ref("heart.delve", "Tunnel")),
         )
-        val groups = heart.groupLinks(links)
+        val groups = heart.groupLinks("core.npc", links)
         assertEquals(listOf("Silvia"), groups["NPCs"]?.map { it.other.title })
         assertEquals(listOf("Lamp"), groups["Resources"]?.map { it.other.title })
         assertTrue(groups.keys.indexOf("NPCs") < groups.keys.indexOf("Resources"), "types in campaign-home order")
@@ -598,6 +598,34 @@ class GameModulesTest {
         File(dir, "bad/module.json").writeText("""{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.x", "label": "X", "codePrefix": "X", "icon": "unicorn"}]}""")
         val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
         assertTrue("icon 'unicorn'" in e.message.orEmpty(), e.message)
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `a landmark lists Reached via, Resources and Equipment first and Featured in last`() {
+        fun ref(type: String, title: String) = NodeRef(UUID.randomUUID(), type, title, title, "gm")
+        fun link(type: String, other: NodeRef) = Link(UUID.randomUUID(), type, Direction.IN, other)
+        val links = listOf(
+            link("features", ref("core.session", "Night")),
+            link("located_at", ref("core.npc", "Silvia")),
+            link("located_at", ref("heart.equipment", "Saw")),
+            link("part_of", ref("heart.minor_location", "Alley")),
+            link("located_at", ref("heart.resource", "Lamp")),
+            link("connects", ref("heart.delve", "Tunnel")),
+        )
+        assertEquals(listOf("Reached via", "Resources", "Equipment", "NPCs", "Minor locations", "Featured in"),
+            heart.groupLinks("heart.landmark", links).keys.toList())
+    }
+
+    @Test
+    fun `a linkOrder heading the type can't have fails to load`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "core").mkdirs()
+        File(modulesDir, "core/module.json").copyTo(File(dir, "core/module.json"))
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText("""{"id": "bad", "name": "Bad", "extends": ["core"], "patchTypes": [{"id": "core.place", "linkOrder": ["Reched via"]}]}""")
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
+        assertTrue("linkOrder 'Reched via'" in e.message.orEmpty(), e.message)
         dir.deleteRecursively()
     }
 }

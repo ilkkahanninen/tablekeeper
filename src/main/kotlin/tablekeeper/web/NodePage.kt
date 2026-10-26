@@ -229,7 +229,7 @@ class NodePage(
         val names = displayTitles(c, m)
         fun ui(edgeId: UUID?, other: NodeRef) = UiLink(edgeId, other.id, other.type, other.code, names[other.id] ?: other.title, other.visibility)
         val mentionedIn = graph.mentioning(c.id, n.id, listOf(n.code, n.title, m.displayTitle(n))).sortedBy { names[it.id] ?: it.title }
-        return m.groupLinks(graph.links(c.id, n.id)).map { (label, links) -> UiGroup(label, links.map { ui(it.edgeId, it.other) }) } +
+        return m.groupLinks(n.type, graph.links(c.id, n.id)).map { (label, links) -> UiGroup(label, links.map { ui(it.edgeId, it.other) }) } +
             listOfNotNull(mentionedIn.takeIf { it.isNotEmpty() }?.let { refs -> UiGroup("Mentioned in", refs.map { ui(null, it) }) })
     }
 }

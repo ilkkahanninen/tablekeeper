@@ -45,6 +45,7 @@
       "mapDepth": "tier",
       "printTemplate": "heart/print/landmark.peb",
       "printNested": [{ "rel": "part_of:in", "show": "located_at:in" }],
+      "linkOrder": ["Reached via", "Resources", "Equipment", "*", "Featured in"],
       "quickCreate": [
         { "type": "heart.delve",    "rel": "connects:in" },
         { "type": "heart.minor_location", "rel": "part_of:in" },

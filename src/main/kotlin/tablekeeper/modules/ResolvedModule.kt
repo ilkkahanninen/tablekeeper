@@ -84,10 +84,26 @@ class ResolvedModule(
         return e to if (edgeType(edgeTypeId)?.groupByType == true) overviewRank(otherType) else 0  // only matters where grouped
     }
 
-    /** A node's [links] under their headings ([linkGroupLabel]), in [linkGroupRank] order: the page's Links box and print cards. */
-    fun groupLinks(links: List<Link>): Map<String, List<Link>> = links
-        .sortedWith(compareBy({ linkGroupRank(it.type, it.other.type).first }, { linkGroupRank(it.type, it.other.type).second }))
-        .groupBy { linkGroupLabel(it.type, it.direction, it.other.type) }
+    /**
+     * A [typeId] node's [links] under their headings ([linkGroupLabel]): the page's Links box and print lists. Ordered by
+     * the type's `linkOrder` where it names a heading, else in [linkGroupRank] order (at its "*").
+     */
+    fun groupLinks(typeId: String, links: List<Link>): Map<String, List<Link>> {
+        val grouped = links
+            .sortedWith(compareBy({ linkGroupRank(it.type, it.other.type).first }, { linkGroupRank(it.type, it.other.type).second }))
+            .groupBy { linkGroupLabel(it.type, it.direction, it.other.type) }
+        val order = linkOrder(typeId)
+        if (order.isEmpty()) return grouped
+        val rest = order.indexOf("*").let { if (it < 0) order.size else it }
+        return grouped.entries.sortedBy { (label, _) -> order.indexOf(label).let { if (it < 0) rest else it } }.associate { it.key to it.value }
+    }
+
+    fun linkOrder(typeId: String): List<String> = inherited(typeId) { it.linkOrder }.orEmpty()
+
+    /** Every heading a [typeId] node's links can be listed under, for checking `linkOrder`. */
+    internal fun possibleLinkGroups(typeId: String): Set<String> = linkOptions(typeId).flatMap { o ->
+        types.keys.filter { acceptsOther(o, it) }.map { linkGroupLabel(o.edgeType, o.direction, it) }
+    }.toSet()
 
     /** Type inheritance check: isA("heart.landmark", "core.place") == true. "*" matches anything. */
     fun isA(typeId: String, target: String): Boolean {
