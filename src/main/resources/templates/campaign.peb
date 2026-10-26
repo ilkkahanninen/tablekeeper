@@ -22,7 +22,10 @@
 <div id="save-status" aria-live="polite"></div>
 
 {% if sections is not empty %}
-  <input type="search" class="overview-filter" aria-label="Filter" autocomplete="off">
+  <div class="overview-filter-box">
+    <span class="type-icon find-icon" aria-hidden="true"><svg><use href="/static/icons.svg#filter"/></svg></span>
+    <input type="search" class="overview-filter" aria-label="Filter" autocomplete="off">
+  </div>
 {% endif %}
 
 {# One table per type; columns from the module's "overview" settings plus link slots (e.g. Location) #}

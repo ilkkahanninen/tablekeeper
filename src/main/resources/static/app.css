@@ -143,7 +143,9 @@ label.wide .random, label.wide .random-menu { align-self: flex-start; margin-top
 
 /* Campaign home tables */
 a.secondary { display: inline-block; text-decoration: none; }
-.overview-filter { width: 100%; max-width: 24rem; margin: 0 0 1rem; box-sizing: border-box; }
+.overview-filter-box { position: relative; display: flex; align-items: center; max-width: 24rem; margin: 0 0 1rem; }
+.overview-filter { width: 100%; box-sizing: border-box; padding-left: 1.8rem; }
+.overview-filter-box .find-icon { position: absolute; left: .55rem; pointer-events: none; }
 .overview-section { margin: 0 0 1.5rem; }
 .section-create { margin-top: .4rem; }
 .table-scroll { overflow-x: auto; }
