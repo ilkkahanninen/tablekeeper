@@ -5,7 +5,7 @@ import tablekeeper.modules.ResolvedModule
 import kotlin.random.Random
 
 /** A node a generator will make: the [index]th of its [group] (a [GenNodeDef] id). */
-data class PlannedNode(val group: String, val index: Int, val type: String, val title: String, val props: Map<String, Any?>)
+data class PlannedNode(val group: String, val index: Int, val type: String, val title: String, val props: Map<String, Any?>, val body: String = "")
 
 /** A link to make: node [from] links node [to] (indices into [GenPlan.nodes]) via [rel], seen from [from]. */
 data class PlannedLink(val from: Int, val rel: String, val to: Int)
@@ -55,7 +55,7 @@ object Generator {
                     ?: ("title" in fields).takeIf { it }?.let { rolls.field(type, "title") }
                     ?: g.title?.replace("{n}", "${++numbered}")
                     ?: "New ${module.label(type)}"
-                nodes += PlannedNode(g.id, i, type, title, (row - "title") + props + (first - "title"))
+                nodes += PlannedNode(g.id, i, type, title, (row - "title") + props + (first - "title" - "body"), first["body"]?.toString().orEmpty())
                 nodes.size - 1
             }
             g.link?.let { l ->

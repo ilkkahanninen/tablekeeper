@@ -96,7 +96,7 @@ After the session, write **What happened** on the session, and use the **Debrief
 
 ## A quick tour
 
-1. Create a campaign (Heart).
+1. Create a campaign (Heart). It starts with the landmark *Derelict* and a *First Session* featuring it.
 2. Pick *Landmark* under **Create** in the top bar and type "Red Market" (the new name is selected). Set tier *Tier 1* and domains Occult + Desolate.
 3. On Red Market, click **NPC** under **Add new** and type "Silvia" (the new name is selected, ready to type over). Her **Location** now says Red Market.
 4. Create a *Delve* the same way. Its Tier and Domains rows show Red Market's.
@@ -192,6 +192,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
   - `connect` links a group with a built-in `layout` (`dungeon`).
 
   See MÖRK BORG's dungeon and creature generators.
+- `starter`: a generator (just `nodes` and `connect`) run once when a campaign of the game is created. In `first`, `body` sets the notes. Heart starts with the landmark *Derelict* (a Haven) and a *First Session* featuring it; MÖRK BORG with *Galgenbeck* and a *First Session*.
 
 **Field options** (inside `props`), in addition to the widgets chosen by schema type (`integer` → number, `enum` → select, `array` of `enum` → checkboxes, `boolean` → checkbox, `string` → text):
 

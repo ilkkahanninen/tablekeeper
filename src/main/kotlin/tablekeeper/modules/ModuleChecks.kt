@@ -105,7 +105,7 @@ private fun ResolvedModule.uses(id: String, target: String, seen: Set<String> = 
 internal fun ResolvedModule.generatorErrors(): List<String> {
     val fillable = fillableFields().map { it.key }.toSet()
     return tables.flatMap { tb -> tb.fields.filter { it !in fillable }.map { "table '${tb.name}': field '$it' is not a title or text field of a type" } } +
-        generators.flatMap { g ->
+        (generators + listOfNotNull(starter?.copy(id = "starter"))).flatMap { g ->
             val seen = mutableSetOf<String>()
             g.nodes.flatMap { n ->
                 val where = "generator '${g.id}' ${n.id}"
@@ -125,7 +125,7 @@ internal fun ResolvedModule.generatorErrors(): List<String> {
                                 else -> null
                             }
                         },
-                    ) + (n.fill + n.chance.keys + n.first.keys + n.row?.columns.orEmpty()).distinct().filter { f -> f != "title" && propSchema(type, f) == null }
+                    ) + (n.fill + n.chance.keys + (n.first.keys - "body") + n.row?.columns.orEmpty()).distinct().filter { f -> f != "title" && propSchema(type, f) == null }
                         .map { "$where: field '$it' is not a prop of $type" }
                 }
                 seen += n.id

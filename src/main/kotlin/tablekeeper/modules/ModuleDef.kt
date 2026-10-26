@@ -159,13 +159,13 @@ data class NodeMapDef(val places: String, val shape: String = "circle", val high
  * Content comes from the campaign's random tables (the module's starter `tables` are added to new campaigns).
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class GeneratorDef(val id: String, val label: String, val nodes: List<GenNodeDef>, val connect: GenConnectDef? = null)
+data class GeneratorDef(val id: String = "", val label: String = "", val nodes: List<GenNodeDef>, val connect: GenConnectDef? = null)
 
 /**
  * One group of nodes a generator makes, named [id] within it: [count] nodes of [type] ([n] or [min, max]).
  * [fill]: fields rolled from the campaign's tables for that field ("title" from the type's title tables); an enum prop
  * without a table gets a random value. [chance]: a field filled only that often (0..1). [first]: values for the group's
- * first node ("title" its title, the rest props), e.g. a dungeon's entrance. [title]: title pattern when none is rolled,
+ * first node ("title" its title, "body" its notes, the rest props), e.g. a dungeon's entrance. [title]: title pattern when none is rolled,
  * "{n}" counting the nodes without a [first] title. [link]: each node links to a node of an earlier group.
  * [row]: several fields from one roll on a table of rows (a bestiary). [generator] instead of [type]: each node of the
  * group is made by that generator (its first node is the group's member), e.g. a dungeon's creatures.
@@ -261,6 +261,8 @@ data class ModuleDef(
     val tables: List<TableSeed> = emptyList(),
     /** One-click generators in the Create ▾ menu, e.g. a whole dungeon. */
     val generators: List<GeneratorDef> = emptyList(),
+    /** What a new campaign of this game starts with (a generator run once at creation), e.g. a first place and session. */
+    val starter: GeneratorDef? = null,
 )
 
 /**

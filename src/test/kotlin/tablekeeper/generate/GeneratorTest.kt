@@ -88,4 +88,20 @@ class GeneratorTest {
         assertEquals(mapOf("title" to "Troll", "morale" to "special"),
             Generator.columns(morkborg, "core.npc", listOf("title", "hp", "morale"), "Troll | lots | special"), "HP that isn't a number is dropped")
     }
+
+    @Test
+    fun `new campaigns start with a first place and a session featuring it`() {
+        val heart = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("heart")
+        val h = Generator.plan(heart.starter!!, heart, rolls(), Random(1))
+        assertEquals(listOf("Derelict", "First Session"), h.nodes.map { it.title })
+        assertEquals(mapOf("tier" to "Tier 0", "stress" to "d4", "domains" to listOf("Haven"), "haunts" to "D10 Any"), h.nodes[0].props)
+        assertEquals(listOf(PlannedLink(1, "features:out", 0)), h.links)
+        h.nodes.forEach { assertEquals(emptyList(), heart.validateProps(it.type, tablekeeper.core.Json.mapper.valueToTree(it.props))) }
+
+        val m = Generator.plan(morkborg.starter!!, morkborg, rolls(), Random(1))
+        assertEquals(listOf("Galgenbeck", "First Session"), m.nodes.map { it.title })
+        assertEquals("The greatest city that ever was.", m.nodes[0].body)
+        assertEquals(emptyMap(), m.nodes[0].props, "the description is its notes")
+        assertEquals(listOf(PlannedLink(1, "features:out", 0)), m.links)
+    }
 }

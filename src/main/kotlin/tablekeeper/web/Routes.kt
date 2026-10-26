@@ -147,6 +147,7 @@ fun Application.routes(d: Deps) = with(d) {
             val module = modules.get(p["module"] ?: "heart")
             val c = campaigns.create(call.user, name, module.id)
             tables.seed(c.id, module.tables)   // the game's starter random tables, e.g. MÖRK BORG's dungeon tables
+            module.starter?.let { generate.run(c, module, it) }   // and its first nodes, e.g. a place and a first session
             call.respondRedirect("/c/${c.id}")
         }
 

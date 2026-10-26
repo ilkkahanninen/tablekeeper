@@ -56,6 +56,7 @@ class GameModules(private val modules: Map<String, ResolvedModule>) {
                     // A game overrides an inherited table or generator by reusing its name / id
                     tables = c.flatMap { it.tables }.associateBy { it.name }.values.toList(),
                     generators = c.flatMap { it.generators }.associateBy { it.id }.values.toList(),
+                    starter = self.starter,
                 )
             }
             // Modules that extend others re-check inherited types, hence distinct().

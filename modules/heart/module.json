@@ -8,6 +8,10 @@
     { "id": "inspiration", "label": "Inspiration", "template": "heart/views/inspiration.peb",
       "types": ["heart.pc"], "groupBy": ["calling", "class"], "links": ["suffers:out"] }
   ],
+  "starter": { "nodes": [
+    { "id": "landmark", "type": "heart.landmark", "first": { "title": "Derelict", "tier": "Tier 0", "stress": "d4", "domains": ["Haven"], "haunts": "D10 Any" } },
+    { "id": "session", "type": "core.session", "first": { "title": "First Session" }, "link": { "rel": "features:out", "to": "landmark" } }
+  ] },
   "patchTypes": [
     {
       "id": "core.session",

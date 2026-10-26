@@ -33,12 +33,12 @@ class GenerateService(private val graph: GraphService, private val tables: Rando
         val made = plan.nodes.map { p ->
             val type = m.type(p.type) ?: throw BadRequest("Unknown type ${p.type}")
             val n = graph.createNode(c.id, p.type, type.codePrefix, p.title)
-            if (p.props.isEmpty()) n
+            if (p.props.isEmpty() && p.body.isEmpty()) n
             else {
                 val props = Json.mapper.valueToTree<JsonNode>(p.props)
                 m.validateProps(p.type, props).firstOrNull()?.let { throw BadRequest("${p.title}: $it") }
-                graph.updateNode(c.id, n.id, p.title, "", Visibility.of(n.visibility), props)
-                n.copy(props = p.props)
+                graph.updateNode(c.id, n.id, p.title, p.body, Visibility.of(n.visibility), props)
+                n.copy(props = p.props, body = p.body)
             }
         }
         plan.links.forEach { l ->

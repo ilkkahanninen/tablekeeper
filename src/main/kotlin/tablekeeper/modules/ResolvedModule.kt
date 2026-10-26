@@ -33,6 +33,8 @@ class ResolvedModule(
     val tables: List<TableSeed> = emptyList(),
     /** One-click generators (Create ▾), inherited ones included. */
     val generators: List<GeneratorDef> = emptyList(),
+    /** Run once when a campaign of this game is created; the game's own, not inherited. */
+    val starter: GeneratorDef? = null,
 ) {
     private val schemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7)
     private val schemaCache = ConcurrentHashMap<String, JsonSchema>()

@@ -29,6 +29,10 @@
         {"id": "creature", "type": "core.npc", "row": {"table": "Bestiary", "columns": ["title", "hp", "morale", "armor", "attack", "special", "value"]}}
       ] }
   ],
+  "starter": { "nodes": [
+    { "id": "location", "type": "mb.location", "first": { "title": "Galgenbeck", "body": "The greatest city that ever was." } },
+    { "id": "session", "type": "core.session", "first": { "title": "First Session" }, "link": { "rel": "features:out", "to": "location" } }
+  ] },
   "patchTypes": [
     {
       "id": "core.session",
