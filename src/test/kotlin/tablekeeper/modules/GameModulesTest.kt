@@ -68,7 +68,7 @@ class GameModulesTest {
     fun `landmark quick-creates delve, minor location, npc, resource, equipment and fact`() {
         val opts = heart.quickCreate("heart.landmark")
         assertEquals(
-            listOf("heart.delve" to "reached via", "heart.minor_location" to "minor locations", "core.npc" to "has here", "heart.resource" to "has here", "heart.equipment" to "has here", "core.fact" to "facts"),
+            listOf("heart.delve" to "reached via", "heart.minor_location" to "minor locations", "core.npc" to "has here", "heart.adversary" to "has here", "heart.resource" to "has here", "heart.equipment" to "has here", "core.fact" to "facts"),
             opts.map { it.type.id to it.option.label },
         )
         assertTrue(opts.all { it.option.direction == Direction.IN })
@@ -78,7 +78,7 @@ class GameModulesTest {
     fun `delve quick-creates the landmark it connects to, npc, resource, equipment and fact`() {
         val opts = heart.quickCreate("heart.delve")
         assertEquals(
-            listOf("heart.landmark" to "connects", "core.npc" to "has here", "heart.resource" to "has here", "heart.equipment" to "has here", "core.fact" to "facts"),
+            listOf("heart.landmark" to "connects", "core.npc" to "has here", "heart.adversary" to "has here", "heart.resource" to "has here", "heart.equipment" to "has here", "core.fact" to "facts"),
             opts.map { it.type.id to it.option.label },
         )
         assertEquals(Direction.OUT, opts.first().option.direction)
@@ -253,7 +253,7 @@ class GameModulesTest {
         val at = heart.linkSlots("heart.resource").single().options.first { it.edgeType == "located_at" }
         assertTrue(heart.acceptsOther(at, "heart.minor_location"))
         assertEquals(
-            listOf("core.npc", "heart.resource", "heart.equipment", "core.fact"),
+            listOf("core.npc", "heart.adversary", "heart.resource", "heart.equipment", "core.fact"),
             heart.quickCreate("heart.minor_location").map { it.type.id },
         )
         assertEquals(listOf(PrintNestedDef("part_of:in", "located_at:in")), heart.printNested("heart.landmark"))
@@ -831,5 +831,16 @@ class GameModulesTest {
         File(dir, "bad/module.json").writeText("""{"id": "bad", "name": "Bad", "mapOrientation": "diagonal"}""")
         assertTrue("mapOrientation 'diagonal'" in assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty())
         dir.deleteRecursively()
+    }
+
+    @Test
+    fun `adversaries are npcs with a stat block`() {
+        assertTrue(heart.isA("heart.adversary", "core.npc"), "placed, carried things, fallouts, packets and debriefs as NPCs")
+        assertEquals(listOf("descriptor", "motivation", "difficulty", "resistance", "protection", "domains", "dead"),
+            PropsForm.fields(heart.propsSchema("heart.adversary"), emptyMap()).map { it.name })
+        assertEquals(heart.propSchema("heart.landmark", "domains"), heart.propSchema("heart.adversary", "domains"))
+        assertEquals("Risky · Resistance 12 · Protection 2",
+            heart.summary("heart.adversary", mapOf("difficulty" to "Risky", "resistance" to 12, "protection" to 2)))
+        assertTrue(heart.validateProps("heart.adversary", Json.mapper.readTree("""{"difficulty": "Deadly"}""")).isNotEmpty())
     }
 }

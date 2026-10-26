@@ -2,8 +2,8 @@
   "id": "heart", "name": "Heart: The City Beneath", "extends": ["core"], "hide": ["core.place", "core.pc", "core.item"],
   "mapOrientation": "portrait",
   "overviewOrder": [
-    "core.session", "heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.fallout", "heart.equipment",
-    "heart.resource", "core.faction", "core.fact"
+    "core.session", "heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.adversary", "heart.fallout",
+    "heart.equipment", "heart.resource", "core.faction", "core.fact"
   ],
   "fields": {
     "stress": {
@@ -74,6 +74,7 @@
         {"type": "heart.delve", "rel": "connects:in"},
         {"type": "heart.minor_location", "rel": "part_of:in"},
         {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "heart.adversary", "rel": "located_at:in"},
         {"type": "heart.resource", "rel": "located_at:in"},
         {"type": "heart.equipment", "rel": "located_at:in"},
         {"type": "core.fact", "rel": "about:in"}
@@ -93,6 +94,7 @@
       "linkSlots": [{"label": "Landmark", "rels": ["part_of:out"]}],
       "quickCreate": [
         {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "heart.adversary", "rel": "located_at:in"},
         {"type": "heart.resource", "rel": "located_at:in"},
         {"type": "heart.equipment", "rel": "located_at:in"},
         {"type": "core.fact", "rel": "about:in"}
@@ -105,6 +107,7 @@
       "quickCreate": [
         {"type": "heart.landmark", "rel": "connects:out"},
         {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "heart.adversary", "rel": "located_at:in"},
         {"type": "heart.resource", "rel": "located_at:in"},
         {"type": "heart.equipment", "rel": "located_at:in"},
         {"type": "core.fact", "rel": "about:in"}
@@ -236,6 +239,19 @@
         "type": "@severity",
         "resistance": {"enum": ["Blood", "Echo", "Mind", "Fortune", "Supplies"], "title": "Resistance"},
         "description": {"type": "string", "title": "Description", "x-widget": "textarea"}
+      }
+    },
+    {
+      "id": "heart.adversary", "extends": "core.npc", "label": "Adversary", "plural": "Adversaries", "codePrefix": "A",
+      "icon": "swords", "overview": {"columns": ["difficulty", "resistance", "protection", "dead"], "muted": "dead"},
+      "print": {"summary": {"parts": ["{difficulty}", "Resistance {resistance}", "Protection {protection}", "{dead}"]}},
+      "props": {
+        "descriptor": {"type": "string", "title": "Descriptor", "x-wide": true},
+        "motivation": {"type": "string", "title": "Motivation", "x-wide": true},
+        "difficulty": {"enum": ["Standard", "Risky", "Dangerous"], "title": "Difficulty"},
+        "resistance": {"type": "integer", "title": "Resistance", "minimum": 1, "x-track": true},
+        "protection": {"type": "integer", "title": "Protection", "minimum": 0}, "domains": "@domains",
+        "dead": {"type": "boolean", "title": "Dead", "x-trueLabel": "dead"}
       }
     },
     {

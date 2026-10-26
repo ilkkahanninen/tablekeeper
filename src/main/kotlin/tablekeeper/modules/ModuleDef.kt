@@ -150,7 +150,7 @@ val MAP_ORIENTATIONS = setOf("landscape", "portrait")
 val GEN_LAYOUTS = setOf("dungeon")
 
 /** Icons bundled in static/icons.svg (from Lucide); a type's `icon` must be one of them. */
-val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem", "sword", "heart-crack", "flag", "scroll-text", "calendar", "skull", "door-open", "ghost", "hourglass", "circle")
+val ICONS = setOf("map-pin", "castle", "route", "user", "drama", "package", "gem", "sword", "heart-crack", "flag", "scroll-text", "calendar", "skull", "door-open", "ghost", "hourglass", "swords", "circle")
 
 /**
  * On the card, under each node linked via [rel], list the nodes linked to *it* via [show].

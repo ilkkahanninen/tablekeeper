@@ -25,6 +25,7 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
   - **Minor locations** inside landmarks.
   - **Characters:** class, calling and beats, shown as "Thonal (Jori)".
   - **NPCs:** voice, appearance and dead.
+  - **Adversaries:** a stat block (descriptor, motivation, difficulty, resistance as boxes to tick off, protection, domains). They're NPCs, so they have a Location, show up in session packets and the debrief, carry Resources and Equipment (added from their page) and suffer fallouts.
   - **Equipment:** category, quality die, tags and limited uses.
   - **Resources:** die and tags.
   - **Fallouts** on characters and NPCs; one can be shared (tick its characters on the fallout's page).
