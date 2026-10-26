@@ -1,254 +1,292 @@
 {
-  "id": "morkborg",
-  "name": "MÖRK BORG",
-  "extends": ["core"],
-  "hide": ["core.place", "core.pc", "core.item"],
-  "overviewOrder": ["core.session", "mb.location", "mb.dungeon", "mb.room", "mb.pc", "core.npc", "mb.item", "mb.misery", "core.faction", "core.fact"],
+  "id": "morkborg", "name": "MÖRK BORG", "extends": ["core"], "hide": ["core.place", "core.pc", "core.item"],
+  "overviewOrder": [
+    "core.session", "mb.location", "mb.dungeon", "mb.room", "mb.pc", "core.npc", "mb.item", "mb.misery", "core.faction",
+    "core.fact"
+  ],
   "tables": [
-    { "name": "Dungeon names", "mix": true, "fields": ["mb.dungeon:title"],
-      "items": ["The Slaughter pit", "The Death church", "The Night temple", "The Hadean tunnels", "The Hell crypt", "The Plague grave", "The Sin fort", "The Doom ziggurat", "The Dark den", "The Murder maze", "The Torture house", "The Slave waste"] },
-    { "name": "Who lurks", "fields": ["mb.dungeon:lurker"],
-      "items": ["Animated suits of armor battling goblins", "Nechrubel-worshipping lich with a skeletal court", "Heretic cult lead by a possessed 11-year old", "A vengeful cabal of undead porcelain dolls", "Desperate thieves guild dying slowly of cholera", "A meaty mass of slime, larvae and spider legs", "Wickheads running from foreboding darkness", "A Bark-Witch and her root-children", "Four-legged pale gremlins stinking of dirt", "Tergol's escaped experiment", "Disease spreading ochre-beetles", "Dissident courtiers dedicated to the occult"] },
-    { "name": "Room features", "fields": ["mb.room:description"],
-      "items": ["Inscriptions, the motifs are vomit-inducing", "Inscriptions, the motifs are terrifying", "Inscriptions, the motifs are hypnotic", "Inscriptions, the motifs are childish", "Inscriptions, the motifs are teleportation causing", "Bloodied beds", "Flooded", "Leaning", "Stinks", "Fire damage", "Obvious traps", "Full of blood", "Torture chamber", "Sooty walls", "Freezing draft", "Creaking doors", "Compact darkness", "Locked sarcophagi", "Shelves with obscure literature", "Shelves with rotting food", "Abyssal pits", "Mirrors everywhere", "Ungodly yet exquisite chandeliers", "Utterly silent", "Full of debris", "Sacrificial altar, cracked", "Sacrificial altar, fresh blood", "Remains of a throne", "Smoke-filled", "Bonfire in the center"] },
-    { "name": "Traps", "fields": ["mb.room:trap"],
-      "items": ["Wall-holes shoot poisonous arrows", "Bells and marbles on the floor", "Scorpion-filled basket poised to fall", "Fish hooks hanging at eye level", "Chest marked with explosive runes", "Lock trapped with vial of poison gas", "Jewel removal leads to roof collapse", "Slanted floor, translucent oil, pit", "Snake-cages on collapsing ceiling tiles", "Evil urns release cold ghosts", "Coins coated in grime and poison"] },
-    { "name": "Bestiary", "fields": [],
-      "items": ["Goblin | 6 | 7 | Ropy skin -d2 | Knife/shortbow d4 | Quick: attacks and defence against it are DR14. Its curse: kill it within d6 days of its attack or become a goblin. | Head 7s, captured 150s, dead 20s", "Scum | 7 | 8 | No armor | Poisoned knife d4 | Poisoned knife: Toughness DR10 or infected. The PC with the highest Presence tests DR14 at the start of battle, or a random PC is backstabbed for normal damage +3. | Captured 50–120s, dead 20–70s (wanted)", "Berserker | 13 | 9 | Hardened skin -d2 | Long flail d8, heavy mace d6, chained sword d6 or huge warhammer d10 | Attacks twice per round but doesn't defend (DR10 to hit). | Dead 20s, captured 55s, blood 3s per litre", "Wraith | 15 | – | No armor | Touch d4 | Swift, elusive and hard to hit (DR14); always wins initiative. Its touch drains Strength, Presence and Agility by 1 for the fight. | Captured 120s, skull 70s, ectoplasm 25s", "Blood-drenched skeleton | 7 | 8 | No armor | Shortsword d4, knife d4 or bony knuckles d2 | Soundless, attacks by surprise and mimics voices it has heard. Piercing weapons hit on DR14; 5 or more damage destroys it. | Captured 35s, destroyed 7s", "Undead necromancer | 15 | – | Barrier (necro) -d4 | Strike d6 | Paralyzing touch: Presence DR14 every round to break free. No one can use Powers near it; each round it can steal a nearby scroll's Power and use it against its owner. | Captured 200s, remains 130s, skull 100s", "Troll | 32 | special | Thick hide -d2 | Fist 2d6 | Easy to hit (DR10). Cowardly: retreats when badly wounded, heals into a larger troll and returns with +d6 damage, never forgetting who hurt it. | Captured 200s, corpse 70s, horn 25s", "Zombie | 7 | – | Leather scraps -d2 | Claw/bite d2 | Anyone bitten tests Toughness DR8 or dies within two days and rises as a zombie. | Captured 30s, blood 5s per litre", "Undead doll | 11 | – | Porcelain -d2 | Claws/piercing bite d4 | Mad gaze: Presence DR12 at the start of combat or frozen with fear for d4 rounds. | Head 20s, captured 80s", "Grotesque | 18 | – | Clay/stone -d6 | Claws d6 or eye-beam d8 | Slow and easy to hit (DR10). Its terrifying gaze is used on 1–2 on d6 each round and always hits. | Captured 190s, dead (intact) 100s, dead (in pieces) 10s", "Wickhead knife-wielder | 10 | 7 | No armor | Knife with dried blood d4 | Sneaks up silent as the grave; 25% chance its wounds become infected. Can douse nearby lights, ignite its own blinding light, attack and vanish. | Captured 60s, decapitated lantern 15s, corpse 20s", "Wyvern | 25 | 10 | Thick hide -d4 | Bite/sting d6 | 60% chance she bites. Venomous sting: Toughness DR14 or paralyzed for one painful hour. Where the wyvern fly, crops die. | Captured 200s, corpse 100s, poison gland 60s, tail spike 60s"] }
+    {
+      "name": "Dungeon names", "mix": true, "fields": ["mb.dungeon:title"],
+      "items": [
+        "The Slaughter pit", "The Death church", "The Night temple", "The Hadean tunnels", "The Hell crypt",
+        "The Plague grave", "The Sin fort", "The Doom ziggurat", "The Dark den", "The Murder maze", "The Torture house",
+        "The Slave waste"
+      ]
+    },
+    {
+      "name": "Who lurks", "fields": ["mb.dungeon:lurker"],
+      "items": [
+        "Animated suits of armor battling goblins", "Nechrubel-worshipping lich with a skeletal court",
+        "Heretic cult lead by a possessed 11-year old", "A vengeful cabal of undead porcelain dolls",
+        "Desperate thieves guild dying slowly of cholera", "A meaty mass of slime, larvae and spider legs",
+        "Wickheads running from foreboding darkness", "A Bark-Witch and her root-children",
+        "Four-legged pale gremlins stinking of dirt", "Tergol's escaped experiment", "Disease spreading ochre-beetles",
+        "Dissident courtiers dedicated to the occult"
+      ]
+    },
+    {
+      "name": "Room features", "fields": ["mb.room:description"],
+      "items": [
+        "Inscriptions, the motifs are vomit-inducing", "Inscriptions, the motifs are terrifying",
+        "Inscriptions, the motifs are hypnotic", "Inscriptions, the motifs are childish",
+        "Inscriptions, the motifs are teleportation causing", "Bloodied beds", "Flooded", "Leaning", "Stinks",
+        "Fire damage", "Obvious traps", "Full of blood", "Torture chamber", "Sooty walls", "Freezing draft",
+        "Creaking doors", "Compact darkness", "Locked sarcophagi", "Shelves with obscure literature",
+        "Shelves with rotting food", "Abyssal pits", "Mirrors everywhere", "Ungodly yet exquisite chandeliers",
+        "Utterly silent", "Full of debris", "Sacrificial altar, cracked", "Sacrificial altar, fresh blood",
+        "Remains of a throne", "Smoke-filled", "Bonfire in the center"
+      ]
+    },
+    {
+      "name": "Traps", "fields": ["mb.room:trap"],
+      "items": [
+        "Wall-holes shoot poisonous arrows", "Bells and marbles on the floor", "Scorpion-filled basket poised to fall",
+        "Fish hooks hanging at eye level", "Chest marked with explosive runes", "Lock trapped with vial of poison gas",
+        "Jewel removal leads to roof collapse", "Slanted floor, translucent oil, pit",
+        "Snake-cages on collapsing ceiling tiles", "Evil urns release cold ghosts", "Coins coated in grime and poison"
+      ]
+    },
+    {
+      "name": "Bestiary", "fields": [],
+      "items": [
+        "Goblin | 6 | 7 | Ropy skin -d2 | Knife/shortbow d4 | Quick: attacks and defence against it are DR14. Its curse: kill it within d6 days of its attack or become a goblin. | Head 7s, captured 150s, dead 20s",
+        "Scum | 7 | 8 | No armor | Poisoned knife d4 | Poisoned knife: Toughness DR10 or infected. The PC with the highest Presence tests DR14 at the start of battle, or a random PC is backstabbed for normal damage +3. | Captured 50–120s, dead 20–70s (wanted)",
+        "Berserker | 13 | 9 | Hardened skin -d2 | Long flail d8, heavy mace d6, chained sword d6 or huge warhammer d10 | Attacks twice per round but doesn't defend (DR10 to hit). | Dead 20s, captured 55s, blood 3s per litre",
+        "Wraith | 15 | – | No armor | Touch d4 | Swift, elusive and hard to hit (DR14); always wins initiative. Its touch drains Strength, Presence and Agility by 1 for the fight. | Captured 120s, skull 70s, ectoplasm 25s",
+        "Blood-drenched skeleton | 7 | 8 | No armor | Shortsword d4, knife d4 or bony knuckles d2 | Soundless, attacks by surprise and mimics voices it has heard. Piercing weapons hit on DR14; 5 or more damage destroys it. | Captured 35s, destroyed 7s",
+        "Undead necromancer | 15 | – | Barrier (necro) -d4 | Strike d6 | Paralyzing touch: Presence DR14 every round to break free. No one can use Powers near it; each round it can steal a nearby scroll's Power and use it against its owner. | Captured 200s, remains 130s, skull 100s",
+        "Troll | 32 | special | Thick hide -d2 | Fist 2d6 | Easy to hit (DR10). Cowardly: retreats when badly wounded, heals into a larger troll and returns with +d6 damage, never forgetting who hurt it. | Captured 200s, corpse 70s, horn 25s",
+        "Zombie | 7 | – | Leather scraps -d2 | Claw/bite d2 | Anyone bitten tests Toughness DR8 or dies within two days and rises as a zombie. | Captured 30s, blood 5s per litre",
+        "Undead doll | 11 | – | Porcelain -d2 | Claws/piercing bite d4 | Mad gaze: Presence DR12 at the start of combat or frozen with fear for d4 rounds. | Head 20s, captured 80s",
+        "Grotesque | 18 | – | Clay/stone -d6 | Claws d6 or eye-beam d8 | Slow and easy to hit (DR10). Its terrifying gaze is used on 1–2 on d6 each round and always hits. | Captured 190s, dead (intact) 100s, dead (in pieces) 10s",
+        "Wickhead knife-wielder | 10 | 7 | No armor | Knife with dried blood d4 | Sneaks up silent as the grave; 25% chance its wounds become infected. Can douse nearby lights, ignite its own blinding light, attack and vanish. | Captured 60s, decapitated lantern 15s, corpse 20s",
+        "Wyvern | 25 | 10 | Thick hide -d4 | Bite/sting d6 | 60% chance she bites. Venomous sting: Toughness DR14 or paralyzed for one painful hour. Where the wyvern fly, crops die. | Captured 200s, corpse 100s, poison gland 60s, tail spike 60s"
+      ]
+    }
   ],
   "generators": [
-    { "id": "dungeon", "label": "Dungeon",
+    {
+      "id": "dungeon", "label": "Dungeon",
       "nodes": [
         {"id": "dungeon", "type": "mb.dungeon", "fill": ["title", "state", "lurker"]},
-        {"id": "rooms", "type": "mb.room", "count": 10, "title": "Room {n}", "fill": ["description", "trap"], "chance": {"trap": 0.3}, "first": {"title": "Entrance", "entrance": true}, "link": {"rel": "room_in:out", "to": "dungeon"}},
-        {"id": "creatures", "generator": "creature", "count": [2, 4], "link": {"rel": "located_at:out", "to": "rooms", "pick": "random"}}
+        {
+          "id": "rooms", "type": "mb.room", "count": 10, "title": "Room {n}", "fill": ["description", "trap"],
+          "chance": {"trap": 0.3}, "first": {"title": "Entrance", "entrance": true},
+          "link": {"rel": "room_in:out", "to": "dungeon"}
+        },
+        {
+          "id": "creatures", "generator": "creature", "count": [2, 4],
+          "link": {"rel": "located_at:out", "to": "rooms", "pick": "random"}
+        }
       ],
-      "connect": {"nodes": "rooms", "rel": "connects:out", "layout": "dungeon"} },
-    { "id": "creature", "label": "Creature",
+      "connect": {"nodes": "rooms", "rel": "connects:out", "layout": "dungeon"}
+    },
+    {
+      "id": "creature", "label": "Creature",
       "nodes": [
-        {"id": "creature", "type": "core.npc", "row": {"table": "Bestiary", "columns": ["title", "hp", "morale", "armor", "attack", "special", "value"]}}
-      ] }
+        {
+          "id": "creature", "type": "core.npc",
+          "row": {"table": "Bestiary", "columns": ["title", "hp", "morale", "armor", "attack", "special", "value"]}
+        }
+      ]
+    }
   ],
-  "starter": { "nodes": [
-    { "id": "location", "type": "mb.location", "first": { "title": "Galgenbeck", "body": "The greatest city that ever was." } },
-    { "id": "session", "type": "core.session", "first": { "title": "First Session" }, "link": { "rel": "features:out", "to": "location" } }
-  ] },
+  "starter": {
+    "nodes": [
+      {
+        "id": "location", "type": "mb.location",
+        "first": {"title": "Galgenbeck", "body": "The greatest city that ever was."}
+      },
+      {
+        "id": "session", "type": "core.session", "first": {"title": "First Session"},
+        "link": {"rel": "features:out", "to": "location"}
+      }
+    ]
+  },
   "patchTypes": [
     {
-      "id": "core.session",
-      "printTemplate": "morkborg/print/session.peb",
-      "quickCreate": [{ "type": "mb.misery", "rel": "came_to_pass:in" }],
+      "id": "core.session", "quickCreate": [{"type": "mb.misery", "rel": "came_to_pass:in"}],
       "checklists": [
-        { "rel": "features:out", "types": ["mb.location", "mb.dungeon"] },
-        { "rel": "features:out", "types": ["mb.pc"] }
+        {"rel": "features:out", "types": ["mb.location", "mb.dungeon"]},
+        {"rel": "features:out", "types": ["mb.pc"]}
       ],
-      "packet": { "rel": "features:out",
-                  "around": [{ "type": "core.npc", "rel": "located_at:out" }, { "type": "core.faction", "rel": "located_at:out" }],
-                  "related": [{ "type": "core.faction", "rel": "member_of:in" }], "columns": 3, "recap": "recap" },
+      "packet": {
+        "rel": "features:out",
+        "around": [{"type": "core.npc", "rel": "located_at:out"}, {"type": "core.faction", "rel": "located_at:out"}],
+        "related": [{"type": "core.faction", "rel": "member_of:in"}], "columns": 3, "recap": "recap"
+      },
       "debrief": [
-        { "types": ["mb.pc"], "fields": ["dead"],
-          "links": [{ "rel": "carries:out", "fields": ["kind"], "create": "mb.item", "remove": true }] },
-        { "types": ["core.npc"], "fields": ["dead"], "slots": true },
-        { "types": ["core.item"], "slots": true }
+        {
+          "types": ["mb.pc"], "fields": ["dead"],
+          "links": [{"rel": "carries:out", "fields": ["kind"], "create": "mb.item", "remove": true}]
+        },
+        {"types": ["core.npc"], "fields": ["dead"], "slots": true},
+        {"types": ["core.item"], "slots": true}
       ]
     },
     {
       "id": "core.npc", "icon": "ghost", "label": "Creature", "codePrefix": "C",
-      "overview": ["hp", "morale", "attack", "dead"],
-      "printSummary": { "parts": ["HP {hp}", "Morale {morale}", "{armor}", "{attack}", "{dead}"] },
-      "quickCreate": [{ "type": "mb.item", "rel": "carries:out" }],
+      "overview": {"columns": ["hp", "morale", "attack", "dead"]},
+      "print": {"summary": {"parts": ["HP {hp}", "Morale {morale}", "{armor}", "{attack}", "{dead}"]}},
+      "quickCreate": [{"type": "mb.item", "rel": "carries:out"}],
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "hp":         { "type": "integer", "title": "HP", "minimum": 0 },
-          "morale":     { "type": "string", "title": "Morale" },
-          "armor":      { "type": "string", "title": "Armor" },
-          "attack":     { "type": "string", "title": "Attack", "x-wide": true },
-          "special":    { "type": "string", "title": "Special", "x-widget": "textarea" },
-          "value":      { "type": "string", "title": "Worth", "x-wide": true },
-          "appearance": { "type": "string", "title": "Appearance", "x-wide": true },
-          "dead":       { "type": "boolean", "title": "Dead", "x-trueLabel": "dead" }
-        }
+        "hp": {"type": "integer", "title": "HP", "minimum": 0}, "morale": {"type": "string", "title": "Morale"},
+        "armor": {"type": "string", "title": "Armor"}, "attack": {"type": "string", "title": "Attack", "x-wide": true},
+        "special": {"type": "string", "title": "Special", "x-widget": "textarea"},
+        "value": {"type": "string", "title": "Worth", "x-wide": true},
+        "appearance": {"type": "string", "title": "Appearance", "x-wide": true},
+        "dead": {"type": "boolean", "title": "Dead", "x-trueLabel": "dead"}
       }
     }
   ],
   "nodeTypes": [
     {
-      "id": "mb.location", "icon": "map-pin",
-      "extends": "core.place",
-      "label": "Location",
-      "codePrefix": "L",
+      "id": "mb.location", "icon": "map-pin", "extends": "core.place", "label": "Location", "codePrefix": "L",
       "linkOrder": ["Dungeons", "*", "Featured in"],
       "quickCreate": [
-        { "type": "mb.dungeon", "rel": "part_of:in" },
-        { "type": "core.npc",   "rel": "located_at:in" },
-        { "type": "mb.item",    "rel": "located_at:in" },
-        { "type": "core.fact",  "rel": "about:in" }
+        {"type": "mb.dungeon", "rel": "part_of:in"},
+        {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "mb.item", "rel": "located_at:in"},
+        {"type": "core.fact", "rel": "about:in"}
       ]
     },
     {
-      "id": "mb.dungeon", "icon": "skull",
-      "extends": "core.place",
-      "label": "Dungeon",
-      "codePrefix": "D",
-      "mapShape": "diamond",
-      "linkSlots": [{ "label": "Location", "rels": ["part_of:out"] }],
-      "overview": ["state"],
-      "printTemplate": "morkborg/print/place.peb",
-      "printNested": [{ "rel": "room_in:in", "show": "located_at:in" }],
-      "map": { "places": "room_in:in", "shape": "circle", "highlight": "entrance" },
+      "id": "mb.dungeon", "icon": "skull", "extends": "core.place", "label": "Dungeon", "codePrefix": "D",
+      "campaignMap": {"shape": "diamond"}, "linkSlots": [{"label": "Location", "rels": ["part_of:out"]}],
+      "overview": {"columns": ["state"]}, "print": {"nested": [{"rel": "room_in:in", "show": "located_at:in"}]},
+      "map": {"places": "room_in:in", "shape": "circle", "highlight": "entrance"},
       "linkOrder": ["Rooms", "*", "Featured in"],
       "quickCreate": [
-        { "type": "mb.room",   "rel": "room_in:in" },
-        { "type": "core.npc",  "rel": "located_at:in" },
-        { "type": "mb.item",   "rel": "located_at:in" },
-        { "type": "core.fact", "rel": "about:in" }
+        {"type": "mb.room", "rel": "room_in:in"},
+        {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "mb.item", "rel": "located_at:in"},
+        {"type": "core.fact", "rel": "about:in"}
       ],
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "state":  { "enum": ["Still active", "Inactive: invaded", "Inactive: ended in disaster", "Inactive: no longer needed", "Inactive: a Misery was fulfilled"], "title": "State" },
-          "lurker": { "type": "string", "title": "Who or what lurks", "x-wide": true }
-        }
+        "state": {
+          "enum": [
+            "Still active", "Inactive: invaded", "Inactive: ended in disaster", "Inactive: no longer needed",
+            "Inactive: a Misery was fulfilled"
+          ],
+          "title": "State"
+        },
+        "lurker": {"type": "string", "title": "Who or what lurks", "x-wide": true}
       }
     },
     {
-      "id": "mb.room", "icon": "door-open",
-      "extends": "core.place",
-      "label": "Room",
-      "codePrefix": "R",
-      "mapShape": "none",
-      "overviewHidden": true,
-      "context": "room_in:out",
-      "linkSlots": [{ "label": "Dungeon", "rels": ["room_in:out"] }],
-      "linkOrder": ["Connects to", "*"],
-      "printSummary": { "parts": ["{entrance}", "{description}", "Trap: {trap}"] },
+      "id": "mb.room", "icon": "door-open", "extends": "core.place", "label": "Room", "codePrefix": "R",
+      "campaignMap": {"shape": "none"}, "overview": {"hidden": true}, "context": "room_in:out",
+      "linkSlots": [{"label": "Dungeon", "rels": ["room_in:out"]}], "linkOrder": ["Connects to", "*"],
+      "print": {"summary": {"parts": ["{entrance}", "{description}", "Trap: {trap}"]}},
       "quickCreate": [
-        { "type": "core.npc",  "rel": "located_at:in" },
-        { "type": "mb.item",   "rel": "located_at:in" },
-        { "type": "core.fact", "rel": "about:in" }
+        {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "mb.item", "rel": "located_at:in"},
+        {"type": "core.fact", "rel": "about:in"}
       ],
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "entrance":    { "type": "boolean", "title": "Entrance", "x-trueLabel": "entrance" },
-          "description": { "type": "string", "title": "Description", "x-widget": "textarea" },
-          "trap":        { "type": "string", "title": "Trap", "x-wide": true }
-        }
+        "entrance": {"type": "boolean", "title": "Entrance", "x-trueLabel": "entrance"},
+        "description": {"type": "string", "title": "Description", "x-widget": "textarea"},
+        "trap": {"type": "string", "title": "Trap", "x-wide": true}
       }
     },
     {
-      "id": "mb.pc",
-      "extends": "core.pc",
-      "label": "Character",
-      "codePrefix": "PC",
-      "displayTitle": ["{title}", "({player})"],
-      "overview": ["player", "class", "dead"],
-      "overviewMuted": "dead",
-      "quickCreate": [{ "type": "mb.item", "rel": "carries:out" }],
+      "id": "mb.pc", "extends": "core.pc", "label": "Character", "codePrefix": "PC",
+      "displayTitle": ["{title}", "({player})"], "overview": {"columns": ["player", "class", "dead"], "muted": "dead"},
+      "quickCreate": [{"type": "mb.item", "rel": "carries:out"}],
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "player": { "type": "string", "title": "Player" },
-          "class":  { "enum": ["Fanged Deserter", "Gutterborn Scum", "Esoteric Hermit", "Wretched Royalty", "Heretical Priest", "Occult Herbmaster",
-                               "Forlorn Philosopher", "Cursed Skinwalker", "Dead God's Prophet", "Pale One", "Sacrilegious Songbird", "Unfortunate Soul"],
-                      "title": "Class" },
-          "trait":  { "type": "string", "title": "Terrible trait", "x-wide": true },
-          "body":   { "type": "string", "title": "Broken body", "x-wide": true },
-          "habit":  { "type": "string", "title": "Bad habit", "x-wide": true },
-          "tale":   { "type": "string", "title": "Troubling tale", "x-wide": true },
-          "dead":   { "type": "boolean", "title": "Dead", "x-trueLabel": "dead" }
-        }
+        "player": {"type": "string", "title": "Player"},
+        "class": {
+          "enum": [
+            "Fanged Deserter", "Gutterborn Scum", "Esoteric Hermit", "Wretched Royalty", "Heretical Priest",
+            "Occult Herbmaster", "Forlorn Philosopher", "Cursed Skinwalker", "Dead God's Prophet", "Pale One",
+            "Sacrilegious Songbird", "Unfortunate Soul"
+          ],
+          "title": "Class"
+        },
+        "trait": {"type": "string", "title": "Terrible trait", "x-wide": true},
+        "body": {"type": "string", "title": "Broken body", "x-wide": true},
+        "habit": {"type": "string", "title": "Bad habit", "x-wide": true},
+        "tale": {"type": "string", "title": "Troubling tale", "x-wide": true},
+        "dead": {"type": "boolean", "title": "Dead", "x-trueLabel": "dead"}
       }
     },
     {
-      "id": "mb.item", "icon": "package",
-      "extends": "core.item",
-      "label": "Item",
-      "codePrefix": "I",
-      "overview": ["kind", "value"],
-      "printSummary": { "parts": ["{kind}", "{damage}", "{armorTier}", "{value}s", "{effect}"] },
+      "id": "mb.item", "icon": "package", "extends": "core.item", "label": "Item", "codePrefix": "I",
+      "overview": {"columns": ["kind", "value"]},
+      "print": {"summary": {"parts": ["{kind}", "{damage}", "{armorTier}", "{value}s", "{effect}"]}},
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "kind":      { "enum": ["Weapon", "Armor", "Unclean scroll", "Sacred scroll", "Treasure", "Equipment"], "title": "Kind" },
-          "damage":    { "type": "string", "title": "Damage", "x-showIf": { "kind": ["Weapon"] } },
-          "armorTier": { "enum": ["Light -d2", "Medium -d4", "Heavy -d6"], "title": "Armor", "x-showIf": { "kind": ["Armor"] } },
-          "value":     { "type": "integer", "title": "Value (s)", "minimum": 0 },
-          "effect":    { "type": "string", "title": "Effect", "x-widget": "textarea" }
-        }
+        "kind": {
+          "enum": ["Weapon", "Armor", "Unclean scroll", "Sacred scroll", "Treasure", "Equipment"], "title": "Kind"
+        },
+        "damage": {"type": "string", "title": "Damage", "x-showIf": {"kind": ["Weapon"]}},
+        "armorTier": {
+          "enum": ["Light -d2", "Medium -d4", "Heavy -d6"], "title": "Armor", "x-showIf": {"kind": ["Armor"]}
+        },
+        "value": {"type": "integer", "title": "Value (s)", "minimum": 0},
+        "effect": {"type": "string", "title": "Effect", "x-widget": "textarea"}
       }
     },
     {
-      "id": "mb.misery", "icon": "hourglass",
-      "label": "Misery",
-      "plural": "Miseries",
-      "codePrefix": "MI",
-      "overview": ["verse"],
-      "overviewSort": "verse",
-      "linkSlots": [{ "label": "Session", "rels": ["came_to_pass:out"] }],
-      "printSummary": { "parts": ["{verse}"] },
+      "id": "mb.misery", "icon": "hourglass", "label": "Misery", "plural": "Miseries", "codePrefix": "MI",
+      "overview": {"columns": ["verse"], "sort": "verse"},
+      "linkSlots": [{"label": "Session", "rels": ["came_to_pass:out"]}], "print": {"summary": {"parts": ["{verse}"]}},
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "verse": {
-            "enum": ["1:1", "1:2", "1:3", "1:4", "1:5", "1:6", "2:1", "2:2", "2:3", "2:4", "2:5", "2:6", "3:1", "3:2", "3:3", "3:4", "3:5", "3:6",
-                     "4:1", "4:2", "4:3", "4:4", "4:5", "4:6", "5:1", "5:2", "5:3", "5:4", "5:5", "5:6", "6:1", "6:2", "6:3", "6:4", "6:5", "6:6", "7:7"],
-            "title": "Verse",
-            "x-enumDescriptions": {
-              "1:1": "The City shall be made hollow. Of those who rest in hollowness, they shall not be seen.",
-              "1:2": "And the earth shall shake and be riven. And from the cracks shall rise a poisonous mist, and in ten days it will shroud the world.",
-              "1:3": "Of those who build mightily, stone by stone, so shall they fall, stone by stone.",
-              "1:4": "And the depths of the underworld shall bring forth flying spectres and crawling beasts. In their passing the worm grows fat, the vulture weary.",
-              "1:5": "Doubt is crowned. The loyal shall turn their blades on those who silver gave.",
-              "1:6": "And blood-cough shall spread like fire across the wastelands of the drought.",
-              "2:1": "As at the beginning, so at the end, all manner of fly and wasp shall fill the air.",
-              "2:2": "And the ground pale with maggots.",
-              "2:3": "And from the Spears: a frost. Born from Bergen Chrypt and covering all.",
-              "2:4": "And in ten days and one the writings of sorcerers will be made pale as air.",
-              "2:5": "And glass shall become quartz.",
-              "2:6": "And SHE shall see HIM grow stronger. And SHE reveals herself and all shall be slain.",
-              "3:1": "At Graven-Tosk the soil shall grow warm and those who rest be made to walk.",
-              "3:2": "In the heart of Sarkash fog and dusk shall breathe beneath the waking trees. That which was hewed by man shall now hew in its turn.",
-              "3:3": "And hunger shall come among you. You shall dig roots and pull children from the breast. The gaunt shall prey upon the gaunt.",
-              "3:4": "The great shall be made poor and the poor poorer still.",
-              "3:5": "Then shall come rain unending and the day shall be made night by its coming.",
-              "3:6": "Brother shall slay Brother and Sister poison Sister.",
-              "4:1": "For five days and five nights mothers flesh shall be the cloak of demons.",
-              "4:2": "And for five days and five nights shall fathers weep.",
-              "4:3": "Look to the West. Forth comes fire, and a horde, and the Kingdoms burn.",
-              "4:4": "The liar, Arkh shall make knots of the hearts of men, sundering the strongest of bonds.",
-              "4:5": "Behold now the Endless Sea, where Leviathan causes waves to be as mountains.",
-              "4:6": "And Leviathan shall come among you. Children winter-born and fated to fall before snow, both shall it take.",
-              "5:1": "The lake and brook shall blacken and the water become tar.",
-              "5:2": "The trees shall wither, shrivel and die.",
-              "5:3": "And birds shall fall dead from the sky.",
-              "5:4": "In one night all those not yet of seven years and seven days shall pass. Born and unborn. And dawn shall give them life as eaters of men.",
-              "5:5": "The sky shall weep fire and a great stone shall plummet as a city fallen from heaven. Its gift is Death and madness is its herald.",
-              "5:6": "And the last King and the last Queen shall wither to dust. Their wretched courts are devoured by wolves.",
-              "6:1": "You shall know the last day is come. The sun shall set and never rise.",
-              "6:2": "And day shall be as night and night as day. You shall not sleep, neither shall you wake.",
-              "6:3": "Anthelia shall have her will and drink all colour from the world.",
-              "6:4": "Those who walk on two legs shall be nameless as the beasts of the field.",
-              "6:5": "The earth shall vein, bringing black serpents forth from within the earth.",
-              "6:6": "And the unnamed enter the earth, passing through the Veil as it is sundered by Daejmon, the left underling of Nechrubel.",
-              "7:7": "The seventh Misery: the world dies. The game and your lives end here."
-            }
+        "verse": {
+          "enum": [
+            "1:1", "1:2", "1:3", "1:4", "1:5", "1:6", "2:1", "2:2", "2:3", "2:4", "2:5", "2:6", "3:1", "3:2", "3:3",
+            "3:4", "3:5", "3:6", "4:1", "4:2", "4:3", "4:4", "4:5", "4:6", "5:1", "5:2", "5:3", "5:4", "5:5", "5:6",
+            "6:1", "6:2", "6:3", "6:4", "6:5", "6:6", "7:7"
+          ],
+          "title": "Verse",
+          "x-enumDescriptions": {
+            "1:1": "The City shall be made hollow. Of those who rest in hollowness, they shall not be seen.",
+            "1:2": "And the earth shall shake and be riven. And from the cracks shall rise a poisonous mist, and in ten days it will shroud the world.",
+            "1:3": "Of those who build mightily, stone by stone, so shall they fall, stone by stone.",
+            "1:4": "And the depths of the underworld shall bring forth flying spectres and crawling beasts. In their passing the worm grows fat, the vulture weary.",
+            "1:5": "Doubt is crowned. The loyal shall turn their blades on those who silver gave.",
+            "1:6": "And blood-cough shall spread like fire across the wastelands of the drought.",
+            "2:1": "As at the beginning, so at the end, all manner of fly and wasp shall fill the air.",
+            "2:2": "And the ground pale with maggots.",
+            "2:3": "And from the Spears: a frost. Born from Bergen Chrypt and covering all.",
+            "2:4": "And in ten days and one the writings of sorcerers will be made pale as air.",
+            "2:5": "And glass shall become quartz.",
+            "2:6": "And SHE shall see HIM grow stronger. And SHE reveals herself and all shall be slain.",
+            "3:1": "At Graven-Tosk the soil shall grow warm and those who rest be made to walk.",
+            "3:2": "In the heart of Sarkash fog and dusk shall breathe beneath the waking trees. That which was hewed by man shall now hew in its turn.",
+            "3:3": "And hunger shall come among you. You shall dig roots and pull children from the breast. The gaunt shall prey upon the gaunt.",
+            "3:4": "The great shall be made poor and the poor poorer still.",
+            "3:5": "Then shall come rain unending and the day shall be made night by its coming.",
+            "3:6": "Brother shall slay Brother and Sister poison Sister.",
+            "4:1": "For five days and five nights mothers flesh shall be the cloak of demons.",
+            "4:2": "And for five days and five nights shall fathers weep.",
+            "4:3": "Look to the West. Forth comes fire, and a horde, and the Kingdoms burn.",
+            "4:4": "The liar, Arkh shall make knots of the hearts of men, sundering the strongest of bonds.",
+            "4:5": "Behold now the Endless Sea, where Leviathan causes waves to be as mountains.",
+            "4:6": "And Leviathan shall come among you. Children winter-born and fated to fall before snow, both shall it take.",
+            "5:1": "The lake and brook shall blacken and the water become tar.",
+            "5:2": "The trees shall wither, shrivel and die.", "5:3": "And birds shall fall dead from the sky.",
+            "5:4": "In one night all those not yet of seven years and seven days shall pass. Born and unborn. And dawn shall give them life as eaters of men.",
+            "5:5": "The sky shall weep fire and a great stone shall plummet as a city fallen from heaven. Its gift is Death and madness is its herald.",
+            "5:6": "And the last King and the last Queen shall wither to dust. Their wretched courts are devoured by wolves.",
+            "6:1": "You shall know the last day is come. The sun shall set and never rise.",
+            "6:2": "And day shall be as night and night as day. You shall not sleep, neither shall you wake.",
+            "6:3": "Anthelia shall have her will and drink all colour from the world.",
+            "6:4": "Those who walk on two legs shall be nameless as the beasts of the field.",
+            "6:5": "The earth shall vein, bringing black serpents forth from within the earth.",
+            "6:6": "And the unnamed enter the earth, passing through the Veil as it is sundered by Daejmon, the left underling of Nechrubel.",
+            "7:7": "The seventh Misery: the world dies. The game and your lives end here."
           }
         }
       }
     }
   ],
   "edgeTypes": [
-    { "id": "part_of",      "label": "is in",           "inverseLabel": "dungeons", "from": ["mb.dungeon"], "to": ["mb.location"] },
-    { "id": "room_in",      "label": "is a room of",    "inverseLabel": "rooms",    "from": ["mb.room"],    "to": ["mb.dungeon"] },
-    { "id": "connects",     "label": "connects to",     "inverseLabel": "connects to", "from": ["mb.room"], "to": ["mb.room"] },
-    { "id": "came_to_pass", "label": "came to pass in", "inverseLabel": "miseries", "from": ["mb.misery"],  "to": ["core.session"] }
+    {"id": "part_of", "label": "is in", "inverseLabel": "dungeons", "from": ["mb.dungeon"], "to": ["mb.location"]},
+    {"id": "room_in", "label": "is a room of", "inverseLabel": "rooms", "from": ["mb.room"], "to": ["mb.dungeon"]},
+    {"id": "connects", "label": "connects to", "inverseLabel": "connects to", "from": ["mb.room"], "to": ["mb.room"]},
+    {
+      "id": "came_to_pass", "label": "came to pass in", "inverseLabel": "miseries", "from": ["mb.misery"],
+      "to": ["core.session"]
+    }
   ]
 }

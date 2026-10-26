@@ -74,7 +74,9 @@ data class PrintFact(val code: String, val title: String, val body: String, val 
 data class PacketRecap(val code: String, val title: String, val text: String, val notes: String)
 
 /** A session packet's extra template variables (the type's `packet` setting). */
-data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>, val previous: PacketRecap? = null)
+/** [viewHeadings]: a heading per view id, its type's plural ("Characters" for Heart's Inspiration), as the PDF's column bands. */
+data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>, val previous: PacketRecap? = null,
+                       val viewHeadings: Map<String, String> = emptyMap())
 
 /**
  * Everything a print template may use, already filtered for the audience. Section items in a packet are these too,
@@ -106,7 +108,7 @@ data class PrintModel(
         "props" to props, "flags" to flags, "linkedProps" to linkedProps, "linkedPropTables" to linkedPropTables,
         "groups" to groups, "facts" to facts,
         "audience" to audience, "notes" to notes, "nodeMap" to nodeMap,
-    ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous) }.orEmpty()
+    ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous, "viewHeadings" to it.viewHeadings) }.orEmpty()
 }
 
 /** Larger "x-track" values print as a plain number: a row that long wouldn't fit a card. */
@@ -189,7 +191,8 @@ class PrintService(private val graph: GraphService, private val templates: Templ
                 })
             }
         return PacketModel(MapService.view(all, module, highlight = selected.map { it.id }.toSet()), views, sections,
-            previous = def.recap?.let { recap(module, node, it, g) })
+            previous = def.recap?.let { recap(module, node, it, g) },
+            viewHeadings = views.associate { it.view.id to module.plural(it.view.types.first()) })
     }
 
     /**
@@ -241,7 +244,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val pageCss = "@page { size: ${Imposition.columnWidthMm(columns)}mm ${Imposition.columnHeightMm()}mm; margin: 0; }"
         // Views are headed by their type's plural ("Characters" for Inspiration), sections by theirs
         val sections = model.packet?.let { p ->
-            p.views.map { "view:${it.view.id}" to module.plural(it.view.types.first()) } + p.sections.map { "section:${it.typeId}" to it.label }
+            p.views.map { "view:${it.view.id}" to p.viewHeadings.getValue(it.view.id) } + p.sections.map { "section:${it.typeId}" to it.label }
         }.orEmpty()
         val parts = sections.map { (key, heading) ->
             Imposition.Part(heading, pdf(templates.render(template, vars + ("part" to "columns") + ("only" to key)), pageCss))
@@ -253,7 +256,9 @@ class PrintService(private val graph: GraphService, private val templates: Templ
     fun mapPdf(campaign: Campaign, title: String, map: MapView): ByteArray =
         pdf(templates.render("print/map.peb", mapOf("campaign" to campaign, "title" to title, "map" to map)))
 
-    private fun template(module: ResolvedModule, node: Node) = module.printTemplate(node.type) ?: "print/generic.peb"
+    /** The type's own print template, else the session packet for a type with a `packet`, else the generic card. */
+    private fun template(module: ResolvedModule, node: Node) =
+        module.printTemplate(node.type) ?: if (module.packet(node.type) != null) "print/session.peb" else "print/generic.peb"
 
     /**
      * HTML -> PDF. jsoup tidies Pebble output into a DOM, so templates don't need to be strict XHTML.

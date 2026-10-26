@@ -27,30 +27,30 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
         def.linkLimits.orEmpty().map { (key, max) -> rel("linkLimits key", key) ?: "$t: linkLimits '$key' must be at least 1".takeIf { max < 1 } } +
         slotRels.map { rel("linkSlots rel", it) } +
         slotRels.groupingBy { it }.eachCount().filter { it.value > 1 }.map { "$t: linkSlots rel '${it.key}' is in more than one slot" } +
-        def.printSummary?.propNames.orEmpty().map { prop("printSummary", it) } +
-        def.printNested.orEmpty().flatMap { n ->
-            listOf(rel("printNested rel", n.rel), "$t: printNested show '${n.show}' is not an edge type and direction".takeIf { n.show !in edgeKeys })
+        def.print?.summary?.propNames.orEmpty().map { prop("print summary", it) } +
+        def.print?.nested.orEmpty().flatMap { n ->
+            listOf(rel("print nested rel", n.rel), "$t: print nested show '${n.show}' is not an edge type and direction".takeIf { n.show !in edgeKeys })
         } +
         rel("context", def.context) +
         def.linkOrder.orEmpty().filter { it != "*" && it !in possibleLinkGroups(t) }
             .map { "$t: linkOrder '$it' is not a heading its links can have (${possibleLinkGroups(t).sorted().joinToString()})" } +
         def.icon?.takeIf { it !in ICONS }?.let { "$t: icon '$it' is not one of ${ICONS.joinToString()}" } +
-        def.mapShape?.takeIf { it !in MAP_SHAPES }?.let { "$t: mapShape '$it' is not one of ${MAP_SHAPES.joinToString()}" } +
-        def.mapDepth?.takeIf { p ->
+        def.campaignMap?.shape?.takeIf { it !in MAP_SHAPES }?.let { "$t: campaignMap shape '$it' is not one of ${MAP_SHAPES.joinToString()}" } +
+        def.campaignMap?.depth?.takeIf { p ->
             val s = props?.get(p)
             s?.get("type")?.asText() != "integer" && !(s?.has("enum") == true && s.get("x-depth")?.isObject == true)
-        }?.let { "$t: mapDepth '$it' is not an integer prop, or an enum prop with \"x-depth\", in its props schema" } +
-        rel("mapBetween", def.mapBetween) +
+        }?.let { "$t: campaignMap depth '$it' is not an integer prop, or an enum prop with \"x-depth\", in its props schema" } +
+        rel("campaignMap between", def.campaignMap?.between) +
         rel("map places", def.map?.places) +
         def.map?.shape?.takeIf { it !in MAP_SHAPES || it == "none" }?.let { "$t: map shape '$it' is not one of ${(MAP_SHAPES - "none").joinToString()}" } +
         def.map?.let { m -> m.highlight?.takeIf { h -> linkOption(t, m.places)?.let { o -> placeTypes(o).none { propSchema(it, h)?.get("type")?.asText() == "boolean" } } ?: false } }
             ?.let { "$t: map highlight '$it' is not a boolean prop of its places" } +
-        def.overview.orEmpty().map { col ->
+        def.overview?.columns.orEmpty().map { col ->
             if (col.startsWith("@")) "$t: overview '$col' is not a link option of $t".takeIf { col.drop(1) !in options }
             else prop("overview", col)
         } +
-        def.overviewMuted?.takeIf { props?.get(it)?.get("type")?.asText() != "boolean" }
-            ?.let { "$t: overviewMuted '$it' is not a boolean prop in its props schema" } +
+        def.overview?.muted?.takeIf { props?.get(it)?.get("type")?.asText() != "boolean" }
+            ?.let { "$t: overview muted '$it' is not a boolean prop in its props schema" } +
         def.checklists.orEmpty().flatMap { c ->
             listOf(rel("checklist rel", c.rel)) + c.types.filter { it !in types }.map { "$t: checklist type '$it' is unknown" }
         } +
@@ -64,7 +64,7 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
         prop("packet recap", def.packet?.recap) +
         def.debrief.orEmpty().flatMap { g -> debriefErrors(t, g) } +
         def.displayTitle?.let { Parts.names(it) }.orEmpty().filter { it != "title" }.map { prop("displayTitle", it) } +
-        prop("overviewSort", def.overviewSort?.removePrefix("-"))
+        prop("overview sort", def.overview?.sort?.removePrefix("-"))
 }.filterNotNull()
 
 /** Problems with one `debrief` list of type [t]: unknown types, and fields or links none of its types have. */

@@ -19,10 +19,10 @@ class GameModules(private val modules: Map<String, ResolvedModule>) {
         fun load(dir: String): GameModules {
             val root = File(dir)
             require(root.isDirectory) { "Modules directory not found: ${root.absolutePath}" }
-            val defs = root.listFiles()!!
-                .mapNotNull { File(it, "module.json").takeIf(File::isFile) }
-                .map { Json.mapper.readValue<ModuleDef>(it) }
-                .associateBy { it.id }
+            val trees = root.listFiles()!!.mapNotNull { File(it, "module.json").takeIf(File::isFile) }.map { Json.mapper.readTree(it) as ObjectNode }
+            val renamed = trees.flatMap(::renamedSettings)
+            require(renamed.isEmpty()) { "Invalid game modules:\n" + renamed.joinToString("\n") }
+            val defs = trees.map { Json.mapper.convertValue<ModuleDef>(it) }.associateBy { it.id }
 
             fun chain(id: String, seen: MutableSet<String> = mutableSetOf()): List<ModuleDef> {
                 require(seen.add(id)) { "Module extends cycle at '$id'" }
@@ -35,21 +35,26 @@ class GameModules(private val modules: Map<String, ResolvedModule>) {
                 val self = c.last()
                 val types = LinkedHashMap<String, NodeTypeDef>()
                 val edges = LinkedHashMap<String, EdgeTypeDef>()
+                // Shared fields, a game's overriding inherited ones by name; props refer to them as "@name" or {"use": name}
+                val fields = Props(c.fold(emptyMap()) { acc, m -> acc + m.fields })
                 c.forEach { m ->
-                    m.nodeTypes.forEach { types[it.id] = it }
+                    m.nodeTypes.forEach { types[it.id] = it.copy(props = fields.expand(it.props, it.id)) }
                     m.edgeTypes.forEach { edges[it.id] = it }
                     m.patchTypes.forEach { p ->
                         val typeId = p.get("id")?.asText()
                         val def = requireNotNull(types[typeId]) { "Module '${m.id}' patches unknown type '$typeId'" }
-                        types[def.id] = patch(def, p)
+                        val patch = p.deepCopy().apply { fields.expand(get("props"), def.id)?.let { replace("props", it) } }
+                        types[def.id] = Overlay.patch(def, patch)
                     }
                 }
+                require(fields.errors.isEmpty()) { "Invalid game modules:\n" + fields.errors.distinct().joinToString("\n") }
                 val hidden = c.flatMap { it.hide }.toSet()
+                val resolved = Overlay.resolve(types)
                 ResolvedModule(
                     id = self.id,
                     name = self.name,
-                    types = types,
-                    creatable = types.values.filter { it.id !in hidden },
+                    types = resolved,
+                    creatable = resolved.values.filter { it.id !in hidden },
                     edgeTypes = edges.values.toList(),
                     views = c.flatMap { it.views }.associateBy { it.id }.values.toList(),
                     overviewOrder = c.lastOrNull { it.overviewOrder.isNotEmpty() }?.overviewOrder.orEmpty(),
@@ -65,11 +70,19 @@ class GameModules(private val modules: Map<String, ResolvedModule>) {
             return GameModules(resolved)
         }
 
-        /** [def] with the settings given in [patch] replacing its own; the type's id and parent stay. */
-        internal fun patch(def: NodeTypeDef, patch: ObjectNode): NodeTypeDef {
-            val node: ObjectNode = Json.mapper.valueToTree(def)
-            node.setAll<ObjectNode>(patch.deepCopy().apply { remove(listOf("id", "extends")) })
-            return Json.mapper.convertValue(node)
-        }
+        /** Type settings that moved into groups: old key -> where it is now. */
+        private val RENAMED = mapOf(
+            "overviewSort" to "overview.sort", "overviewMuted" to "overview.muted", "overviewHidden" to "overview.hidden",
+            "printTemplate" to "print.template", "printSummary" to "print.summary", "printNested" to "print.nested",
+            "mapShape" to "campaignMap.shape", "mapDepth" to "campaignMap.depth", "mapBetween" to "campaignMap.between",
+        )
+
+        /** Old flat settings in a module's types and patches, which would otherwise be silently ignored. */
+        private fun renamedSettings(module: ObjectNode): List<String> =
+            (module.path("nodeTypes") + module.path("patchTypes")).flatMap { t ->
+                val where = "${module.path("id").asText()} ${t.path("id").asText()}"
+                RENAMED.filterKeys { t.has(it) }.map { (old, now) -> "$where: '$old' is now '$now'" } +
+                    listOfNotNull("$where: 'overview' is now an object; its list is 'overview.columns'".takeIf { t.path("overview").isArray })
+            }
     }
 }

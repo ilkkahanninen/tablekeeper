@@ -284,7 +284,7 @@ class GameModulesTest {
         val dir = Files.createTempDirectory("modules").toFile()
         File(dir, "bad").mkdirs()
         File(dir, "bad/module.json").writeText(
-            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", "mapShape": "star"}]}"""
+            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", "campaignMap": {"shape": "star"}}]}"""
         )
         val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }
         assertTrue("star" in e.message.orEmpty())
@@ -324,8 +324,8 @@ class GameModulesTest {
     @Test
     fun `bad overview columns or order fail module load`() {
         for ((settings, expected) in listOf(
-            """"overview": ["nope"]""" to "nope",
-            """"overview": ["@nope:out"]""" to "@nope:out",
+            """"overview": {"columns": ["nope"]}""" to "nope",
+            """"overview": {"columns": ["@nope:out"]}""" to "@nope:out",
         )) {
             val dir = Files.createTempDirectory("modules").toFile()
             File(dir, "bad").mkdirs()
@@ -374,7 +374,8 @@ class GameModulesTest {
         assertEquals(listOf(BetweenDef("heart.delve", "connects:out")), packet.between)
         assertEquals(listOf(BetweenDef("core.npc", "located_at:out"), BetweenDef("core.faction", "located_at:out")), packet.around)
         assertEquals(listOf(BetweenDef("core.faction", "member_of:in")), packet.related)
-        assertEquals("heart/print/session.peb", heart.printTemplate("core.session"))
+        assertEquals(null, heart.printTemplate("core.session"), "the shared session packet")
+        assertEquals("heart/print/_inspiration_packet.peb", heart.view("inspiration")!!.print)
         // A plain core campaign keeps a plain session
         val core = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("core")
         assertEquals(null, core.packet("core.session"))
@@ -494,10 +495,11 @@ class GameModulesTest {
     @Test
     fun `a type patch replaces only the settings it gives`() {
         val npc = heart.type("core.npc")!!
-        val patched = GameModules.patch(npc, Json.mapper.readTree("""{"id": "other", "plural": "Folk", "overviewSort": "-name"}""") as ObjectNode)
+        val patched = Overlay.patch(npc, Json.mapper.readTree("""{"id": "other", "plural": "Folk", "overview": {"sort": "-name"}}""") as ObjectNode)
         assertEquals("Folk", patched.plural)
-        assertEquals("-name", patched.overviewSort)
-        assertEquals(npc.copy(plural = "Folk", overviewSort = "-name"), patched, "id, props and every other setting stay")
+        assertEquals("-name", patched.overview?.sort)
+        assertEquals(npc.overview?.columns, patched.overview?.columns, "a patch of one overview setting keeps the others")
+        assertEquals(npc.copy(plural = "Folk", overview = npc.overview!!.copy(sort = "-name")), patched, "id, props and every other setting stay")
     }
 
     @Test
@@ -660,7 +662,7 @@ class GameModulesTest {
     @Test
     fun `morkborg sessions print a packet, debrief and record miseries`() {
         assertEquals(listOf(listOf("mb.location", "mb.dungeon"), listOf("mb.pc")), morkborg.checklists("core.session").map { it.first.types })
-        assertEquals("morkborg/print/session.peb", morkborg.printTemplate("core.session"))
+        assertNull(morkborg.printTemplate("core.session"), "the shared session packet")
         assertEquals(3, morkborg.packet("core.session")!!.columns)
         assertEquals(listOf(listOf("mb.pc"), listOf("core.npc"), listOf("core.item")), morkborg.debrief("core.session").map { it.types })
         val verse = morkborg.propsSchema("mb.misery")!!["properties"]["verse"]
@@ -763,6 +765,55 @@ class GameModulesTest {
         val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty()
         listOf("both: give either a type or a generator", "ghost: generator 'nope' is unknown", "loop: generator 'h' uses 'g' in turn",
             "row: field 'hp' is not a prop").forEach { assertTrue(it in e, "$it in: $e") }
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `a type inherits its parent's settings, merged, but not its own name`() {
+        // Minor locations extend core.place: its map shape is replaced, its icon inherited
+        assertEquals("map-pin", heart.icon("heart.minor_location"))
+        assertEquals("dot", heart.mapShape("heart.minor_location"))
+        assertEquals("Minor location", heart.label("heart.minor_location"))
+        val base = Json.mapper.readTree("""{"overview": {"columns": ["a"], "sort": "a"}, "props": {"type": "object", "properties": {"a": {}}}, "label": "A"}""") as ObjectNode
+        val over = Json.mapper.readTree("""{"overview": {"sort": "-b"}, "props": {"type": "object", "properties": {"b": {}}}}""") as ObjectNode
+        val merged = Overlay.merge(base, over)
+        assertEquals("""{"columns":["a"],"sort":"-b"}""", merged["overview"].toString(), "objects merge key by key")
+        assertEquals(listOf("b"), merged["props"]["properties"].fieldNames().asSequence().toList(), "props replace whole")
+    }
+
+    @Test
+    fun `old flat settings fail module load with where they moved`() {
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", "mapShape": "circle", "overview": ["x"]}]}"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty()
+        assertTrue("'mapShape' is now 'campaignMap.shape'" in e, e)
+        assertTrue("its list is 'overview.columns'" in e, e)
+        dir.deleteRecursively()
+    }
+
+    @Test
+    fun `props can be just the fields, and shared fields are used by name`() {
+        // Heart's stress die and domains are shared by landmarks and delves / resources; beats and fallouts share a severity
+        assertEquals(heart.propSchema("heart.landmark", "stress"), heart.propSchema("heart.delve", "stress"))
+        assertEquals(heart.propSchema("heart.landmark", "domains"), heart.propSchema("heart.resource", "domains"))
+        assertEquals("Beat 1", heart.propSchema("heart.pc", "beat1Type")!!["x-row"].asText(), "a use with changes")
+        assertEquals(listOf("Minor", "Major", "Zenith"), heart.propSchema("heart.fallout", "type")!!["enum"].map { it.asText() })
+        // The short form is wrapped as a closed object schema
+        val schema = heart.propsSchema("heart.landmark")!!
+        assertEquals("object", schema["type"].asText())
+        assertEquals(false, schema["additionalProperties"].asBoolean())
+        assertTrue(heart.validateProps("heart.landmark", Json.mapper.readTree("""{"smell": "bad"}""")).isNotEmpty())
+
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", "props": {"a": "@nope", "b": {"use": "gone"}}}]}"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty()
+        assertTrue("bad.place a: shared field 'nope' is unknown" in e && "bad.place b: shared field 'gone' is unknown" in e, e)
         dir.deleteRecursively()
     }
 }

@@ -1,6 +1,7 @@
 package tablekeeper.modules
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -23,8 +24,12 @@ data class NodeTypeDef(
     val displayTitle: List<String>? = null,
     val codePrefix: String,
     val extends: String? = null,
-    val printTemplate: String? = null,
-    /** JSON Schema for `props`. Missing = inherit from parent type, or no props. */
+    /** How this type prints: its template, how it's listed on others' cards, what's nested under it. */
+    val print: PrintDef? = null,
+    /**
+     * The type's fields: a JSON Schema object, or just its properties (wrapped at load). A field may be a shared one,
+     * "@name", or {"use": "name", …} with changes. Missing = inherit from parent type, or no props.
+     */
     val props: JsonNode? = null,
     /** "Add new…" choices on this type's page. Missing = inherit from parent type. */
     val quickCreate: List<QuickCreateDef>? = null,
@@ -34,10 +39,6 @@ data class NodeTypeDef(
     val linkLimits: Map<String, Int>? = null,
     /** One-of-many links shown as a dropdown, e.g. an item's Location. Missing = inherit from parent type. */
     val linkSlots: List<LinkSlotDef>? = null,
-    /** How this type is listed on other nodes' print cards. Missing = inherit; none = just title and code. */
-    val printSummary: PrintSummaryDef? = null,
-    /** On this type's card, also list what linked nodes have, e.g. each minor location's contents. Missing = inherit. */
-    val printNested: List<PrintNestedDef>? = null,
     /** Link whose far end is shown in brackets in pickers, e.g. "part_of:out" = a minor location's landmark. */
     val context: String? = null,
     /**
@@ -47,29 +48,12 @@ data class NodeTypeDef(
     val linkOrder: List<String>? = null,
     /** Shown for this type's nodes on screen (instead of their code): one of [ICONS]. Missing = inherit; none = a circle. */
     val icon: String? = null,
-    /** Drawn on the campaign map with this shape: one of [MAP_SHAPES]. Missing = inherit; "none" or none at all = not on the map
-     *  (e.g. a dungeon's rooms, places inside one that would crowd it). */
-    val mapShape: String? = null,
-    /**
-     * Prop placing this type vertically on the map, higher values lower, e.g. Heart's "tier": an integer, or an enum
-     * whose "x-depth" maps values to depths ("Tier 2": 2; values left out, like "Rogue", are placed freely). Missing = inherit.
-     */
-    val mapDepth: String? = null,
-    /** Link to the places this type is drawn between on the map, e.g. a delve's landmarks; its depth is their average. Missing = inherit. */
-    val mapBetween: String? = null,
+    /** How this type's nodes are drawn on the campaign map; none = not on it. */
+    val campaignMap: CampaignMapDef? = null,
     /** This type's nodes have a map of their own (a dungeon's rooms), shown from their page and on their prints. Missing = inherit. */
     val map: NodeMapDef? = null,
-    /**
-     * Columns of this type's table on the campaign home: prop names, or "@rel" for linked titles
-     * (e.g. "@connects:out"). Link slots are added automatically. Missing = inherit.
-     */
-    val overview: List<String>? = null,
-    /** Boolean prop that greys out this type's rows on the campaign home when true, e.g. an NPC's "dead". Missing = inherit. */
-    val overviewMuted: String? = null,
-    /** Left off the campaign home altogether, e.g. a dungeon's rooms (reached from their dungeon). Missing = inherit. */
-    val overviewHidden: Boolean? = null,
-    /** Prop ordering this type's rows on the campaign home, e.g. "date"; "-date" for newest first. Missing = inherit; none = by title. */
-    val overviewSort: String? = null,
+    /** This type's table on the campaign home. */
+    val overview: OverviewDef? = null,
     /** Checkbox lists on this type's page; ticking links the node via the list's rel. Missing = inherit. */
     val checklists: List<ChecklistDef>? = null,
     /** Printing a node of this type builds a session packet from what it links. Missing = inherit. */
@@ -77,6 +61,31 @@ data class NodeTypeDef(
     /** After play: what this type's page lets you update on the packet's nodes, e.g. a session's characters and NPCs. Missing = inherit. */
     val debrief: List<DebriefDef>? = null,
 )
+
+/**
+ * A type's table on the campaign home. [columns]: prop names, or "@rel" for linked titles (e.g. "@connects:out"); link
+ * slots are added automatically. [sort]: the prop ordering rows, e.g. "date", "-date" newest first; none = by title.
+ * [muted]: a boolean prop greying out rows when true (an NPC's "dead"). [hidden]: the type isn't listed at all (rooms).
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class OverviewDef(val columns: List<String>? = null, val sort: String? = null, val muted: String? = null, val hidden: Boolean? = null)
+
+/**
+ * How a type prints. [template]: its print template (default: the generic card, or the session packet for a type with a
+ * `packet`). [summary]: how it's listed on other nodes' cards; none = title and code. [nested]: also list what linked
+ * nodes have, e.g. each minor location's contents.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class PrintDef(val template: String? = null, val summary: PrintSummaryDef? = null, val nested: List<PrintNestedDef>? = null)
+
+/**
+ * How a type is drawn on the campaign map. [shape]: one of [MAP_SHAPES]; "none" leaves an inherited place off (rooms).
+ * [depth]: prop placing it vertically, higher values lower, e.g. Heart's "tier": an integer, or an enum whose "x-depth"
+ * maps values to depths ("Tier 2": 2; values left out, like "Rogue", are placed freely). [between]: link to the places it's
+ * drawn between, e.g. a delve's landmarks; its depth is their average.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class CampaignMapDef(val shape: String? = null, val depth: String? = null, val between: String? = null)
 
 /** A checkbox list of every node of [types]; ticked = linked via [rel], e.g. a session's featured landmarks. */
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -210,6 +219,7 @@ data class GenConnectDef(val nodes: String, val rel: String, val layout: String)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrintSummaryDef(val group: String? = null, val parts: List<String> = emptyList()) {
     /** Prop names used in [parts]. */
+    @get:JsonIgnore
     val propNames: Set<String> get() = Parts.names(parts)
 }
 
@@ -263,6 +273,8 @@ data class ModuleDef(
     val generators: List<GeneratorDef> = emptyList(),
     /** What a new campaign of this game starts with (a generator run once at creation), e.g. a first place and session. */
     val starter: GeneratorDef? = null,
+    /** Field schemas shared by several types' `props` ("@stress", or {"use": "stress", …changes}); inherited, overridden by name. */
+    val fields: Map<String, JsonNode> = emptyMap(),
 )
 
 /**
@@ -279,6 +291,8 @@ data class ViewDef(
     val groupBy: List<String> = emptyList(),
     /** Link options whose linked nodes are listed under each node, with their print summary (e.g. a character's fallouts). */
     val links: List<String> = emptyList(),
+    /** In a session packet: the template partial drawing this view for the packet's nodes (variable `v`); none = left out. */
+    val print: String? = null,
 )
 
 /** One choice in the "Link to…" dropdown, e.g. "has here" = located_at seen from the place. */

@@ -1,289 +1,283 @@
 {
-  "id": "heart",
-  "name": "Heart: The City Beneath",
-  "extends": ["core"],
-  "hide": ["core.place", "core.pc", "core.item"],
-  "overviewOrder": ["core.session", "heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.fallout", "heart.equipment", "heart.resource", "core.faction", "core.fact"],
-  "views": [
-    { "id": "inspiration", "label": "Inspiration", "template": "heart/views/inspiration.peb",
-      "types": ["heart.pc"], "groupBy": ["calling", "class"], "links": ["suffers:out"] }
+  "id": "heart", "name": "Heart: The City Beneath", "extends": ["core"], "hide": ["core.place", "core.pc", "core.item"],
+  "overviewOrder": [
+    "core.session", "heart.landmark", "heart.delve", "heart.pc", "core.npc", "heart.fallout", "heart.equipment",
+    "heart.resource", "core.faction", "core.fact"
   ],
-  "starter": { "nodes": [
-    { "id": "landmark", "type": "heart.landmark", "first": { "title": "Derelict", "tier": "Tier 0", "stress": "d4", "domains": ["Haven"], "haunts": "D10 Any" } },
-    { "id": "session", "type": "core.session", "first": { "title": "First Session" }, "link": { "rel": "features:out", "to": "landmark" } }
-  ] },
+  "fields": {
+    "stress": {
+      "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Default stress",
+      "x-enumDescriptions": {"d4": "Tier 0-1", "d6": "Tier 2-3", "d8": "Tier 4"}
+    },
+    "domains": {
+      "type": "array", "title": "Domains", "uniqueItems": true,
+      "items": {"enum": ["Cursed", "Desolate", "Haven", "Occult", "Religion", "Technology", "Warren", "Wild"]}
+    },
+    "severity": {"enum": ["Minor", "Major", "Zenith"], "title": "Type"}
+  },
+  "views": [
+    {
+      "id": "inspiration", "label": "Inspiration", "template": "heart/views/inspiration.peb", "types": ["heart.pc"],
+      "groupBy": ["calling", "class"], "links": ["suffers:out"], "print": "heart/print/_inspiration_packet.peb"
+    }
+  ],
+  "starter": {
+    "nodes": [
+      {
+        "id": "landmark", "type": "heart.landmark",
+        "first": {"title": "Derelict", "tier": "Tier 0", "stress": "d4", "domains": ["Haven"], "haunts": "D10 Any"}
+      },
+      {
+        "id": "session", "type": "core.session", "first": {"title": "First Session"},
+        "link": {"rel": "features:out", "to": "landmark"}
+      }
+    ]
+  },
   "patchTypes": [
     {
       "id": "core.session",
-      "printTemplate": "heart/print/session.peb",
       "checklists": [
-        { "rel": "features:out", "types": ["heart.landmark"] },
-        { "rel": "features:out", "types": ["heart.pc"] }
+        {"rel": "features:out", "types": ["heart.landmark"]},
+        {"rel": "features:out", "types": ["heart.pc"]}
       ],
-      "packet": { "rel": "features:out", "between": [{ "type": "heart.delve", "rel": "connects:out" }],
-                  "around": [{ "type": "core.npc", "rel": "located_at:out" }, { "type": "core.faction", "rel": "located_at:out" }],
-                  "related": [{ "type": "core.faction", "rel": "member_of:in" }], "columns": 3, "recap": "recap" },
+      "packet": {
+        "rel": "features:out", "between": [{"type": "heart.delve", "rel": "connects:out"}],
+        "around": [{"type": "core.npc", "rel": "located_at:out"}, {"type": "core.faction", "rel": "located_at:out"}],
+        "related": [{"type": "core.faction", "rel": "member_of:in"}], "columns": 3, "recap": "recap"
+      },
       "debrief": [
-        { "types": ["heart.pc"], "fields": ["beat1Type", "beat1", "beat2Type", "beat2"], "done": true,
-          "links": [{ "rel": "suffers:out", "fields": ["type", "resistance"], "create": "heart.fallout", "remove": true }] },
-        { "types": ["core.npc"], "fields": ["dead"], "slots": true },
-        { "types": ["core.item"], "slots": true }
+        {
+          "types": ["heart.pc"], "fields": ["beat1Type", "beat1", "beat2Type", "beat2"], "done": true,
+          "links": [{"rel": "suffers:out", "fields": ["type", "resistance"], "create": "heart.fallout", "remove": true}]
+        },
+        {"types": ["core.npc"], "fields": ["dead"], "slots": true},
+        {"types": ["core.item"], "slots": true}
       ]
     },
     {
       "id": "core.npc", "icon": "drama",
       "quickCreate": [
-        { "type": "heart.resource",  "rel": "carries:out" },
-        { "type": "heart.equipment", "rel": "carries:out" },
-        { "type": "heart.fallout",   "rel": "suffers:out" }
+        {"type": "heart.resource", "rel": "carries:out"},
+        {"type": "heart.equipment", "rel": "carries:out"},
+        {"type": "heart.fallout", "rel": "suffers:out"}
       ]
     }
   ],
   "nodeTypes": [
     {
-      "id": "heart.landmark", "icon": "castle",
-      "overview": ["tier", "stress", "domains"],
-      "extends": "core.place",
-      "label": "Landmark",
-      "codePrefix": "L",
-      "mapDepth": "tier",
-      "printTemplate": "heart/print/landmark.peb",
-      "printNested": [{ "rel": "part_of:in", "show": "located_at:in" }],
+      "id": "heart.landmark", "icon": "castle", "overview": {"columns": ["tier", "stress", "domains"]},
+      "extends": "core.place", "label": "Landmark", "codePrefix": "L", "campaignMap": {"depth": "tier"},
+      "print": {"nested": [{"rel": "part_of:in", "show": "located_at:in"}]},
       "linkOrder": ["Reached via", "Resources", "Equipment", "*", "Featured in"],
       "quickCreate": [
-        { "type": "heart.delve",    "rel": "connects:in" },
-        { "type": "heart.minor_location", "rel": "part_of:in" },
-        { "type": "core.npc",       "rel": "located_at:in" },
-        { "type": "heart.resource", "rel": "located_at:in" },
-        { "type": "heart.equipment", "rel": "located_at:in" },
-        { "type": "core.fact",      "rel": "about:in" }
+        {"type": "heart.delve", "rel": "connects:in"},
+        {"type": "heart.minor_location", "rel": "part_of:in"},
+        {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "heart.resource", "rel": "located_at:in"},
+        {"type": "heart.equipment", "rel": "located_at:in"},
+        {"type": "core.fact", "rel": "about:in"}
       ],
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "tier":    { "enum": ["Tier 0", "Tier 1", "Tier 2", "Tier 3", "Tier 4", "Rogue", "Fracture", "The Eight Heavens"], "title": "Tier",
-                       "x-depth": { "Tier 0": 0, "Tier 1": 1, "Tier 2": 2, "Tier 3": 3, "Tier 4": 4 } },
-          "stress":  { "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Default stress",
-                       "x-enumDescriptions": { "d4": "Tier 0-1", "d6": "Tier 2-3", "d8": "Tier 4" } },
-          "domains": {
-            "type": "array", "title": "Domains", "uniqueItems": true,
-            "items": { "enum": ["Cursed", "Desolate", "Haven", "Occult", "Religion", "Technology", "Warren", "Wild"] }
-          },
-          "haunts":  { "type": "string", "title": "Haunts", "x-widget": "textarea" }
-        }
+        "tier": {
+          "enum": ["Tier 0", "Tier 1", "Tier 2", "Tier 3", "Tier 4", "Rogue", "Fracture", "The Eight Heavens"],
+          "title": "Tier", "x-depth": {"Tier 0": 0, "Tier 1": 1, "Tier 2": 2, "Tier 3": 3, "Tier 4": 4}
+        },
+        "stress": "@stress", "domains": "@domains",
+        "haunts": {"type": "string", "title": "Haunts", "x-widget": "textarea"}
       }
     },
     {
-      "id": "heart.minor_location",
-      "extends": "core.place",
-      "label": "Minor location",
-      "codePrefix": "M",
-      "mapShape": "dot",
-      "context": "part_of:out",
-      "linkSlots": [{ "label": "Landmark", "rels": ["part_of:out"] }],
+      "id": "heart.minor_location", "extends": "core.place", "label": "Minor location", "codePrefix": "M",
+      "campaignMap": {"shape": "dot"}, "context": "part_of:out",
+      "linkSlots": [{"label": "Landmark", "rels": ["part_of:out"]}],
       "quickCreate": [
-        { "type": "core.npc",        "rel": "located_at:in" },
-        { "type": "heart.resource",  "rel": "located_at:in" },
-        { "type": "heart.equipment", "rel": "located_at:in" },
-        { "type": "core.fact",       "rel": "about:in" }
+        {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "heart.resource", "rel": "located_at:in"},
+        {"type": "heart.equipment", "rel": "located_at:in"},
+        {"type": "core.fact", "rel": "about:in"}
       ]
     },
     {
-      "id": "heart.delve", "icon": "route",
-      "overview": ["@connects:out", "resistance"],
-      "extends": "core.place",
-      "label": "Delve",
-      "codePrefix": "D",
-      "mapShape": "diamond",
-      "mapBetween": "connects:out",
-      "printTemplate": "heart/print/landmark.peb",
+      "id": "heart.delve", "icon": "route", "overview": {"columns": ["@connects:out", "resistance"]},
+      "extends": "core.place", "label": "Delve", "codePrefix": "D",
+      "campaignMap": {"shape": "diamond", "between": "connects:out"},
       "quickCreate": [
-        { "type": "heart.landmark", "rel": "connects:out" },
-        { "type": "core.npc",       "rel": "located_at:in" },
-        { "type": "heart.resource", "rel": "located_at:in" },
-        { "type": "heart.equipment", "rel": "located_at:in" },
-        { "type": "core.fact",      "rel": "about:in" }
+        {"type": "heart.landmark", "rel": "connects:out"},
+        {"type": "core.npc", "rel": "located_at:in"},
+        {"type": "heart.resource", "rel": "located_at:in"},
+        {"type": "heart.equipment", "rel": "located_at:in"},
+        {"type": "core.fact", "rel": "about:in"}
       ],
       "linkedProps": [
-        { "prop": "tier",    "rel": "connects:out", "label": "Tier" },
-        { "prop": "domains", "rel": "connects:out", "label": "Domains" }
+        {"prop": "tier", "rel": "connects:out", "label": "Tier"},
+        {"prop": "domains", "rel": "connects:out", "label": "Domains"}
       ],
-      "linkLimits": { "connects:out": 2 },
+      "linkLimits": {"connects:out": 2},
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "resistance": { "type": "integer", "title": "Resistance", "minimum": 1, "x-track": true },
-          "stress":     { "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Default stress",
-                          "x-enumDescriptions": { "d4": "Tier 0-1", "d6": "Tier 2-3", "d8": "Tier 4" } },
-          "events":     { "type": "string", "title": "Events", "x-widget": "list" }
-        }
+        "resistance": {"type": "integer", "title": "Resistance", "minimum": 1, "x-track": true}, "stress": "@stress",
+        "events": {"type": "string", "title": "Events", "x-widget": "list"}
       }
     },
     {
-      "id": "heart.pc",
-      "overview": ["player", "class", "calling"],
-      "extends": "core.pc",
-      "label": "Character",
-      "codePrefix": "PC",
-      "displayTitle": ["{title}", "({player})"],
+      "id": "heart.pc", "overview": {"columns": ["player", "class", "calling"]}, "extends": "core.pc",
+      "label": "Character", "codePrefix": "PC", "displayTitle": ["{title}", "({player})"],
       "quickCreate": [
-        { "type": "heart.resource",  "rel": "carries:out" },
-        { "type": "heart.equipment", "rel": "carries:out" },
-        { "type": "heart.fallout",   "rel": "suffers:out" }
+        {"type": "heart.resource", "rel": "carries:out"},
+        {"type": "heart.equipment", "rel": "carries:out"},
+        {"type": "heart.fallout", "rel": "suffers:out"}
       ],
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "player":   { "type": "string", "title": "Player" },
-          "ancestry": { "enum": ["Aelfir", "Drow", "Gnoll", "Human"], "title": "Ancestry" },
-          "class":    { "enum": ["Blightborn", "Cleaver", "Crawler", "Deadwalker", "Deep Apiarist", "Heretic", "Hound", "Incarnadine", "Junk Mage", "Snail Pilgrim", "Vermissian Knight", "Witch", "Witness"], "title": "Class",
-            "x-enumNotes": {
-              "Cleaver": "Opportunities to hunt and to explore Wild and Cursed domains; Normal-ish people to compare themselves to so they can feel monstrous; Weaker enemies to terrify and huge enemies to bring down with a concerted effort; Body-horror; Havens to be unsettling in and places where they're welcome.",
-              "Deadwalker": "Travel; Mysticism and ritual; Ghosts and the undead; Otherworlds and fractures; Practical applications of religious rites; Meeting weird hermits who dispense semi-useless wisdom; Stealing things from heaven.",
-              "Deep Apiarist": "Technology sufficiently advanced as to be indistinguishable from magic; To encounter chaos and attempt to control it; To create and build structures; To help others, even if it creeps out the people they're helping; To understand and combat the machinations of the Heart Itself.",
-              "Heretic": "The Moon Beneath, and the temple of the same; Weird cults and sects within the Damnic church to explore and exploit; Religion and different ways of dealing with the stresses of living in the City Beneath; Opportunities to be helpful and opportunities to be weird, potentially both at the same time.",
-              "Hound": "Havens with problems to solve; People who need things; Mortal concerns, a hot meal and a strong drink; Defending the defenceless, especially if they get to reinforce a structure as part of it; Living up to the expectations of those who've come before you.",
-              "Incarnadine": "Fallible people with limited power and exploitable flaws; Establishing connections and strengthening havens; Talking to and taking advantage of rubes; People who underestimate them then receive their comeuppance; Schemes, gambits and ruses; The finer things in life; Markets, traders and deals.",
-              "Junk Mage": "The occult, in all its forms, especially if those forms can be used for personal gain; An opportunity to use their very specific abilities (eat gold, breathe water, mould stone like sand, etc.); Trouble to dramatically run away from or cunningly avoid; Stores of knowledge and hidden secrets; Someone telling them that this magic is Too Powerful For Them, almost as a dare.",
-              "Vermissian Knight": "To explore and witness strange and unseen sights; To protect others, whether they're NPCs or PCs; To venture into the twisted world of the Vermissian network; To find uncanny technology and try to use it; To fight, and win by the skin of their teeth.",
-              "Witch": "To misbehave and freak people out; To be respected and feared by NPCs; To meet emissaries of the Heart Itself and engage in its machinations; To unleash their True Form in the most effective possible place; To meet heartsblood creatures and bond with them."
-            }
-          },
-          "calling":  { "enum": ["Adventure", "Artist", "Containment", "Demagogue", "Enlightenment", "Forced", "Heartsong", "Penitent", "Protector"], "title": "Calling" },
-          "beat1Type": { "enum": ["Minor", "Major", "Zenith"], "title": "Type", "x-row": "Beat 1" },
-          "beat1":     { "type": "string", "title": "Beat", "x-row": "Beat 1" },
-          "beat2Type": { "enum": ["Minor", "Major", "Zenith"], "title": "Type", "x-row": "Beat 2" },
-          "beat2":     { "type": "string", "title": "Beat", "x-row": "Beat 2" }
-        }
-      }
-    },
-    {
-      "id": "heart.equipment", "icon": "sword",
-      "overview": ["category", "quality", "tags"],
-      "extends": "core.item",
-      "label": "Equipment",
-      "plural": "Equipment",
-      "codePrefix": "E",
-      "printSummary": { "group": "Equipment", "parts": ["{category} {quality.value}", "{tags}", "uses: {limitedUses}"] },
-      "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "category": {
-            "enum": ["Delve", "Kill", "Mend", "Miscellaneous"], "title": "Category",
-            "x-enumDescriptions": {
-              "Delve": "Kit that makes moving through unstable or unusual terrain easier.",
-              "Kill": "Weapons, or things that can be used as weapons.",
-              "Mend": "Gear that lets a character heal or resupply whilst on a journey.",
-              "Miscellaneous": "Anything that doesn't fit into one of the three above categories."
-            }
-          },
-          "quality": {
-            "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Quality",
-            "x-hideIf": { "category": ["Miscellaneous"] },
-            "x-enumLabels": {
-              "d4": "d4 Unequipped", "d6": "d6 Civilian", "d8": "d8 Professional", "d10": "d10 Exotic", "d12": "d12 Legendary"
-            }
-          },
-          "tags": {
-            "type": "array", "title": "Tags", "uniqueItems": true,
-            "items": { "enum": ["Block", "Bloodbound", "Brutal", "Conduit", "Dangerous", "Debilitating", "Degenerating", "Distressing", "Double-Barreled", "Expensive", "Extreme Range", "Limited X", "Loud", "Obscuring", "One-shot", "Piercing", "Point-blank", "Potent", "Ranged", "Rare", "Reload", "Smoke", "Spread", "Tiring", "Trusty", "Unreliable", "Wyrd"] },
-            "x-enumDescriptions": {
-              "Block": "+1 Blood protection.",
-              "Bloodbound": "Mark D4 stress to Blood to roll with mastery when using this equipment for the rest of the situation.",
-              "Brutal": "When you roll for stress against an adversary when using this item, roll two dice and pick the highest. Multiple instances of this tag stack: if you managed to get it three times, you'd roll four dice and pick the highest when calculating stress.",
-              "Conduit": "Mark D4 stress to Mind to roll with mastery when using this equipment for the rest of the situation.",
-              "Dangerous": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Blood.",
-              "Debilitating": "Once per situation, when you inflict stress with this item to one or more targets, the next attack made against them is rolled with mastery.",
-              "Degenerating": "If you take damage from a weapon with this tag, roll Endure+[Domain] at the end of the situation. On a failure, mark D6 stress; on a partial success, mark D4 stress; on a success, mark none.",
-              "Distressing": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Mind.",
-              "Double-Barreled": "As Reload, but you can use the item twice before reloading.",
-              "Expensive": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Supplies.",
-              "Extreme Range": "This item can be used at extreme range.",
-              "Limited X": "You can use this X times before it gives out.",
-              "Loud": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Fortune.",
-              "Obscuring": "The bearer and any nearby allies reduce the damage of incoming and outgoing ranged weapons by 1 step.",
-              "One-shot": "This equipment takes a very long time to prepare, so you can only use it once per situation.",
-              "Piercing": "You cannot reduce stress inflicted by this equipment with Blood protection, and adversaries do not benefit from their Protection value.",
-              "Point-blank": "As Ranged, but at very close range it increases its stress dice by one step. If the shot travels far enough to spread out and dissipate, it lowers its stress dice by one step.",
-              "Potent": "When you roll for stress removed from yourself or an ally with this item, roll two dice and pick the highest. Multiple instances of this tag stack as per the Brutal tag.",
-              "Ranged": "This equipment can be used at range.",
-              "Rare": "This equipment is hard to find, and attempts to track down a trader willing to sell it may require a Discern+Haven roll.",
-              "Reload": "This equipment must be reloaded between uses, giving enemies a chance to close in or flee.",
-              "Smoke": "As Obscuring, but only when the item is used, and only around the area it was used.",
-              "Spread": "Anyone standing near the target on a successful use must roll Evade+Domain (or another applicable skill) to avoid marking stress as well. On a partial success, downgrade the stress dice by one size. NPCs caught in a blast simply take the stress.",
-              "Tiring": "When you fail an action using this equipment, the size of its stress dice decreases by 1 for the remainder of the situation.",
-              "Trusty": "When you roll for stress marked against a delve while using this item, roll two dice and pick the highest. Multiple instances of this tag stack as per the Brutal tag.",
-              "Unreliable": "When you fail an action using this equipment, it cannot be used for the remainder of the situation if in a landmark or for the remainder of the journey if on a delve.",
-              "Wyrd": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Echo."
-            }
-          },
-          "limitedUses": {
-            "type": "integer", "title": "Limited uses", "minimum": 1,
-            "x-showIf": { "tags": ["Limited X"] }
+        "player": {"type": "string", "title": "Player"},
+        "ancestry": {"enum": ["Aelfir", "Drow", "Gnoll", "Human"], "title": "Ancestry"},
+        "class": {
+          "enum": [
+            "Blightborn", "Cleaver", "Crawler", "Deadwalker", "Deep Apiarist", "Heretic", "Hound", "Incarnadine",
+            "Junk Mage", "Snail Pilgrim", "Vermissian Knight", "Witch", "Witness"
+          ],
+          "title": "Class",
+          "x-enumNotes": {
+            "Cleaver": "Opportunities to hunt and to explore Wild and Cursed domains; Normal-ish people to compare themselves to so they can feel monstrous; Weaker enemies to terrify and huge enemies to bring down with a concerted effort; Body-horror; Havens to be unsettling in and places where they're welcome.",
+            "Deadwalker": "Travel; Mysticism and ritual; Ghosts and the undead; Otherworlds and fractures; Practical applications of religious rites; Meeting weird hermits who dispense semi-useless wisdom; Stealing things from heaven.",
+            "Deep Apiarist": "Technology sufficiently advanced as to be indistinguishable from magic; To encounter chaos and attempt to control it; To create and build structures; To help others, even if it creeps out the people they're helping; To understand and combat the machinations of the Heart Itself.",
+            "Heretic": "The Moon Beneath, and the temple of the same; Weird cults and sects within the Damnic church to explore and exploit; Religion and different ways of dealing with the stresses of living in the City Beneath; Opportunities to be helpful and opportunities to be weird, potentially both at the same time.",
+            "Hound": "Havens with problems to solve; People who need things; Mortal concerns, a hot meal and a strong drink; Defending the defenceless, especially if they get to reinforce a structure as part of it; Living up to the expectations of those who've come before you.",
+            "Incarnadine": "Fallible people with limited power and exploitable flaws; Establishing connections and strengthening havens; Talking to and taking advantage of rubes; People who underestimate them then receive their comeuppance; Schemes, gambits and ruses; The finer things in life; Markets, traders and deals.",
+            "Junk Mage": "The occult, in all its forms, especially if those forms can be used for personal gain; An opportunity to use their very specific abilities (eat gold, breathe water, mould stone like sand, etc.); Trouble to dramatically run away from or cunningly avoid; Stores of knowledge and hidden secrets; Someone telling them that this magic is Too Powerful For Them, almost as a dare.",
+            "Vermissian Knight": "To explore and witness strange and unseen sights; To protect others, whether they're NPCs or PCs; To venture into the twisted world of the Vermissian network; To find uncanny technology and try to use it; To fight, and win by the skin of their teeth.",
+            "Witch": "To misbehave and freak people out; To be respected and feared by NPCs; To meet emissaries of the Heart Itself and engage in its machinations; To unleash their True Form in the most effective possible place; To meet heartsblood creatures and bond with them."
           }
-        }
+        },
+        "calling": {
+          "enum": [
+            "Adventure", "Artist", "Containment", "Demagogue", "Enlightenment", "Forced", "Heartsong", "Penitent",
+            "Protector"
+          ],
+          "title": "Calling"
+        },
+        "beat1Type": {"use": "severity", "x-row": "Beat 1"},
+        "beat1": {"type": "string", "title": "Beat", "x-row": "Beat 1"},
+        "beat2Type": {"use": "severity", "x-row": "Beat 2"},
+        "beat2": {"type": "string", "title": "Beat", "x-row": "Beat 2"}
       }
     },
     {
-      "id": "heart.fallout", "icon": "heart-crack",
-      "label": "Fallout",
-      "codePrefix": "FO",
-      "checklists": [{ "rel": "suffers:in", "types": ["heart.pc"] }],
-      "printSummary": { "group": "Fallouts", "parts": ["{type}", "{resistance}", "{description}"] },
-      "overview": ["type", "resistance", "@suffers:in"],
+      "id": "heart.equipment", "icon": "sword", "overview": {"columns": ["category", "quality", "tags"]},
+      "extends": "core.item", "label": "Equipment", "plural": "Equipment", "codePrefix": "E",
+      "print": {
+        "summary": {"group": "Equipment", "parts": ["{category} {quality.value}", "{tags}", "uses: {limitedUses}"]}
+      },
       "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "type":        { "enum": ["Minor", "Major", "Zenith"], "title": "Type" },
-          "resistance":  { "enum": ["Blood", "Echo", "Mind", "Fortune", "Supplies"], "title": "Resistance" },
-          "description": { "type": "string", "title": "Description", "x-widget": "textarea" }
-        }
-      }
-    },
-    {
-      "id": "heart.resource", "icon": "gem",
-      "printSummary": { "parts": ["{die.value}", "{tags}"] },
-      "overview": ["die", "tags"],
-      "extends": "core.item",
-      "label": "Resource",
-      "codePrefix": "R",
-      "props": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "die":     { "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Die",
-                       "x-enumLabels": { "d4": "d4 Common goods", "d8": "d8 Valuable or rare item", "d12": "d12 Truly remarkable" } },
-          "domains": {
-            "type": "array", "title": "Domains", "uniqueItems": true,
-            "items": { "enum": ["Cursed", "Desolate", "Haven", "Occult", "Religion", "Technology", "Warren", "Wild"] }
+        "category": {
+          "enum": ["Delve", "Kill", "Mend", "Miscellaneous"], "title": "Category",
+          "x-enumDescriptions": {
+            "Delve": "Kit that makes moving through unstable or unusual terrain easier.",
+            "Kill": "Weapons, or things that can be used as weapons.",
+            "Mend": "Gear that lets a character heal or resupply whilst on a journey.",
+            "Miscellaneous": "Anything that doesn't fit into one of the three above categories."
+          }
+        },
+        "quality": {
+          "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Quality", "x-hideIf": {"category": ["Miscellaneous"]},
+          "x-enumLabels": {
+            "d4": "d4 Unequipped", "d6": "d6 Civilian", "d8": "d8 Professional", "d10": "d10 Exotic",
+            "d12": "d12 Legendary"
+          }
+        },
+        "tags": {
+          "type": "array", "title": "Tags", "uniqueItems": true,
+          "items": {
+            "enum": [
+              "Block", "Bloodbound", "Brutal", "Conduit", "Dangerous", "Debilitating", "Degenerating", "Distressing",
+              "Double-Barreled", "Expensive", "Extreme Range", "Limited X", "Loud", "Obscuring", "One-shot", "Piercing",
+              "Point-blank", "Potent", "Ranged", "Rare", "Reload", "Smoke", "Spread", "Tiring", "Trusty", "Unreliable",
+              "Wyrd"
+            ]
           },
-          "tags": {
-            "type": "array", "title": "Tags", "uniqueItems": true,
-            "items": { "enum": ["Awkward", "Beacon", "Deteriorating", "Fragile", "Harmful", "Niche", "Mobile", "Taboo", "Volatile"] },
-            "x-enumDescriptions": {
-              "Awkward": "The resource is heavy or hard to carry.",
-              "Beacon": "The resource attracts something dangerous towards its position.",
-              "Deteriorating": "The resource is breaking down, rotting or rusting and you'll need to get it to a new owner quickly.",
-              "Fragile": "The resource will be destroyed if dropped or damaged.",
-              "Harmful": "The resource has the capacity to harm those who carry it via black magic, illness or strange energies.",
-              "Niche": "The resource is only valuable to a very select group of people.",
-              "Mobile": "If left unattended, the resource will leave of its own accord.",
-              "Taboo": "The resource isn't accepted for barter in most haunts (e.g. organs from heartsblooded people, gold teeth or certain narcotics).",
-              "Volatile": "The resource may explode if mistreated."
-            }
+          "x-enumDescriptions": {
+            "Block": "+1 Blood protection.",
+            "Bloodbound": "Mark D4 stress to Blood to roll with mastery when using this equipment for the rest of the situation.",
+            "Brutal": "When you roll for stress against an adversary when using this item, roll two dice and pick the highest. Multiple instances of this tag stack: if you managed to get it three times, you'd roll four dice and pick the highest when calculating stress.",
+            "Conduit": "Mark D4 stress to Mind to roll with mastery when using this equipment for the rest of the situation.",
+            "Dangerous": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Blood.",
+            "Debilitating": "Once per situation, when you inflict stress with this item to one or more targets, the next attack made against them is rolled with mastery.",
+            "Degenerating": "If you take damage from a weapon with this tag, roll Endure+[Domain] at the end of the situation. On a failure, mark D6 stress; on a partial success, mark D4 stress; on a success, mark none.",
+            "Distressing": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Mind.",
+            "Double-Barreled": "As Reload, but you can use the item twice before reloading.",
+            "Expensive": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Supplies.",
+            "Extreme Range": "This item can be used at extreme range.",
+            "Limited X": "You can use this X times before it gives out.",
+            "Loud": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Fortune.",
+            "Obscuring": "The bearer and any nearby allies reduce the damage of incoming and outgoing ranged weapons by 1 step.",
+            "One-shot": "This equipment takes a very long time to prepare, so you can only use it once per situation.",
+            "Piercing": "You cannot reduce stress inflicted by this equipment with Blood protection, and adversaries do not benefit from their Protection value.",
+            "Point-blank": "As Ranged, but at very close range it increases its stress dice by one step. If the shot travels far enough to spread out and dissipate, it lowers its stress dice by one step.",
+            "Potent": "When you roll for stress removed from yourself or an ally with this item, roll two dice and pick the highest. Multiple instances of this tag stack as per the Brutal tag.",
+            "Ranged": "This equipment can be used at range.",
+            "Rare": "This equipment is hard to find, and attempts to track down a trader willing to sell it may require a Discern+Haven roll.",
+            "Reload": "This equipment must be reloaded between uses, giving enemies a chance to close in or flee.",
+            "Smoke": "As Obscuring, but only when the item is used, and only around the area it was used.",
+            "Spread": "Anyone standing near the target on a successful use must roll Evade+Domain (or another applicable skill) to avoid marking stress as well. On a partial success, downgrade the stress dice by one size. NPCs caught in a blast simply take the stress.",
+            "Tiring": "When you fail an action using this equipment, the size of its stress dice decreases by 1 for the remainder of the situation.",
+            "Trusty": "When you roll for stress marked against a delve while using this item, roll two dice and pick the highest. Multiple instances of this tag stack as per the Brutal tag.",
+            "Unreliable": "When you fail an action using this equipment, it cannot be used for the remainder of the situation if in a landmark or for the remainder of the journey if on a delve.",
+            "Wyrd": "When you roll this item's dice and roll the maximum amount, mark D6 stress to Echo."
+          }
+        },
+        "limitedUses": {"type": "integer", "title": "Limited uses", "minimum": 1, "x-showIf": {"tags": ["Limited X"]}}
+      }
+    },
+    {
+      "id": "heart.fallout", "icon": "heart-crack", "label": "Fallout", "codePrefix": "FO",
+      "checklists": [{"rel": "suffers:in", "types": ["heart.pc"]}],
+      "print": {"summary": {"group": "Fallouts", "parts": ["{type}", "{resistance}", "{description}"]}},
+      "overview": {"columns": ["type", "resistance", "@suffers:in"]},
+      "props": {
+        "type": "@severity",
+        "resistance": {"enum": ["Blood", "Echo", "Mind", "Fortune", "Supplies"], "title": "Resistance"},
+        "description": {"type": "string", "title": "Description", "x-widget": "textarea"}
+      }
+    },
+    {
+      "id": "heart.resource", "icon": "gem", "print": {"summary": {"parts": ["{die.value}", "{tags}"]}},
+      "overview": {"columns": ["die", "tags"]}, "extends": "core.item", "label": "Resource", "codePrefix": "R",
+      "props": {
+        "die": {
+          "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Die",
+          "x-enumLabels": {"d4": "d4 Common goods", "d8": "d8 Valuable or rare item", "d12": "d12 Truly remarkable"}
+        },
+        "domains": "@domains",
+        "tags": {
+          "type": "array", "title": "Tags", "uniqueItems": true,
+          "items": {
+            "enum": ["Awkward", "Beacon", "Deteriorating", "Fragile", "Harmful", "Niche", "Mobile", "Taboo", "Volatile"]
+          },
+          "x-enumDescriptions": {
+            "Awkward": "The resource is heavy or hard to carry.",
+            "Beacon": "The resource attracts something dangerous towards its position.",
+            "Deteriorating": "The resource is breaking down, rotting or rusting and you'll need to get it to a new owner quickly.",
+            "Fragile": "The resource will be destroyed if dropped or damaged.",
+            "Harmful": "The resource has the capacity to harm those who carry it via black magic, illness or strange energies.",
+            "Niche": "The resource is only valuable to a very select group of people.",
+            "Mobile": "If left unattended, the resource will leave of its own accord.",
+            "Taboo": "The resource isn't accepted for barter in most haunts (e.g. organs from heartsblooded people, gold teeth or certain narcotics).",
+            "Volatile": "The resource may explode if mistreated."
           }
         }
       }
     }
   ],
   "edgeTypes": [
-    { "id": "connects", "label": "connects", "inverseLabel": "reached via", "from": ["heart.delve"], "to": ["heart.landmark"] },
-    { "id": "suffers", "label": "suffers", "inverseLabel": "suffered by", "from": ["core.pc", "core.npc"], "to": ["heart.fallout"] },
-    { "id": "part_of", "label": "is part of", "inverseLabel": "minor locations", "from": ["heart.minor_location"], "to": ["heart.landmark"] }
+    {
+      "id": "connects", "label": "connects", "inverseLabel": "reached via", "from": ["heart.delve"],
+      "to": ["heart.landmark"]
+    },
+    {
+      "id": "suffers", "label": "suffers", "inverseLabel": "suffered by", "from": ["core.pc", "core.npc"],
+      "to": ["heart.fallout"]
+    },
+    {
+      "id": "part_of", "label": "is part of", "inverseLabel": "minor locations", "from": ["heart.minor_location"],
+      "to": ["heart.landmark"]
+    }
   ]
 }

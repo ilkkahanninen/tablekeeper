@@ -1,12 +1,13 @@
 <!doctype html>
 {#
-  Heart session packet: one brief landscape A4 document for the next session, in two parts (variable `part`):
-  - "cover": the session's title and notes, and the whole map with the selected places filled red;
+  Session packet (the default print of a type with a `packet`): one brief landscape A4 document, in two parts (variable `part`):
+  - "cover": the session's title, date and notes, and the whole map with the selected places filled red;
     with a previous session's recap (packet "recap"), that recap beside the map, "Last time";
-  - "columns": the selected characters' Inspiration, then a section per selected landmark and delve between them.
-    Laid out as one column on narrow pages, which the app places three to a sheet (packet "columns": 3). The PDF
-    renders one section at a time (variable `only`: "view:inspiration" or "section:<type id>") without its h2:
-    the app draws section headings across their columns on each sheet.
+  - "columns": each module view over the selected nodes (its `print` partial, e.g. Heart's characters' Inspiration), then a
+    section per type of the selected and nearby nodes, each entry drawn by print/_body.peb.
+    Laid out as one column on narrow pages, which the app places side by side (packet "columns"). The PDF renders one
+    section at a time (variable `only`: "view:<id>" or "section:<type id>") without its h2: the app draws section
+    headings across their columns on each sheet.
   No part (the HTML preview) shows both. Model: the session's print model plus map, views, sections.
 #}
 <html>
@@ -28,7 +29,7 @@
   .place { page-break-inside: avoid; margin-bottom: 6mm; }
   .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
 
-  /* Place body (shared _place.peb), as on the cards but on A4 */
+  /* Entry body (print/_body.peb), as on the cards */
   .props { border-collapse: collapse; margin-bottom: 1.5mm; }
   /* Values from linked nodes (print/_linked_props.peb): a row per linked node, a column per value */
   table.linked { border-collapse: collapse; margin: 0 0 2mm; }
@@ -58,12 +59,7 @@
   .item ul { margin: 0 0 1mm; padding-left: 4.5mm; }
   .box { display: inline-block; width: 2.6mm; height: 2.6mm; border: 0.3mm solid #111; margin-right: 1mm; vertical-align: -0.3mm; }
 
-  /* Inspiration body (shared _inspiration.peb) */
-  .inspiration section { margin: 0; }
-  .inspiration h2 { font-size: 8pt; color: #555; border-bottom: none; margin: 3mm 0 1mm; }
-  .card { page-break-inside: avoid; margin: 0 0 2mm; }
-  .group-title { font-size: 10.5pt; margin: 1.5mm 0 0.5mm; }
-  .who { margin: 0.5mm 0; }
+  /* Module views' packet partials (Heart's characters, heart/print/_inspiration_packet.peb) */
   .muted, .small { color: #555; font-size: 8.5pt; }
   .beats { margin: 0 0 1mm; }
   .beat-type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #8c1c13; margin-right: 1mm; }
@@ -102,48 +98,20 @@
 
   {% if part != 'cover' %}
   <div class="text">
-  {% for v in views %}
-    {% if v.view.id == 'inspiration' and (only is null or only == 'view:inspiration') %}
-      {% if only is null %}<h2>Characters</h2>{% endif %}
-      {# One block per character: calling · class, notes, beats, fallouts, and the class's inspiration points.
-         Characters sharing a class: the points print only under the first of them (the class group's first node). #}
-      {% for c in v.nodes %}
-        <div class="character">
-          <h3><span class="code">{{ c.node.code }}</span> {{ c.display }}</h3>
-          {% if c.fields.calling.text is not empty or c.fields.class.text is not empty %}
-            <div class="role">{{ c.fields.calling.text }}{% if c.fields.calling.text is not empty and c.fields.class.text is not empty %} · {% endif %}{{ c.fields.class.text }}</div>
-          {% endif %}
-          {% if c.node.body is not empty %}<div class="body">{{ c.notes | raw }}</div>{% endif %}
-          {% if c.fields.beat1.text is not empty or c.fields.beat2.text is not empty %}
-            <div class="linked-label">Beats</div>
-            <ul class="beats">
-              {% if c.fields.beat1.text is not empty %}<li>{% if c.fields.beat1Type.text is not empty %}<span class="beat-type">{{ c.fields.beat1Type.text }}</span> {% endif %}{{ c.fields.beat1.text }}</li>{% endif %}
-              {% if c.fields.beat2.text is not empty %}<li>{% if c.fields.beat2Type.text is not empty %}<span class="beat-type">{{ c.fields.beat2Type.text }}</span> {% endif %}{{ c.fields.beat2.text }}</li>{% endif %}
-            </ul>
-          {% endif %}
-          {% for lg in c.linked %}
-            <div class="linked-label">{{ lg.label }}</div>
-            <ul>{% for i in lg.items %}<li>{{ i.title }} <span class="ref">({{ i.code }})</span>{% if i.summary is not empty %}: {{ i.summary | raw }}{% endif %}</li>{% endfor %}</ul>
-          {% endfor %}
-          {% for g in v.groups["class"] %}
-            {% if g.hint is not null and g.value == c.fields.class.value and g.nodes[0].node.code == c.node.code %}
-              <div class="linked-label">{{ g.label }}</div>
-              <ul class="wants">{% for w in g.hint | split('; ') %}<li>{{ w }}</li>{% endfor %}</ul>
-            {% endif %}
-          {% endfor %}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endfor %}
+  {% for v in views %}{% if v.view.print is not null and (only is null or only == 'view:' ~ v.view.id) %}
+    {% if only is null %}<h2>{{ viewHeadings[v.view.id] }}</h2>{% endif %}
+    {% include v.view.print with {"v": v} %}
+  {% endif %}{% endfor %}
 
   {% for s in sections %}{% if only is null or only == 'section:' ~ s.typeId %}
     {% if only is null %}<h2>{{ s.label }}</h2>{% endif %}
     {% for item in s.items %}
       <div class="place">
         <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
-        {# Pebble's include takes a literal map: pass the place's print model through #}
-        {% include "heart/print/_place.peb" with {"node": item.node, "props": item.props, "linkedPropTables": item.linkedPropTables,
-            "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes} %}
+        {# Pebble's include takes a literal map: pass the entry's print model through #}
+        {% include "print/_body.peb" with {"node": item.node, "props": item.props, "linkedPropTables": item.linkedPropTables,
+            "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes,
+            "nodeMap": item.nodeMap, "mapWidth": 320} %}
       </div>
     {% endfor %}
   {% endif %}{% endfor %}

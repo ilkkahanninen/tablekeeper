@@ -1,8 +1,0 @@
-{% extends "print/base.peb" %}
-{#
-  Heart landmark / delve print (A4). Lives in the module folder, so it can be edited without rebuilding the app.
-  The body is shared with the session packet: see _place.peb.
-#}
-{% block main %}
-  {% include "heart/print/_place.peb" %}
-{% endblock %}

@@ -1,20 +1,22 @@
 {#
-  A node's body in MÖRK BORG prints: props (stats, a dungeon's state), option descriptions, notes, links (a dungeon's
-  rooms nested with the creatures and items in them), facts with tick boxes. Model: a node print model.
-  Used by the A4 print (place.peb) and the session packet (session.peb), so both print the same content.
-  Variables beyond the print model: mapWidth, the width to draw the node's own map at (nodeMap: a dungeon's rooms), first.
+  A node's body on every print: the A4 card (generic.peb) and each entry of a session packet (session.peb), so both print
+  the same content. Model: a node print model, plus mapWidth (px) to draw the node's own map at (nodeMap, a dungeon's rooms).
+  Order: its map; short props in a table (an "x-track" as numbered boxes, an option's description beside it); linked
+  props; multi-choice descriptions; notes; long texts (textarea, and lists with a tick box per item) under their own
+  headings; links, with what nested ones have; facts with tick boxes.
 #}
   {% if nodeMap is not null %}{% include "map/_svg.peb" with {"map": nodeMap, "links": false, "svgWidth": mapWidth, "svgHeight": (mapWidth * nodeMap.height / nodeMap.width)} %}{% endif %}
+
   {% if props is not empty %}
   <table class="props">
-    {% for p in props %}
-      {% if p.details is empty %}<tr><td class="k">{{ p.label }}</td><td>{% if p.track is not null %}{% include "print/_track.peb" %}{% elseif p.items is not empty %}{% include "print/_items.peb" %}{% elseif p.html is not empty %}<div class="body">{{ p.html | raw }}</div>{% else %}{{ p.value }}{% endif %}</td></tr>
+    {% for p in props %}{% if p.items is empty and p.html is empty %}
+      {% if p.details is empty %}<tr><td class="k">{{ p.label }}</td><td>{% if p.track is not null %}{% include "print/_track.peb" %}{% else %}{{ p.value }}{% endif %}</td></tr>
       {% elseif not p.multi %}{% for t in p.details %}<tr><td class="k">{{ p.label }}</td><td><span class="t">{{ t.option }}</span>: {{ t.text }}</td></tr>{% endfor %}
       {% endif %}
-    {% endfor %}
+    {% endif %}{% endfor %}
   </table>
-  {% include "print/_linked_props.peb" %}
   {% endif %}
+  {% include "print/_linked_props.peb" %}
 
   {# Multi-choice props with option descriptions (e.g. resource tags) get their own section, so the meaning is on the card. #}
   {% for p in props %}{% if p.multi and p.details is not empty %}
@@ -23,6 +25,11 @@
   {% endif %}{% endfor %}
 
   {% if node.body is not empty %}<div class="body">{{ notes | raw }}</div>{% endif %}
+
+  {% for p in props %}{% if p.items is not empty or p.html is not empty %}
+    <h4>{{ p.label }}</h4>
+    {% if p.items is not empty %}{% include "print/_items.peb" %}{% else %}<div class="body">{{ p.html | raw }}</div>{% endif %}
+  {% endif %}{% endfor %}
 
   {% for g in groups %}
     <h4>{{ g.label }}</h4>

@@ -22,6 +22,7 @@ data class FieldOption(val key: String, val label: String)
 class ResolvedModule(
     val id: String,
     val name: String,
+    /** Every type with what it inherits already resolved (see [Overlay.resolve]). */
     internal val types: Map<String, NodeTypeDef>,
     private val creatable: List<NodeTypeDef>,
     val edgeTypes: List<EdgeTypeDef>,
@@ -54,7 +55,7 @@ class ResolvedModule(
 
     /** A node's name as shown everywhere but its own title field: the type's `displayTitle`, else the title. */
     fun displayTitle(typeId: String, title: String, props: Map<String, Any?>): String {
-        val parts = inherited(typeId) { it.displayTitle } ?: return title
+        val parts = types[typeId]?.displayTitle ?: return title
         return Parts.fill(parts, fields(typeId, props), " ", extra = mapOf("title" to title)).ifEmpty { title }
     }
 
@@ -108,7 +109,7 @@ class ResolvedModule(
         return grouped.entries.sortedBy { (label, _) -> order.indexOf(label).let { if (it < 0) rest else it } }.associate { it.key to it.value }
     }
 
-    fun linkOrder(typeId: String): List<String> = inherited(typeId) { it.linkOrder }.orEmpty()
+    fun linkOrder(typeId: String): List<String> = types[typeId]?.linkOrder.orEmpty()
 
     /** Every heading a [typeId] node's links can be listed under, for checking `linkOrder`. */
     internal fun possibleLinkGroups(typeId: String): Set<String> = linkOptions(typeId).flatMap { o ->
@@ -148,46 +149,35 @@ class ResolvedModule(
         return matchesAny(otherType, targets)
     }
 
-    /** First non-null [pick] walking up `extends` from [typeId]: the nearest type that declares it wins. */
-    private fun <T> inherited(typeId: String, pick: (NodeTypeDef) -> T?): T? {
-        var t: String? = typeId
-        while (t != null) {
-            val def = types[t] ?: return null
-            pick(def)?.let { return it }
-            t = def.extends
-        }
-        return null
-    }
-
     /** Props schema for a type; inherited if the type declares none. */
-    fun propsSchema(typeId: String): JsonNode? = inherited(typeId) { it.props }
+    fun propsSchema(typeId: String): JsonNode? = types[typeId]?.props
 
     /** The schema of one prop, e.g. "tier"; null if the type has no such prop. */
     internal fun propSchema(typeId: String, prop: String): JsonNode? = propsSchema(typeId)?.get("properties")?.get(prop)
 
-    fun printTemplate(typeId: String): String? = inherited(typeId) { it.printTemplate }
+    fun printTemplate(typeId: String): String? = types[typeId]?.print?.template
 
     /** "Add new…" choices on a node of [typeId]. Types this game hides are left out. */
-    fun quickCreate(typeId: String): List<QuickCreateOption> = inherited(typeId) { it.quickCreate }.orEmpty().mapNotNull { q ->
+    fun quickCreate(typeId: String): List<QuickCreateOption> = types[typeId]?.quickCreate.orEmpty().mapNotNull { q ->
         val type = creatable.firstOrNull { it.id == q.type } ?: return@mapNotNull null
         val option = linkOption(typeId, q.rel) ?: return@mapNotNull null
         QuickCreateOption(type, option).takeIf { acceptsOther(option, type.id) }
     }
 
     /** `linkLimits` for [edgeType] in [dir] on a node of [typeId]; null = unlimited. */
-    fun linkLimit(typeId: String, edgeType: String, dir: Direction): Int? = inherited(typeId) { it.linkLimits?.get(dir.key(edgeType)) }
+    fun linkLimit(typeId: String, edgeType: String, dir: Direction): Int? = types[typeId]?.linkLimits?.get(dir.key(edgeType))
 
-    fun printSummary(typeId: String): PrintSummaryDef? = inherited(typeId) { it.printSummary }
+    fun printSummary(typeId: String): PrintSummaryDef? = types[typeId]?.print?.summary
 
-    fun printNested(typeId: String): List<PrintNestedDef> = inherited(typeId) { it.printNested }.orEmpty()
+    fun printNested(typeId: String): List<PrintNestedDef> = types[typeId]?.print?.nested.orEmpty()
 
     /** The type's shape on the map; null = not drawn (no shape, or "none" to leave out an inherited one). */
-    fun mapShape(typeId: String): String? = inherited(typeId) { it.mapShape }?.takeIf { it != "none" }
+    fun mapShape(typeId: String): String? = types[typeId]?.campaignMap?.shape?.takeIf { it != "none" }
 
     /** The type's icon on screen, e.g. "castle" for a landmark (an id in static/icons.svg); "circle" if none is set. */
-    fun icon(typeId: String): String = inherited(typeId) { it.icon } ?: "circle"
+    fun icon(typeId: String): String = types[typeId]?.icon ?: "circle"
 
-    fun mapDepth(typeId: String): String? = inherited(typeId) { it.mapDepth }
+    fun mapDepth(typeId: String): String? = types[typeId]?.campaignMap?.depth
 
     /**
      * A node's map depth from its type's `mapDepth` prop, with its guide label: an integer as itself ("Tier 2" from
@@ -204,23 +194,23 @@ class ResolvedModule(
     }
 
     /** The type's `mapBetween` link option, e.g. a delve's "connects" (to the landmarks it's drawn between). */
-    fun mapBetween(typeId: String): LinkOption? = inherited(typeId) { it.mapBetween }?.let { linkOption(typeId, it) }
+    fun mapBetween(typeId: String): LinkOption? = types[typeId]?.campaignMap?.between?.let { linkOption(typeId, it) }
 
     /** The type's own map (`map`): the link option to its places, their shape and highlight prop; null = its nodes have no map. */
     fun nodeMap(typeId: String): NodeMap? =
-        inherited(typeId) { it.map }?.let { d -> linkOption(typeId, d.places)?.let { NodeMap(it, d.shape, d.highlight) } }
+        types[typeId]?.map?.let { d -> linkOption(typeId, d.places)?.let { NodeMap(it, d.shape, d.highlight) } }
 
     fun generator(id: String): GeneratorDef? = generators.firstOrNull { it.id == id }
 
     /** The type's `context` link option, e.g. a minor location's "is part of" (its landmark). */
-    fun context(typeId: String): LinkOption? = inherited(typeId) { it.context }?.let { linkOption(typeId, it) }
+    fun context(typeId: String): LinkOption? = types[typeId]?.context?.let { linkOption(typeId, it) }
 
     /** The node [node] belongs to through its type's `context` link, e.g. a minor location's landmark; null if none in [graph]. */
     fun parent(graph: CampaignGraph, node: Node): Node? =
         context(node.type)?.let { graph.linkedNodes(node.id, it.edgeType, it.direction).firstOrNull() }
 
     /** Link slots (one-of-many dropdowns) on a node of [typeId]. */
-    fun linkSlots(typeId: String): List<LinkSlot> = inherited(typeId) { it.linkSlots }.orEmpty().map { s ->
+    fun linkSlots(typeId: String): List<LinkSlot> = types[typeId]?.linkSlots.orEmpty().map { s ->
         LinkSlot(s.label, s.rels.mapNotNull { linkOption(typeId, it) })
     }
 
@@ -229,7 +219,7 @@ class ResolvedModule(
         linkSlots(typeId).firstOrNull { s -> s.options.any { it.edgeType == edgeType && it.direction == dir } }
 
     /** Linked-prop rules for a node of [typeId]; label defaults to the prop name. */
-    fun linkedProps(typeId: String): List<LinkedPropRule> = inherited(typeId) { it.linkedProps }.orEmpty().mapNotNull { l ->
+    fun linkedProps(typeId: String): List<LinkedPropRule> = types[typeId]?.linkedProps.orEmpty().mapNotNull { l ->
         val option = linkOption(typeId, l.rel) ?: return@mapNotNull null
         LinkedPropRule(l.prop, l.label ?: l.prop.replaceFirstChar { it.uppercase() }, option)
     }
@@ -237,24 +227,24 @@ class ResolvedModule(
     fun view(id: String): ViewDef? = views.firstOrNull { it.id == id }
 
     /** Overview column specs for a type: prop names and "@rel" link columns. */
-    fun overview(typeId: String): List<String> = inherited(typeId) { it.overview }.orEmpty()
+    fun overview(typeId: String): List<String> = types[typeId]?.overview?.columns.orEmpty()
 
     /** Checkbox lists on a type's page, with their link option resolved. */
-    fun checklists(typeId: String): List<Pair<ChecklistDef, LinkOption>> = inherited(typeId) { it.checklists }.orEmpty()
+    fun checklists(typeId: String): List<Pair<ChecklistDef, LinkOption>> = types[typeId]?.checklists.orEmpty()
         .mapNotNull { c -> linkOption(typeId, c.rel)?.let { c to it } }
 
-    fun packet(typeId: String): PacketDef? = inherited(typeId) { it.packet }
+    fun packet(typeId: String): PacketDef? = types[typeId]?.packet
 
-    fun debrief(typeId: String): List<DebriefDef> = inherited(typeId) { it.debrief }.orEmpty()
+    fun debrief(typeId: String): List<DebriefDef> = types[typeId]?.debrief.orEmpty()
 
     /** The type's `overviewSort`: the prop, and whether newest/largest first ("-date"). */
     fun overviewSort(typeId: String): Pair<String, Boolean>? =
-        inherited(typeId) { it.overviewSort }?.let { if (it.startsWith("-")) it.drop(1) to true else it to false }
+        types[typeId]?.overview?.sort?.let { if (it.startsWith("-")) it.drop(1) to true else it to false }
 
     /** The boolean prop that greys out a type's overview rows, if any. */
-    fun overviewMuted(typeId: String): String? = inherited(typeId) { it.overviewMuted }
+    fun overviewMuted(typeId: String): String? = types[typeId]?.overview?.muted
 
-    fun overviewHidden(typeId: String): Boolean = inherited(typeId) { it.overviewHidden } == true
+    fun overviewHidden(typeId: String): Boolean = types[typeId]?.overview?.hidden == true
 
     /** Sort key for campaign-home sections: position in [overviewOrder], unlisted types after. */
     fun overviewRank(typeId: String): Int = overviewOrder.indexOf(typeId).let { if (it < 0) overviewOrder.size else it }

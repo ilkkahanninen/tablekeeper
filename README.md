@@ -113,7 +113,7 @@ Kotlin 2.1 (JDK 21), Ktor + htmx, Pebble templates, Postgres 16 (jOOQ as plain S
   - Random tables are campaign data in their own tables.
 - **Game modules** (`modules/<id>/module.json`): node types, edge types and props schemas, plus settings for pages, print, the map and session packets.
   - Types inherit through `extends` (a Heart Landmark is a `core.place`), and modules extend other modules.
-  - Templates in a module folder (`modules/heart/print/*.peb`, `modules/heart/views/*.peb`) are used without a rebuild.
+  - Templates in a module folder (`modules/heart/views/*.peb`, `modules/heart/print/*.peb`) are used without a rebuild. Cards and session packets are shared (`templates/print/_body.peb`, `session.peb`); a module only adds what's its own, like Heart's Inspiration in the packet.
   - Bad settings stop the app at startup, with a message.
 - **Print:** HTML to PDF. Multi-column pages are made by laying out one long narrow column and placing three of those pages per landscape sheet (`print/Imposition.kt`).
 - **Map:** laid out on the server (`map/MapLayout.kt`), so the screen and the PDF draw the same SVG.
@@ -121,8 +121,8 @@ Kotlin 2.1 (JDK 21), Ktor + htmx, Pebble templates, Postgres 16 (jOOQ as plain S
 ```
 modules/                  game modules (plain files)
   core/module.json        shared types: place, pc, npc, item, faction, fact, session + edge types
-  heart/                  Heart: module.json, print/ (cards, session packet), views/ (Inspiration)
-  morkborg/               MÖRK BORG: module.json, print/ (dungeon sheet, session packet)
+  heart/                  Heart: module.json, views/ (Inspiration), print/ (Inspiration in the session packet)
+  morkborg/               MÖRK BORG: module.json
 src/main/kotlin/tablekeeper/
   core/                   campaigns, graph (nodes/edges, in-memory snapshot), random tables, errors
   modules/                module.json shape, resolved module, startup checks, link rules, schema -> form, text parts
@@ -145,21 +145,22 @@ A minimal module that adds a type to `core`:
   "extends": ["core"],
   "nodeTypes": [
     { "id": "fs.town", "extends": "core.place", "label": "Town", "codePrefix": "T",
+      "props": { "population": { "type": "integer", "title": "Population" } },
       "quickCreate": [ { "type": "core.npc", "rel": "located_at:in" } ] }
   ],
   "edgeTypes": []
 }
 ```
 
-Restart the app. Town gets a generated form, the link rules it inherits from places, a generic print card, and a create choice for NPCs located there.
+Restart the app. Town gets a generated form, the link rules it inherits from places, a print card, a place on the campaign map, and a create choice for NPCs located there. Prints need no templates: every type prints with the shared card, and a type with a `packet` with the shared session packet.
 
 Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in` (the other → this node). `modules/heart/module.json` uses nearly every setting below and is the best example.
 
-**Node type settings** (all optional; inherited through `extends`):
+**Node type settings** (all optional). A type inherits every setting from the type it `extends` but its `id`, `label`, `plural` and `codePrefix`; settings that are objects (`overview`, `print`, `campaignMap`…) merge key by key, so `"campaignMap": { "shape": "dot" }` keeps the inherited depth. `patchTypes` lay settings over a type the same way.
 
 | Setting | What it does | Heart example |
 |---|---|---|
-| `props` | JSON Schema for fields; generates the form | landmark tier, domains… |
+| `props` | The type's fields as JSON Schema properties (the object around them is added); generates the form. A field can be a shared one from the module's `fields`: `"@stress"`, or `{ "use": "severity", "x-row": "Beat 1" }` with changes | landmark tier, `"@stress"`, `"@domains"` |
 | `plural` | Heading label (default: label + "s") | `"Equipment"` |
 | `linkOrder` | Order of the Links box and print list headings; `"*"` = the others in default order | landmark `["Reached via", "Resources", "Equipment", "*", "Featured in"]` |
 | `icon` | Shown for the type's nodes on screen instead of their code (hover: "Landmark L1"); a name from `static/icons.svg` | landmark `castle`, NPC `drama` |
@@ -169,9 +170,9 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `linkLimits` | Cap links; refused when full | delve `connects:out` ≤ 2 |
 | `linkedProps` | Read-only values from linked nodes | delve shows its landmarks' tier and domains |
 | `context` | Where a node belongs, shown in brackets in pickers; nests it on the campaign page and map | minor location → its landmark |
-| `overview`, `overviewSort`, `overviewMuted`, `overviewHidden` | Campaign page columns (props or `@rel`), row order, greyed rows, left off the page | sessions by `date`, dead NPCs; MÖRK BORG rooms hidden |
-| `printTemplate`, `printSummary`, `printNested` | Print card template; how it's listed on other cards (`group` + parts); nested lists | equipment "Kill d8 · Brutal" |
-| `mapShape`, `mapDepth`, `mapBetween` | Campaign map: shape (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off the map); depth from a prop; drawn between linked places | landmarks by tier, delves between |
+| `overview` | Campaign page table: `columns` (props or `@rel`), `sort` (a prop, `-` for descending), `muted` (a boolean prop greys rows), `hidden` (not listed) | sessions by `date`, dead NPCs; MÖRK BORG rooms hidden |
+| `print` | `summary` (how it's listed on other cards: `group` + parts), `nested` (nested lists), `template` (only to replace the shared card) | equipment "Kill d8 · Brutal" |
+| `campaignMap` | On the campaign map: `shape` (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off), `depth` from a prop, `between` linked places | landmarks by tier, delves between |
 | `map` | The type's own map: `{ "places": "<rel>", "shape": "circle", "highlight": "<boolean prop>" }` draws the nodes linked that way and the links between them, highlighted ones filled red; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms, entrance |
 | `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time") | Heart session |
 | `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
@@ -183,6 +184,8 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 - `patchTypes`: change settings on inherited types.
 - `overviewOrder`: campaign page order.
 - `views`: extra pages with a template, `types`, `groupBy` and `links`.
+- `fields`: field schemas shared by several types' `props` (`"@name"`), inherited from the modules a game extends and overridden by name.
+- `views` can add `print`: a template partial drawing the view in session packets (Heart's characters).
 - `tables`: starter random tables (`name`, `items`, `mix`, `fields` as `"<type>:<field>"`), added to the game's new campaigns.
 - `generators`: one-click **Generate …** entries in **Create ▾**. Each `nodes` group makes `count` nodes (`n` or `[min, max]`) of a `type`:
   - `fill` rolls fields on the campaign's tables (an enum without one gets a random value), and `chance` fills a field only that often.
@@ -210,7 +213,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `"x-trueLabel"` | Text for a ticked checkbox (`"dead"`); printed as a tag next to the name |
 | `"x-depth"` | Map depth per enum value (`"Tier 2": 2`) |
 
-`printSummary` and `displayTitle` parts use `{prop}` for the display text and `{prop.value}` for the stored value. A part whose values are all empty is left out.
+`print.summary` and `displayTitle` parts use `{prop}` for the display text and `{prop.value}` for the stored value. A part whose values are all empty is left out.
 
 ## Development
 
