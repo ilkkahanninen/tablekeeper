@@ -1,15 +1,11 @@
-{# Link box create row: always visible. Title = the text typed in the Link box (#link-q), or "New <type>" if empty.
-   Create opens the new node; ↓ creates it without leaving. Sent out-of-band after link changes. #}
-<div id="create-row"{% if oob %} hx-swap-oob="true"{% endif %}>
+{# "Add new": create a node linked to this one, then open it: a button per type it can be (the clicked one's "choice" is posted).
+   It's named from the type's random tables (or "New <type>") and opens with the name selected, to type over. Its own box, shown when the type offers something to create; sent out-of-band after link changes
+   (a full link type drops out of the choices). #}
+<section id="create-row" class="card"{% if quickCreate is empty %} hidden{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>
   {% if quickCreate is not empty %}
-    <form class="create-row" hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/quick-create" hx-include="#link-q">
-      <select name="choice" aria-label="Create as">
-        {% for c in quickCreate %}<option value="{{ c.key }}">{{ c.label }}</option>{% endfor %}
-      </select>
-      <button>Create</button>
-      <button type="button" class="secondary" aria-label="Create without opening" title="Create without opening"
-              hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/quick-create" hx-vals='{"stay": "1"}' hx-include="#link-q, closest form"
-              hx-target="#linked" hx-swap="outerHTML" data-clear-search>↓</button>
+    <h2>Add new</h2>
+    <form class="create-row" hx-post="/c/{{ campaign.id }}/n/{{ node.id }}/quick-create">
+      {% for c in quickCreate %}<button class="secondary" name="choice" value="{{ c.key }}">{{ c.label }}</button>{% endfor %}
     </form>
   {% endif %}
-</div>
+</section>

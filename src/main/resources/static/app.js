@@ -67,14 +67,6 @@ document.addEventListener("htmx:afterRequest", (e) => {
   }
 });
 
-// "Create without opening" in the Link box: clear the search, ready for the next one. On beforeSwap, not afterRequest:
-// the response replaces the create row (out-of-band), so the button is gone and its later events never reach document.
-document.addEventListener("htmx:beforeSwap", (e) => {
-  if (!e.detail.requestConfig?.elt?.matches("[data-clear-search]") || e.detail.xhr.status >= 400) return;   // elt = the button
-  const q = document.getElementById("link-q");
-  if (q) { q.value = ""; q.dispatchEvent(new Event("input", { bubbles: true })); }
-});
-
 // Random table button: fill its field with a roll from the server (a different value when possible); the field's change autosaves.
 // On a "list" field (data-append, e.g. a delve's events) the roll is added as a new item, after a blank line.
 // With several tables the button is a menu (details); picking a table rolls on it and closes the menu.
@@ -219,3 +211,12 @@ document.addEventListener("mousedown", (e) => {
   e.preventDefault();
   insertMention(choice.closest(".notes-field").querySelector("textarea"), choice.dataset.title);
 });
+
+// A node just created (?new=1) opens with its title selected, so typing replaces the generated name; the marker is
+// dropped from the address so a reload doesn't select it again.
+const autoselect = document.querySelector("[data-autoselect]");
+if (autoselect) {
+  autoselect.focus();
+  autoselect.select();
+  history.replaceState(null, "", location.pathname);
+}

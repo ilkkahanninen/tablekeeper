@@ -102,8 +102,9 @@ textarea.line { min-width: 0; flex: 1; }
 /* Values from linked nodes (a delve's Tier and Domains from its landmarks): a campaign-style table at its natural width */
 .linked-props .overview { width: auto; margin: 0 0 1rem; }
 .linked-props .overview th:first-child, .linked-props .overview td:first-child { width: auto; }
-.link-picker { display: flex; gap: .4rem; margin-bottom: .5rem; }
-.link-picker input { flex: 1; min-width: 0; }
+.link-picker { position: relative; display: flex; align-items: center; margin-bottom: .5rem; }
+.link-picker input { flex: 1; min-width: 0; padding-left: 1.8rem; }
+.link-picker .find-icon { position: absolute; left: .55rem; pointer-events: none; }
 .results .result { padding: .1rem 0; border-bottom: 1px dotted var(--line); }
 /* A Link box result: the node as a row to click (one relation links it; several open a menu of them) */
 .result-pick { display: block; width: 100%; text-align: left; background: transparent; color: var(--ink); border: none; border-radius: 4px; padding: .3rem .4rem; box-shadow: none; cursor: pointer; }
@@ -113,8 +114,7 @@ summary.result-pick { list-style: none; }
 summary.result-pick::-webkit-details-marker { display: none; }
 .result .dropdown-choices { left: 0; right: auto; }
 .results .result:last-child { border-bottom: none; }
-.create-row { display: flex; align-items: center; gap: .3rem; margin-bottom: .5rem; }
-.create-row select { flex: 1; min-width: 0; }
+.create-row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
 .unlink { background: transparent; color: var(--muted); border: none; padding: 0 .3rem; margin-left: auto; flex: none; }
 /* A linked node's row: icon, name (may wrap), × at the right of the first line */
 #linked li { display: flex; align-items: baseline; gap: .3rem; }

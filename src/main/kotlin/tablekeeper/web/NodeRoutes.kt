@@ -18,7 +18,8 @@ import tablekeeper.modules.PropsForm
 fun Route.nodeRoutes(d: Deps) = with(d) {
     get {
         val (c, m) = call.game()
-        call.html("node.peb", nodePage.model(c, m, call.node(c)))
+        // "new": just created, so the title is focused and selected, ready to type over (app.js)
+        call.html("node.peb", nodePage.model(c, m, call.node(c)) + ("isNew" to (call.request.queryParameters["new"] == "1")))
     }
 
     // Save: htmx swaps only the form, so the page and sidebar stay put.
@@ -122,13 +123,11 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
             ?: throw BadRequest("Can't create that from ${m.label(n.type)}")
         // Check the limit before creating, so a full link type doesn't leave an unlinked node behind.
         linker.limitError(c.id, m, n, q.option)?.let { throw BadRequest(it) }
-        // The Link box sends its search text as "q"
-        val created = graph.createNode(c.id, q.type.id, q.type.codePrefix, newTitle(c, q.type.id, q.type.label, p["title"] ?: p["q"]))
+        val created = graph.createNode(c.id, q.type.id, q.type.codePrefix, newTitle(c, q.type.id, q.type.label, p["title"]))
         linker.link(c.id, m, n, q.option, created)
-        // "stay": create without opening, refreshing this page's links, ready for the next one
+        // "quiet": added from a session's debrief, which stays; otherwise open the new node
         if (p["quiet"] == "1") call.quiet(p)
-        else if (p["stay"] == "1") call.linksChanged(g, n)
-        else call.redirect("/c/${c.id}/n/${created.id}")
+        else call.redirect("/c/${c.id}/n/${created.id}?new=1")
     }
 
     post("/links/{eid}/delete") {
@@ -144,7 +143,7 @@ fun Route.nodeRoutes(d: Deps) = with(d) {
         val n = call.node(c)
         val type = m.type(n.type) ?: throw BadRequest("Unknown type ${n.type}")
         val copy = graph.duplicateNode(n, type.codePrefix, "${n.title} (copy)")
-        call.redirect("/c/${c.id}/n/${copy.id}")
+        call.redirect("/c/${c.id}/n/${copy.id}?new=1")
     }
 
     // Remove a linked node from this one (a session debrief's ×, e.g. a healed fallout); the node itself stays, to reuse later

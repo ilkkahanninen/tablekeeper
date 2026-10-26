@@ -43,7 +43,7 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
         val p = call.receiveParameters()
         val type = m.nodeTypes.firstOrNull { it.id == p["type"] } ?: throw BadRequest("Unknown type")
         val n = graph.createNode(c.id, type.id, type.codePrefix, newTitle(c, type.id, type.label, p["title"]))
-        call.respondRedirect("/c/${c.id}/n/${n.id}")
+        call.respondRedirect("/c/${c.id}/n/${n.id}?new=1")   // a new node opens with its title selected
     }
 
     // Module views, e.g. Heart's GM inspiration page: the module's template over the campaign's nodes of some types.

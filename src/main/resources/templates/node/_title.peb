@@ -1,13 +1,14 @@
 {# The node's title, first on its page. Its own small form, autosaving only the title ("only" names no props, so the
-   save merges nothing else); the main form below no longer posts a title, so the stored one is kept there. #}
+   save merges nothing else); the main form below no longer posts a title, so the stored one is kept there.
+   A node just created opens with the title selected (data-autoselect, app.js), so typing replaces the name. #}
 <form class="title-form" hx-post="/c/{{ campaign.id }}/n/{{ node.id }}" hx-trigger="change, submit"
       hx-vals='{"autosave": "1", "only": ""}' hx-target="#save-status">
   {% if random["title"] is not null %}
     <div class="with-random title-row">
-      <input class="title-input" name="title" value="{{ node.title }}" aria-label="Title" required>
+      <input class="title-input" name="title" value="{{ node.title }}" aria-label="Title" required{% if isNew %} data-autoselect{% endif %}>
       {% include "node/_random.peb" with {"field": "title", "choices": random["title"]} %}
     </div>
   {% else %}
-    <input class="title-input" name="title" value="{{ node.title }}" aria-label="Title" required>
+    <input class="title-input" name="title" value="{{ node.title }}" aria-label="Title" required{% if isNew %} data-autoselect{% endif %}>
   {% endif %}
 </form>

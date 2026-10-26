@@ -19,18 +19,20 @@
   </div>
 
   <aside class="side-col">
-    {# Link box: type to find something to link (results below), or create it with the create row #}
+    {# Link box: type to find something to link; click a result to link it #}
     <section class="card">
       <h2>Link</h2>
       <form class="link-picker"
             hx-get="/c/{{ campaign.id }}/n/{{ node.id }}/link-search"
             hx-trigger="input delay:200ms, submit, links-changed from:body"
             hx-target="#link-results">
-        <input id="link-q" name="q" type="search" aria-label="Find or create" autocomplete="off">
+        <span class="type-icon find-icon" aria-hidden="true"><svg><use href="/static/icons.svg#search"/></svg></span>
+        <input id="link-q" name="q" type="search" aria-label="Find" autocomplete="off">
       </form>
-      {% include "node/_create.peb" %}
       <div id="link-results"></div>
     </section>
+
+    {% include "node/_create.peb" %}
 
     {% include "node/_linked.peb" %}
   </aside>

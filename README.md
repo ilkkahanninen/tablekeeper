@@ -15,7 +15,7 @@ The first game is **Heart: The City Beneath**. Games are data-only modules (JSON
 - **Node pages:**
   - Fields save as you leave them.
   - **Notes** and every other long-text field (Haunts, Events, What happened, a fallout's description…) show formatted until you click them: `**bold**`, `*italic*`, `- ` lists, and `[[Red Market]]` (or `[[L3]]`) as a link. Typing `[[` offers matching nodes; renaming a node updates its mentions. A mentioned node lists who mentions it under **Mentioned in**. Prints show the same formatting, mentions in bold.
-  - The **Link** box finds something to link or creates it: click a result to link it (if it can be linked several ways, pick one from its menu).
+  - The **Link** box finds something to link: click a result to link it (if it can be linked several ways, pick one from its menu). **Add new** has a button per type: it creates a linked node and opens it with its name selected, to type over.
   - Dropdowns like **Location** or **Location / carried by** handle "one of these" links.
   - **Links** lists everything connected, grouped by type (*NPCs*, *Resources*…).
 - **Heart:**
@@ -85,7 +85,7 @@ After the session, write **What happened** on the session, and use the **Debrief
 
 1. Create a campaign (Heart).
 2. Pick *Landmark* and click **Add** in the top bar, then rename it "Red Market". Set tier *Tier 1* and domains Occult + Desolate.
-3. On Red Market, type "Silvia" in the **Link** box, pick *NPC* in the create row and click **Create**. Her **Location** now says Red Market.
+3. On Red Market, click **NPC** under **Add new** and type "Silvia" (the new name is selected, ready to type over). Her **Location** now says Red Market.
 4. Create a *Delve* the same way. Its Tier and Domains rows show Red Market's.
 5. Under **Tables**, add a list of names, tick *NPC: Title*, and use **Random** on an NPC.
 6. Add a **Session**, tick Red Market and a character, and click **Print**.
