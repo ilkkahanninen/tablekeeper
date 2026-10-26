@@ -25,9 +25,11 @@ data class OverviewSection(val typeId: String, val label: String, val columns: L
 object Overview {
     /**
      * The campaign home: a table per type, in the module's `overviewOrder`. A node whose type has a `context` link is
-     * listed under that node instead, e.g. a minor location under its landmark.
+     * listed under that node instead, e.g. a minor location under its landmark. Types with `overviewHidden` (a dungeon's
+     * rooms) aren't listed.
      */
-    fun sections(m: ResolvedModule, graph: CampaignGraph): List<OverviewSection> {
+    fun sections(m: ResolvedModule, all: CampaignGraph): List<OverviewSection> {
+        val graph = all.filter { !m.overviewHidden(it.type) }
         val parent = graph.nodes.mapNotNull { n -> m.parent(graph, n)?.let { n.id to it.id } }.toMap()
         val columns = graph.nodes.map { it.type }.distinct().associateWith { columns(m, it) }
         fun row(n: Node): OverviewRow = OverviewRow(

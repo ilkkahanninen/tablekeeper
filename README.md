@@ -169,7 +169,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `linkLimits` | Cap links; refused when full | delve `connects:out` ≤ 2 |
 | `linkedProps` | Read-only values from linked nodes | delve shows its landmarks' tier and domains |
 | `context` | Where a node belongs, shown in brackets in pickers; nests it on the campaign page and map | minor location → its landmark |
-| `overview`, `overviewSort`, `overviewMuted` | Campaign page columns (props or `@rel`), row order, greyed rows | sessions by `date`, dead NPCs |
+| `overview`, `overviewSort`, `overviewMuted`, `overviewHidden` | Campaign page columns (props or `@rel`), row order, greyed rows, left off the page | sessions by `date`, dead NPCs; MÖRK BORG rooms hidden |
 | `printTemplate`, `printSummary`, `printNested` | Print card template; how it's listed on other cards (`group` + parts); nested lists | equipment "Kill d8 · Brutal" |
 | `mapShape`, `mapDepth`, `mapBetween` | Campaign map: shape (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off the map); depth from a prop; drawn between linked places | landmarks by tier, delves between |
 | `map` | The type's own map: `{ "places": "<rel>", "shape": "circle", "highlight": "<boolean prop>" }` draws the nodes linked that way and the links between them, highlighted ones filled red; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms, entrance |

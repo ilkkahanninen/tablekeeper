@@ -252,6 +252,8 @@ class ResolvedModule(
     /** The boolean prop that greys out a type's overview rows, if any. */
     fun overviewMuted(typeId: String): String? = inherited(typeId) { it.overviewMuted }
 
+    fun overviewHidden(typeId: String): Boolean = inherited(typeId) { it.overviewHidden } == true
+
     /** Sort key for campaign-home sections: position in [overviewOrder], unlisted types after. */
     fun overviewRank(typeId: String): Int = overviewOrder.indexOf(typeId).let { if (it < 0) overviewOrder.size else it }
 

@@ -40,4 +40,16 @@ class OverviewTest {
         assertEquals(listOf("Session 3", "Session 2", "Session 1", "Prep"),
             sortedByProp(sessions, "date" to true, props) { it.title }.map { it.title }, "-date: newest first")
     }
+
+    @Test
+    fun `morkborg rooms are left off the campaign page`() {
+        val morkborg = GameModules.load(System.getProperty("modulesDir") ?: "modules").get("morkborg")
+        val c = java.util.UUID.randomUUID()
+        fun node(type: String, title: String) = tablekeeper.core.Node(java.util.UUID.randomUUID(), c, type, title, title, "", emptyMap(), "gm")
+        val crypt = node("mb.dungeon", "Plague crypt")
+        val hall = node("mb.room", "Hall of bones")
+        val sections = Overview.sections(morkborg, tablekeeper.core.CampaignGraph(listOf(crypt, hall), listOf(tablekeeper.core.EdgeRef(hall.id, crypt.id, "room_in"))))
+        assertEquals(listOf("mb.dungeon"), sections.map { it.typeId })
+        assertEquals(emptyList(), sections.single().rows.single().children, "not nested under the dungeon either")
+    }
 }

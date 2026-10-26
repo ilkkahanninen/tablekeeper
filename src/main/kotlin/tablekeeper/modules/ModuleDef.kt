@@ -66,6 +66,8 @@ data class NodeTypeDef(
     val overview: List<String>? = null,
     /** Boolean prop that greys out this type's rows on the campaign home when true, e.g. an NPC's "dead". Missing = inherit. */
     val overviewMuted: String? = null,
+    /** Left off the campaign home altogether, e.g. a dungeon's rooms (reached from their dungeon). Missing = inherit. */
+    val overviewHidden: Boolean? = null,
     /** Prop ordering this type's rows on the campaign home, e.g. "date"; "-date" for newest first. Missing = inherit; none = by title. */
     val overviewSort: String? = null,
     /** Checkbox lists on this type's page; ticking links the node via the list's rel. Missing = inherit. */

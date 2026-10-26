@@ -116,6 +116,7 @@
       "label": "Room",
       "codePrefix": "R",
       "mapShape": "none",
+      "overviewHidden": true,
       "context": "room_in:out",
       "linkSlots": [{ "label": "Dungeon", "rels": ["room_in:out"] }],
       "linkOrder": ["Connects to", "*"],
