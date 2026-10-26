@@ -33,4 +33,11 @@
   <label>File <input type="file" name="file" accept=".json,application/json" required></label>
   <button>Import</button>
 </form>
+
+{# Legal notices for the games' content (also in LICENSE and README) #}
+<footer class="fine-print">
+  <p>Heart: The City Beneath is © Rowan, Rook and Decard. Tablekeeper is an unofficial fan tool, not affiliated with or endorsed by Rowan, Rook and Decard.</p>
+  <p>Tablekeeper is an independent production by Ilkka Hänninen and is not affiliated with Ockult Örtmästare Games or Stockholm Kartell. It is published under the MÖRK BORG Third Party License.</p>
+  <p>MÖRK BORG is copyright Ockult Örtmästare Games and Stockholm Kartell.</p>
+</footer>
 {% endblock %}

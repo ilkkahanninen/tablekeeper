@@ -236,4 +236,10 @@ The code is released under the [MIT License](LICENSE). The type icons in `static
 
 **Heart: The City Beneath** is © Rowan, Rook and Decard. The game text in `modules/heart/` (class inspiration texts, equipment and resource tag descriptions, resource die descriptions and similar) comes from the rule book. It belongs to its publisher and is **not** covered by the MIT License. Tablekeeper is an unofficial fan tool, not affiliated with or endorsed by Rowan, Rook and Decard.
 
-The MÖRK BORG module (`modules/morkborg/`) quotes the Calendar of Nechrubel and table entries from the MÖRK BORG Bare Bones Edition. Tablekeeper is an independent production and is not affiliated with Ockult Örtmästare Games or Stockholm Kartell. It is published under the MÖRK BORG Third Party License. MÖRK BORG is copyright Ockult Örtmästare Games and Stockholm Kartell.
+The MÖRK BORG module (`modules/morkborg/`) quotes the Calendar of Nechrubel and table entries from the MÖRK BORG Bare Bones Edition.
+
+Tablekeeper is an independent production by Ilkka Hänninen and is not affiliated with Ockult Örtmästare Games or Stockholm Kartell. It is published under the MÖRK BORG Third Party License.
+
+MÖRK BORG is copyright Ockult Örtmästare Games and Stockholm Kartell.
+
+These notices are also in [LICENSE](LICENSE) and in the fine print on the home page.
