@@ -28,7 +28,7 @@
   .body ul, .notes ul { margin: 0 0 1.5mm; padding-left: 4.5mm; }
   .body > :last-child, .notes > :last-child { margin-bottom: 0; }
   .props td .body { margin: 0; }
-  h4 { font-size: 7.5pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; margin: 3mm 0 1mm; color: #555; }
+  h4 { font-size: 7.5pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; margin: 3mm 0 1mm; color: #555; break-after: avoid; }
   ul { margin: 0; padding-left: 4mm; list-style: disc; }
   li { margin: 0 0 0.8mm 0; }
   ul.nested { list-style: circle; margin-top: 0.8mm; }

@@ -63,6 +63,9 @@ class ResolvedModule(
 
     fun displayTitle(node: Node): String = displayTitle(node.type, node.title, node.props)
 
+    /** Props a type's `displayTitle` shows, e.g. a character's "player" in "Karg (Mira)": prints don't repeat them as rows. */
+    fun displayTitleProps(typeId: String): Set<String> = types[typeId]?.displayTitle?.let { Parts.names(it) }.orEmpty() - "title"
+
     /** Display titles of [nodes] by id, for pages and prints that list many nodes. */
     fun displayTitles(nodes: List<Node>): Map<UUID, String> = nodes.associate { it.id to displayTitle(it) }
 

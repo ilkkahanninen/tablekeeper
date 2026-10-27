@@ -113,7 +113,8 @@
       "packet": {
         "rel": "features:out",
         "around": [{"type": "core.npc", "rel": "located_at:out"}, {"type": "core.faction", "rel": "located_at:out"}],
-        "related": [{"type": "core.faction", "rel": "member_of:in"}], "columns": 3, "recap": "recap"
+        "related": [{"type": "core.faction", "rel": "member_of:in"}], "columns": 3, "recap": "recap", "leaveOut": "dead",
+        "soFar": {"type": "mb.misery", "rel": "came_to_pass:out"}
       },
       "debrief": [
         {
@@ -153,7 +154,7 @@
     {
       "id": "mb.dungeon", "icon": "skull", "extends": "core.place", "label": "Dungeon", "codePrefix": "D",
       "campaignMap": {"shape": "diamond"}, "linkSlots": [{"label": "Location", "rels": ["part_of:out"]}],
-      "overview": {"columns": ["state"]}, "print": {"nested": [{"rel": "room_in:in", "show": "located_at:in"}]},
+      "overview": {"columns": ["state"]}, "print": {"nested": [{"rel": "room_in:in", "show": "located_at:in"}], "subtitle": ["{@part_of:out}"]},
       "map": {"places": "room_in:in", "shape": "circle", "highlight": "entrance"},
       "linkOrder": ["Rooms", "*", "Featured in"],
       "quickCreate": [

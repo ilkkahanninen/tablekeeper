@@ -873,4 +873,23 @@ class GameModulesTest {
             dir.deleteRecursively()
         }
     }
+
+    @Test
+    fun `morkborg packets list the miseries so far, leave out the dead, and don't repeat what titles show`() {
+        val packet = morkborg.packet("core.session")!!
+        assertEquals(SoFarDef("mb.misery", "came_to_pass:out") to "dead", packet.soFar to packet.leaveOut)
+        assertEquals(setOf("player"), morkborg.displayTitleProps("mb.pc"), "\"Karg (Mira)\" needs no Player row")
+        assertEquals(setOf("part_of:out"), morkborg.subtitleRels("mb.dungeon"))
+
+        val dir = Files.createTempDirectory("modules").toFile()
+        File(dir, "bad").mkdirs()
+        File(dir, "bad/module.json").writeText(
+            """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.session", "label": "Session", "codePrefix": "S",
+                 "packet": {"rel": "relates_to:out", "soFar": {"type": "bad.nope"}}}],
+                "edgeTypes": [{"id": "relates_to", "label": "relates to", "inverseLabel": "relates to", "from": ["*"], "to": ["*"]}]}"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty()
+        assertTrue("soFar type 'bad.nope'" in e, e)
+        dir.deleteRecursively()
+    }
 }

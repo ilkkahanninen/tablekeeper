@@ -63,7 +63,7 @@ Add a **Session** and tick the landmarks likely to come up and the characters ta
 
 Dead NPCs and adversaries are left out, and so are other sessions ("Featured in").
 
-A MÖRK BORG session ticks locations, dungeons and characters. Its packet has the same cover, then the selected locations and dungeons (rooms nested with their creatures' stats and items), the characters with what they carry, the creatures at those places or in their rooms, and factions.
+A MÖRK BORG session ticks locations, dungeons and characters. Its packet has the same cover, plus **Miseries**: the Calendar of Nechrubel so far (verse and title, leaving out those of later sessions). Then the selected locations and dungeons (each dungeon with its location under its name, rooms nested with their creatures' stats and items), the characters with what they carry, the creatures at those places or in their rooms (dead ones left out), and factions.
 
 ## Run
 
@@ -179,7 +179,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `print` | `summary` (how it's listed on other cards: `group` + parts), `subtitle` (parts shown with its title; links it names aren't listed again), `nested` (nested lists), `template` (only to replace the shared card) | equipment "Kill d8 · Brutal"; NPC subtitle `["{@located_at:out}"]` |
 | `campaignMap` | On the campaign map: `shape` (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off), `depth` from a prop, `between` linked places, `label: false` to draw it without its name | landmarks by tier, delves between |
 | `map` | The type's own map: `{ "places": "<rel>", "shape": "circle", "highlight": "<boolean prop>" }` draws the nodes linked that way and the links between them, highlighted ones filled red; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms, entrance |
-| `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time", `leaveOut`: a boolean prop whose ticked nodes aren't printed) | Heart session, `"leaveOut": "dead"` |
+| `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time", `leaveOut`: a boolean prop whose ticked nodes aren't printed, `soFar`: a type listed on the cover, with a `rel` to sessions to leave out later ones) | Heart session, `"leaveOut": "dead"`; MÖRK BORG `"soFar": {"type": "mb.misery", "rel": "came_to_pass:out"}` |
 | `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
 
 **Edge type settings:** `label` / `inverseLabel`, allowed `from` / `to` types, and `groupByType`, which lists the `to` side by type: *NPCs*, *Resources*…
@@ -219,7 +219,7 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `"x-trueLabel"` | Text for a ticked checkbox (`"dead"`); printed as a tag next to the name |
 | `"x-depth"` | Map depth per enum value (`"Tier 2": 2`) |
 
-`print.summary`, `print.subtitle` and `displayTitle` parts use `{prop}` for the display text and `{prop.value}` for the stored value; in `print.summary` and `print.subtitle`, `{@rel}` lists the nodes linked that way ("Red Market (L4)"; on a card, leaving out the node it's listed on). A part whose values are all empty is left out.
+Props a `displayTitle` shows (a character's player in "Karg (Mira)") aren't printed again as rows. `print.summary`, `print.subtitle` and `displayTitle` parts use `{prop}` for the display text and `{prop.value}` for the stored value; in `print.summary` and `print.subtitle`, `{@rel}` lists the nodes linked that way ("Red Market (L4)"; on a card, leaving out the node it's listed on). A part whose values are all empty is left out.
 
 ## Development
 

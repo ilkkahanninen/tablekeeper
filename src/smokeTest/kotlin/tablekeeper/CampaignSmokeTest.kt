@@ -79,6 +79,35 @@ class CampaignSmokeTest {
     }
 
     @Test
+    fun `a MÖRK BORG packet lists the miseries so far and leaves out the dead`() = smoke {
+        val cid = campaign("morkborg", "Miseries")
+        val galgenbeck = node(cid, "mb.location", "Galgenbeck").id
+        val first = node(cid, "core.session", "First Session").id
+        save(cid, first, "prop.date" to "2026-10-13")
+        val now = create(cid, "core.session", "Into the bog")
+        save(cid, now, "prop.date" to "2026-10-20")
+        val later = create(cid, "core.session", "After")
+        save(cid, later, "prop.date" to "2026-10-27")
+        save(cid, quickCreate(cid, first, "mb.misery|came_to_pass:in", "The sun dims"), "prop.verse" to "1:1")
+        save(cid, quickCreate(cid, later, "mb.misery|came_to_pass:in", "Not yet"), "prop.verse" to "2:2")
+
+        val dungeon = nodeId(post("/c/$cid/generate/dungeon").target())
+        post("/c/$cid/n/$dungeon/links", "rel" to "part_of:out", "other" to "$galgenbeck")
+        save(cid, quickCreate(cid, galgenbeck, "core.npc|located_at:in", "Dead beggar"), "prop.dead" to "on")
+        val karg = create(cid, "mb.pc", "Karg")
+        save(cid, karg, "prop.player" to "Mira")
+        listOf(galgenbeck, dungeon, karg).forEach { post("/c/$cid/n/$now/check", "rel" to "features:out", "other" to "$it", "checked" to "on") }
+
+        val html = ok("/c/$cid/n/$now/print").bodyAsText()
+        assertTrue("Miseries" in html && "1:1 The sun dims" in html, "The calendar so far is on the cover")
+        assertTrue("Not yet" !in html, "A later session's misery isn't")
+        assertTrue("Dead beggar" !in html, "The dead are left out")
+        assertTrue("Karg (Mira)" in html && "Player" !in html, "The title shows the player; no row repeats it")
+        assertTrue("""<div class="role">Galgenbeck (L1)</div>""" in html && "Is in" !in html, "A dungeon's place is under its name")
+        pdf("/c/$cid/n/$now/print.pdf")
+    }
+
+    @Test
     fun `a campaign is renamed from its title and deleted with everything in it`() = smoke {
         val cid = campaign("heart", "Before")
         post("/c/$cid", "name" to "After")

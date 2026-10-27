@@ -67,6 +67,10 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
         prop("packet recap", def.packet?.recap) +
         def.packet?.leaveOut?.takeIf { p -> types.keys.none { propSchema(it, p)?.get("type")?.asText() == "boolean" } }
             ?.let { "$t: packet leaveOut '$it' is not a boolean prop of any type" } +
+        def.packet?.soFar?.let { s ->
+            if (s.type !in types) "$t: packet soFar type '${s.type}' is unknown"
+            else s.rel?.takeIf { linkOption(s.type, it) == null }?.let { "$t: packet soFar rel '$it' is not a link option of ${s.type}" }
+        } +
         def.debrief.orEmpty().flatMap { g -> debriefErrors(t, g) } +
         def.displayTitle?.let { Parts.names(it) }.orEmpty().filter { it != "title" }.map { prop("displayTitle", it) } +
         prop("overview sort", def.overview?.sort?.removePrefix("-"))

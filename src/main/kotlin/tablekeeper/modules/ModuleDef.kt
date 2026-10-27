@@ -103,6 +103,7 @@ data class ChecklistDef(val rel: String, val types: List<String>)
  * [columns] > 1 prints the text on landscape A4 in that many columns (after the template's cover part).
  * [recap]: a prop of this type, e.g. "recap"; the cover then shows the previous node's (by `overviewSort`), "Last time".
  * [leaveOut]: a boolean prop, e.g. "dead": nodes with it ticked aren't printed, as entries or in lists (the debrief keeps them).
+ * [soFar]: a type whose nodes the cover lists, e.g. MÖRK BORG's miseries: the Calendar of Nechrubel so far.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PacketDef(
@@ -113,7 +114,16 @@ data class PacketDef(
     val columns: Int = 1,
     val recap: String? = null,
     val leaveOut: String? = null,
+    val soFar: SoFarDef? = null,
 )
+
+/**
+ * A packet cover's list of all the campaign's nodes of [type], in its `overviewSort` order. With [rel] (a link from them
+ * to nodes of the packet's type, e.g. a misery's session), those linked to a later one (by its `overviewSort`) are left
+ * out, so an older packet prints as it was.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class SoFarDef(val type: String, val rel: String? = null)
 
 /**
  * One list in a node's debrief: the packet's nodes of [types], each with its [fields] editable in place.

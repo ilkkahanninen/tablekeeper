@@ -48,7 +48,7 @@
   .body ul, .notes ul { margin: 0 0 1.5mm; padding-left: 4.5mm; }
   .body > :last-child, .notes > :last-child { margin-bottom: 0; }
   .props td .body { margin: 0; }
-  h4 { font-size: 7.5pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; margin: 2mm 0 0.5mm; }
+  h4 { font-size: 7.5pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; margin: 2mm 0 0.5mm; break-after: avoid; }
   ul { margin: 0; padding-left: 4.5mm; list-style: disc; }
   li { margin: 0 0 0.6mm 0; }
   ul.nested { list-style: circle; margin-top: 0.6mm; }
@@ -68,7 +68,7 @@
   .beats { margin: 0 0 1mm; }
   .beat-type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #8c1c13; margin-right: 1mm; }
   .wants { margin: 0.5mm 0 0; }
-  .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 1.5mm 0 0.3mm; }
+  .linked-label { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.4pt; color: #555; margin: 1.5mm 0 0.3mm; break-after: avoid; }
   .character { page-break-inside: avoid; margin-bottom: 6mm; }
   .role { color: #555; font-size: 8.5pt; margin: 0 0 0.5mm; }
 
@@ -81,10 +81,9 @@
   .cover td { vertical-align: top; padding: 0; }
   .last-time { padding-left: 5mm; }
   .last-time h2 { margin-top: 0; }
-  /* The session's own notes, after Last time (or first in its place) */
-  .last-time .notes + .this-time { margin-top: 5mm; }
-  /* The facts this session plans to reveal, after the notes */
-  .last-time * + .to-reveal { margin-top: 5mm; }
+  /* Each cover list after the first (This time, To reveal, the module's soFar) starts a little lower */
+  .last-time h2 ~ h2 { margin-top: 5mm; }
+  .so-far { list-style: none; padding-left: 0; }
 </style>
 </head>
 <body>

@@ -14,6 +14,7 @@ import tablekeeper.map.MapService
 import tablekeeper.map.MapView
 import tablekeeper.modules.FormField
 import tablekeeper.modules.PacketDef
+import tablekeeper.modules.SoFarDef
 import tablekeeper.modules.PropsForm
 import tablekeeper.modules.ResolvedModule
 import tablekeeper.modules.sortedByProp
@@ -71,7 +72,10 @@ data class PacketRecap(val code: String, val title: String, val text: String, va
 /** A session packet's extra template variables (the type's `packet` setting). */
 /** [viewHeadings]: a heading per view id, its type's plural ("Characters" for Heart's Inspiration), as the PDF's column bands. */
 data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>, val previous: PacketRecap? = null,
-                       val viewHeadings: Map<String, String> = emptyMap())
+                       val viewHeadings: Map<String, String> = emptyMap(), val soFar: SoFar? = null)
+
+/** A packet cover's list of the campaign's nodes of a type so far (`packet.soFar`), e.g. "Miseries": 1:1 The sun dims. */
+data class SoFar(val label: String, val items: List<PrintRef>)
 
 /**
  * Everything a print template may use, already filtered for the audience. Section items in a packet are these too,
@@ -105,7 +109,8 @@ data class PrintModel(
         "props" to props, "flags" to flags, "linkedProps" to linkedProps, "linkedPropTables" to linkedPropTables,
         "groups" to groups, "facts" to facts,
         "audience" to audience, "notes" to notes, "nodeMap" to nodeMap, "subtitle" to subtitle,
-    ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous, "viewHeadings" to it.viewHeadings) }.orEmpty()
+    ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous, "viewHeadings" to it.viewHeadings,
+        "soFar" to it.soFar) }.orEmpty()
 }
 
 /** Larger "x-track" values print as a plain number: a row that long wouldn't fit a card. */
@@ -127,7 +132,8 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val names = module.displayTitles(all.nodes)
         val mentions = Mentions.of(all.nodes.filter { audience.canSee(it.visibility) }, module::displayTitle)
 
-        val fields = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden }
+        // Not repeated as rows: what the title already shows ("Karg (Mira)" needs no Player row)
+        val fields = PropsForm.fields(module.propsSchema(node.type), node.props).filterNot { it.hidden || it.name in module.displayTitleProps(node.type) }
         val (flagFields, rowFields) = fields.partition { it.kind == "bool" && it.trueLabel != null }
         val props = PropsForm.rows(rowFields).flatMap { row ->
             if (row.label == null) row.fields.mapNotNull { propLine(it, mentions) }
@@ -197,19 +203,38 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             }
         return PacketModel(MapService.view(all, module, highlight = selected.map { it.id }.toSet()), views, sections,
             previous = def.recap?.let { recap(module, node, it, g) },
-            viewHeadings = views.associate { it.view.id to module.plural(it.view.types.first()) })
+            viewHeadings = views.associate { it.view.id to module.plural(it.view.types.first()) },
+            soFar = def.soFar?.let { soFar(module, node, it, g) })
     }
 
+    /** The nodes of [node]'s type in its `overviewSort` order read oldest first (sessions by date). */
+    private fun inOrder(module: ResolvedModule, node: Node, g: CampaignGraph): List<Node> =
+        sortedByProp(g.nodes.filter { it.type == node.type }, module.overviewSort(node.type)?.let { it.first to false }, { it.props }, { it.title })
+
     /**
-     * The [prop] text (e.g. "recap") of the node of [node]'s type just before it, in its `overviewSort` order read
-     * oldest first (sessions by date); null if there's none or it's empty.
+     * The [prop] text (e.g. "recap") of the node of [node]'s type just before it ([inOrder]); null if there's none or
+     * it's empty.
      */
     private fun recap(module: ResolvedModule, node: Node, prop: String, g: CampaignGraph): PacketRecap? {
-        val sort = module.overviewSort(node.type)?.let { it.first to false }
-        val ordered = sortedByProp(g.nodes.filter { it.type == node.type }, sort, { it.props }, { it.title })
+        val ordered = inOrder(module, node, g)
         val previous = ordered.getOrNull(ordered.indexOfFirst { it.id == node.id } - 1) ?: return null
         val text = previous.props[prop]?.toString()?.trim().orEmpty().ifEmpty { return null }
         return PacketRecap(previous.code, module.displayTitle(previous), text, Notes.html(text, Mentions.of(g.nodes, module::displayTitle)))
+    }
+
+    /** The cover's [def] list: the campaign's nodes of its type, but those linked (via its rel) to a node after [node]. */
+    private fun soFar(module: ResolvedModule, node: Node, def: SoFarDef, g: CampaignGraph): SoFar? {
+        val ordered = inOrder(module, node, g)
+        val later = ordered.drop(ordered.indexOfFirst { it.id == node.id } + 1).map { it.id }.toSet()
+        val via = def.rel?.let { module.linkOption(def.type, it) }
+        val nodes = g.nodes.filter { module.isA(it.type, def.type) }
+            .filter { n -> via == null || g.linkedNodes(n.id, via.edgeType, via.direction).none { it.id in later } }
+        if (nodes.isEmpty()) return null
+        val names = module.displayTitles(g.nodes)
+        val mentions = Mentions.of(g.nodes, module::displayTitle)
+        return SoFar(module.plural(def.type), sortedByProp(nodes, module.overviewSort(def.type), { it.props }, { it.title }).map {
+            ref(module, g, NodeRef(it.id, it.type, it.code, it.title, it.visibility), names, mentions, from = node.id)
+        })
     }
 
     /** Module `linkedProps` for [node], for its page: a prop's values per linked node, as the GM sees them. */

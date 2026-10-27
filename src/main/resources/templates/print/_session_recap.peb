@@ -1,12 +1,17 @@
 {# A session packet's cover text: the previous session's recap ("Last time"), this session's notes ("This time"), and the
-   facts it plans to reveal ("To reveal", its own facts), each with a box to tick when it's out. #}
+   facts it plans to reveal ("To reveal", its own facts), each with a box to tick when it's out, and the module's soFar
+   list (MÖRK BORG's miseries so far). #}
 {% if previous is not null %}
   <h2>Last time</h2>
   <div class="ref">{{ previous.code }} {{ previous.title }}</div>
   <div class="notes">{{ previous.notes | raw }}</div>
 {% endif %}
-{% if node.body is not empty %}<h2 class="this-time">This time</h2><div class="notes">{{ notes | raw }}</div>{% endif %}
+{% if node.body is not empty %}<h2>This time</h2><div class="notes">{{ notes | raw }}</div>{% endif %}
 {% if facts is not empty and audience == 'gm' %}
-  <h2 class="to-reveal">To reveal</h2>
+  <h2>To reveal</h2>
   {% for f in facts %}<div class="fact"><span class="box"></span><span class="t">{{ f.title }}</span>{% if f.body is not empty %}: {{ f.notes | raw }}{% endif %}</div>{% endfor %}
+{% endif %}
+{% if soFar is not null %}
+  <h2>{{ soFar.label }}</h2>
+  <ul class="so-far">{% for i in soFar.items %}<li>{% if i.summary is not empty %}{{ i.summary | raw }} {% endif %}{{ i.title }} <span class="ref">({{ i.code }})</span></li>{% endfor %}</ul>
 {% endif %}
