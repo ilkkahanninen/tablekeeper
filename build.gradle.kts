@@ -58,4 +58,6 @@ tasks.test {
     useJUnitPlatform()
     // Tests read the real module definitions from ./modules
     systemProperty("modulesDir", rootProject.file("modules").absolutePath)
+    // Saved exports of every file version, read back by ExportCompatibilityTest
+    systemProperty("exportsDir", rootProject.file("src/test/resources/exports").absolutePath)
 }

@@ -1,0 +1,473 @@
+{
+  "format" : "tablekeeper-campaign",
+  "version" : 2,
+  "exportedAt" : "2026-10-27T13:51:01.777019Z",
+  "campaign" : {
+    "name" : "Export fixture MÖRK BORG",
+    "module" : "morkborg"
+  },
+  "nodes" : [ {
+    "id" : "f61268ba-1bda-4034-8b92-7a9018f125f0",
+    "type" : "core.npc",
+    "code" : "C1",
+    "title" : "Blood-drenched skeleton",
+    "body" : "",
+    "props" : {
+      "hp" : 7,
+      "armor" : "No armor",
+      "value" : "Captured 35s, destroyed 7s",
+      "attack" : "Shortsword d4, knife d4 or bony knuckles d2",
+      "morale" : "8",
+      "special" : "Soundless, attacks by surprise and mimics voices it has heard. Piercing weapons hit on DR14; 5 or more damage destroys it."
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.691716+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.693857+02:00"
+  }, {
+    "id" : "9edea6f3-50f4-465e-be7e-98f3afc30744",
+    "type" : "core.npc",
+    "code" : "C2",
+    "title" : "Undead doll",
+    "body" : "",
+    "props" : {
+      "hp" : 11,
+      "armor" : "Porcelain -d2",
+      "value" : "Head 20s, captured 80s",
+      "attack" : "Claws/piercing bite d4",
+      "morale" : "–",
+      "special" : "Mad gaze: Presence DR12 at the start of combat or frozen with fear for d4 rounds."
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.694659+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.696757+02:00"
+  }, {
+    "id" : "af12fccf-1f44-439e-bee8-08bb9a8564f4",
+    "type" : "core.npc",
+    "code" : "C3",
+    "title" : "Undead doll",
+    "body" : "",
+    "props" : {
+      "hp" : 11,
+      "armor" : "Porcelain -d2",
+      "value" : "Head 20s, captured 80s",
+      "attack" : "Claws/piercing bite d4",
+      "morale" : "–",
+      "special" : "Mad gaze: Presence DR12 at the start of combat or frozen with fear for d4 rounds."
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.697385+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.6997+02:00"
+  }, {
+    "id" : "9ba4a535-e3bd-47b5-bac7-4757dd6e04ab",
+    "type" : "core.npc",
+    "code" : "C4",
+    "title" : "Zombie",
+    "body" : "",
+    "props" : {
+      "hp" : 7,
+      "armor" : "Leather scraps -d2",
+      "value" : "Captured 30s, blood 5s per litre",
+      "attack" : "Claw/bite d2",
+      "morale" : "–",
+      "special" : "Anyone bitten tests Toughness DR8 or dies within two days and rises as a zombie."
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.700389+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.702448+02:00"
+  }, {
+    "id" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "mb.dungeon",
+    "code" : "D1",
+    "title" : "The Sin grave",
+    "body" : "",
+    "props" : {
+      "state" : "Inactive: ended in disaster",
+      "lurker" : "Tergol's escaped experiment"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.653728+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.659244+02:00"
+  }, {
+    "id" : "6c1d2e9b-c855-49c1-b6bb-d7155b9fe553",
+    "type" : "mb.item",
+    "code" : "I1",
+    "title" : "Femur club",
+    "body" : "",
+    "props" : {
+      "kind" : "Weapon",
+      "value" : 2,
+      "damage" : "d4"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:51:01.51985+02:00",
+    "updatedAt" : "2026-10-27T15:51:01.587988+02:00"
+  }, {
+    "id" : "d28fd923-325b-4123-9617-9a5eafe376f2",
+    "type" : "mb.location",
+    "code" : "L1",
+    "title" : "Galgenbeck",
+    "body" : "The greatest city that ever was.",
+    "props" : { },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:39.859741+02:00",
+    "updatedAt" : "2026-10-27T15:50:39.86181+02:00"
+  }, {
+    "id" : "da0eb163-fa47-46a4-954c-b3f662c41dc5",
+    "type" : "mb.misery",
+    "code" : "MI1",
+    "title" : "The first misery",
+    "body" : "",
+    "props" : {
+      "verse" : "1:1"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:51:01.62708+02:00",
+    "updatedAt" : "2026-10-27T15:51:01.676534+02:00"
+  }, {
+    "id" : "7610d649-ca64-43ba-98e5-a74789940126",
+    "type" : "mb.pc",
+    "code" : "PC1",
+    "title" : "Karg",
+    "body" : "",
+    "props" : {
+      "dead" : false,
+      "tale" : "Owes the [[Plague maze]] a debt.",
+      "class" : "Fanged Deserter",
+      "trait" : "Cowardly",
+      "player" : "Mira"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.741413+02:00",
+    "updatedAt" : "2026-10-27T15:51:01.477647+02:00"
+  }, {
+    "id" : "001311f6-0eb6-4756-8cc9-43012efc7971",
+    "type" : "mb.room",
+    "code" : "R1",
+    "title" : "Entrance",
+    "body" : "",
+    "props" : {
+      "trap" : "Scorpion-filled basket poised to fall",
+      "entrance" : true,
+      "description" : "Full of debris"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.66002+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.662414+02:00"
+  }, {
+    "id" : "1f61c6f1-07c4-439c-8c32-9da5feb737bb",
+    "type" : "mb.room",
+    "code" : "R10",
+    "title" : "Room 9",
+    "body" : "",
+    "props" : {
+      "description" : "Obvious traps"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.689009+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.691105+02:00"
+  }, {
+    "id" : "b257df97-aa2d-43f9-ac17-05b7ca75129d",
+    "type" : "mb.room",
+    "code" : "R2",
+    "title" : "Room 1",
+    "body" : "",
+    "props" : {
+      "description" : "Inscriptions, the motifs are hypnotic"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.663186+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.665597+02:00"
+  }, {
+    "id" : "6c9dfe31-743b-4942-b660-0980951389e2",
+    "type" : "mb.room",
+    "code" : "R3",
+    "title" : "Room 2",
+    "body" : "",
+    "props" : {
+      "description" : "Obvious traps"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.666254+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.668577+02:00"
+  }, {
+    "id" : "164311bd-6dc6-4ab8-bbdc-b1abd82bb9cc",
+    "type" : "mb.room",
+    "code" : "R4",
+    "title" : "Room 3",
+    "body" : "",
+    "props" : {
+      "description" : "Inscriptions, the motifs are terrifying"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.669655+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.672055+02:00"
+  }, {
+    "id" : "f38bf13b-6158-4a76-9e6f-28ac5894d25b",
+    "type" : "mb.room",
+    "code" : "R5",
+    "title" : "Room 4",
+    "body" : "",
+    "props" : {
+      "description" : "Sooty walls"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.672985+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.674974+02:00"
+  }, {
+    "id" : "8741c5ac-0495-4dfb-8cd4-2f9fc447ca22",
+    "type" : "mb.room",
+    "code" : "R6",
+    "title" : "Room 5",
+    "body" : "",
+    "props" : {
+      "trap" : "Slanted floor, translucent oil, pit",
+      "description" : "Sooty walls"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.675625+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.677945+02:00"
+  }, {
+    "id" : "4e3e2462-6943-4d74-b17b-0423f1c77bd2",
+    "type" : "mb.room",
+    "code" : "R7",
+    "title" : "Room 6",
+    "body" : "",
+    "props" : {
+      "description" : "Full of blood"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.678719+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.681375+02:00"
+  }, {
+    "id" : "faf8a6c3-8457-4fbe-aab6-e44dddf6f9ce",
+    "type" : "mb.room",
+    "code" : "R8",
+    "title" : "Room 7",
+    "body" : "",
+    "props" : {
+      "description" : "Inscriptions, the motifs are terrifying"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.682269+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.684988+02:00"
+  }, {
+    "id" : "93451887-5282-44a4-b8cf-bbbdf43675bb",
+    "type" : "mb.room",
+    "code" : "R9",
+    "title" : "Room 8",
+    "body" : "",
+    "props" : {
+      "description" : "Shelves with obscure literature"
+    },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:49.685837+02:00",
+    "updatedAt" : "2026-10-27T15:50:49.688353+02:00"
+  }, {
+    "id" : "ceeca1c9-85fe-4753-a76b-8d8ca95b0469",
+    "type" : "core.session",
+    "code" : "S1",
+    "title" : "First Session",
+    "body" : "",
+    "props" : { },
+    "tags" : [ ],
+    "visibility" : "gm",
+    "createdAt" : "2026-10-27T15:50:39.862539+02:00",
+    "updatedAt" : "2026-10-27T15:50:39.862539+02:00"
+  } ],
+  "edges" : [ {
+    "from" : "ceeca1c9-85fe-4753-a76b-8d8ca95b0469",
+    "to" : "d28fd923-325b-4123-9617-9a5eafe376f2",
+    "type" : "features",
+    "props" : { }
+  }, {
+    "from" : "001311f6-0eb6-4756-8cc9-43012efc7971",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "b257df97-aa2d-43f9-ac17-05b7ca75129d",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "6c9dfe31-743b-4942-b660-0980951389e2",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "164311bd-6dc6-4ab8-bbdc-b1abd82bb9cc",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "f38bf13b-6158-4a76-9e6f-28ac5894d25b",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "8741c5ac-0495-4dfb-8cd4-2f9fc447ca22",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "4e3e2462-6943-4d74-b17b-0423f1c77bd2",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "faf8a6c3-8457-4fbe-aab6-e44dddf6f9ce",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "93451887-5282-44a4-b8cf-bbbdf43675bb",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "1f61c6f1-07c4-439c-8c32-9da5feb737bb",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "room_in",
+    "props" : { }
+  }, {
+    "from" : "f61268ba-1bda-4034-8b92-7a9018f125f0",
+    "to" : "faf8a6c3-8457-4fbe-aab6-e44dddf6f9ce",
+    "type" : "located_at",
+    "props" : { }
+  }, {
+    "from" : "9edea6f3-50f4-465e-be7e-98f3afc30744",
+    "to" : "1f61c6f1-07c4-439c-8c32-9da5feb737bb",
+    "type" : "located_at",
+    "props" : { }
+  }, {
+    "from" : "af12fccf-1f44-439e-bee8-08bb9a8564f4",
+    "to" : "1f61c6f1-07c4-439c-8c32-9da5feb737bb",
+    "type" : "located_at",
+    "props" : { }
+  }, {
+    "from" : "9ba4a535-e3bd-47b5-bac7-4757dd6e04ab",
+    "to" : "8741c5ac-0495-4dfb-8cd4-2f9fc447ca22",
+    "type" : "located_at",
+    "props" : { }
+  }, {
+    "from" : "001311f6-0eb6-4756-8cc9-43012efc7971",
+    "to" : "b257df97-aa2d-43f9-ac17-05b7ca75129d",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "001311f6-0eb6-4756-8cc9-43012efc7971",
+    "to" : "6c9dfe31-743b-4942-b660-0980951389e2",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "6c9dfe31-743b-4942-b660-0980951389e2",
+    "to" : "164311bd-6dc6-4ab8-bbdc-b1abd82bb9cc",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "164311bd-6dc6-4ab8-bbdc-b1abd82bb9cc",
+    "to" : "f38bf13b-6158-4a76-9e6f-28ac5894d25b",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "b257df97-aa2d-43f9-ac17-05b7ca75129d",
+    "to" : "8741c5ac-0495-4dfb-8cd4-2f9fc447ca22",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "8741c5ac-0495-4dfb-8cd4-2f9fc447ca22",
+    "to" : "4e3e2462-6943-4d74-b17b-0423f1c77bd2",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "4e3e2462-6943-4d74-b17b-0423f1c77bd2",
+    "to" : "faf8a6c3-8457-4fbe-aab6-e44dddf6f9ce",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "faf8a6c3-8457-4fbe-aab6-e44dddf6f9ce",
+    "to" : "93451887-5282-44a4-b8cf-bbbdf43675bb",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "93451887-5282-44a4-b8cf-bbbdf43675bb",
+    "to" : "1f61c6f1-07c4-439c-8c32-9da5feb737bb",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "6c9dfe31-743b-4942-b660-0980951389e2",
+    "to" : "8741c5ac-0495-4dfb-8cd4-2f9fc447ca22",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "b257df97-aa2d-43f9-ac17-05b7ca75129d",
+    "to" : "faf8a6c3-8457-4fbe-aab6-e44dddf6f9ce",
+    "type" : "connects",
+    "props" : { }
+  }, {
+    "from" : "7610d649-ca64-43ba-98e5-a74789940126",
+    "to" : "6c1d2e9b-c855-49c1-b6bb-d7155b9fe553",
+    "type" : "carries",
+    "props" : { }
+  }, {
+    "from" : "da0eb163-fa47-46a4-954c-b3f662c41dc5",
+    "to" : "ceeca1c9-85fe-4753-a76b-8d8ca95b0469",
+    "type" : "came_to_pass",
+    "props" : { }
+  }, {
+    "from" : "ceeca1c9-85fe-4753-a76b-8d8ca95b0469",
+    "to" : "7610d649-ca64-43ba-98e5-a74789940126",
+    "type" : "features",
+    "props" : { }
+  }, {
+    "from" : "ceeca1c9-85fe-4753-a76b-8d8ca95b0469",
+    "to" : "20755a33-0a2f-492a-acc3-0b1d97df22d3",
+    "type" : "features",
+    "props" : { }
+  } ],
+  "randomTables" : [ {
+    "name" : "Bestiary",
+    "items" : "Goblin | 6 | 7 | Ropy skin -d2 | Knife/shortbow d4 | Quick: attacks and defence against it are DR14. Its curse: kill it within d6 days of its attack or become a goblin. | Head 7s, captured 150s, dead 20s\nScum | 7 | 8 | No armor | Poisoned knife d4 | Poisoned knife: Toughness DR10 or infected. The PC with the highest Presence tests DR14 at the start of battle, or a random PC is backstabbed for normal damage +3. | Captured 50–120s, dead 20–70s (wanted)\nBerserker | 13 | 9 | Hardened skin -d2 | Long flail d8, heavy mace d6, chained sword d6 or huge warhammer d10 | Attacks twice per round but doesn't defend (DR10 to hit). | Dead 20s, captured 55s, blood 3s per litre\nWraith | 15 | – | No armor | Touch d4 | Swift, elusive and hard to hit (DR14); always wins initiative. Its touch drains Strength, Presence and Agility by 1 for the fight. | Captured 120s, skull 70s, ectoplasm 25s\nBlood-drenched skeleton | 7 | 8 | No armor | Shortsword d4, knife d4 or bony knuckles d2 | Soundless, attacks by surprise and mimics voices it has heard. Piercing weapons hit on DR14; 5 or more damage destroys it. | Captured 35s, destroyed 7s\nUndead necromancer | 15 | – | Barrier (necro) -d4 | Strike d6 | Paralyzing touch: Presence DR14 every round to break free. No one can use Powers near it; each round it can steal a nearby scroll's Power and use it against its owner. | Captured 200s, remains 130s, skull 100s\nTroll | 32 | special | Thick hide -d2 | Fist 2d6 | Easy to hit (DR10). Cowardly: retreats when badly wounded, heals into a larger troll and returns with +d6 damage, never forgetting who hurt it. | Captured 200s, corpse 70s, horn 25s\nZombie | 7 | – | Leather scraps -d2 | Claw/bite d2 | Anyone bitten tests Toughness DR8 or dies within two days and rises as a zombie. | Captured 30s, blood 5s per litre\nUndead doll | 11 | – | Porcelain -d2 | Claws/piercing bite d4 | Mad gaze: Presence DR12 at the start of combat or frozen with fear for d4 rounds. | Head 20s, captured 80s\nGrotesque | 18 | – | Clay/stone -d6 | Claws d6 or eye-beam d8 | Slow and easy to hit (DR10). Its terrifying gaze is used on 1–2 on d6 each round and always hits. | Captured 190s, dead (intact) 100s, dead (in pieces) 10s\nWickhead knife-wielder | 10 | 7 | No armor | Knife with dried blood d4 | Sneaks up silent as the grave; 25% chance its wounds become infected. Can douse nearby lights, ignite its own blinding light, attack and vanish. | Captured 60s, decapitated lantern 15s, corpse 20s\nWyvern | 25 | 10 | Thick hide -d4 | Bite/sting d6 | 60% chance she bites. Venomous sting: Toughness DR14 or paralyzed for one painful hour. Where the wyvern fly, crops die. | Captured 200s, corpse 100s, poison gland 60s, tail spike 60s",
+    "mix" : false,
+    "fields" : [ ]
+  }, {
+    "name" : "Dungeon names",
+    "items" : "The Slaughter pit\nThe Death church\nThe Night temple\nThe Hadean tunnels\nThe Hell crypt\nThe Plague grave\nThe Sin fort\nThe Doom ziggurat\nThe Dark den\nThe Murder maze\nThe Torture house\nThe Slave waste",
+    "mix" : true,
+    "fields" : [ "mb.dungeon:title" ]
+  }, {
+    "name" : "Room features",
+    "items" : "Inscriptions, the motifs are vomit-inducing\nInscriptions, the motifs are terrifying\nInscriptions, the motifs are hypnotic\nInscriptions, the motifs are childish\nInscriptions, the motifs are teleportation causing\nBloodied beds\nFlooded\nLeaning\nStinks\nFire damage\nObvious traps\nFull of blood\nTorture chamber\nSooty walls\nFreezing draft\nCreaking doors\nCompact darkness\nLocked sarcophagi\nShelves with obscure literature\nShelves with rotting food\nAbyssal pits\nMirrors everywhere\nUngodly yet exquisite chandeliers\nUtterly silent\nFull of debris\nSacrificial altar, cracked\nSacrificial altar, fresh blood\nRemains of a throne\nSmoke-filled\nBonfire in the center",
+    "mix" : false,
+    "fields" : [ "mb.room:description" ]
+  }, {
+    "name" : "Traps",
+    "items" : "Wall-holes shoot poisonous arrows\nBells and marbles on the floor\nScorpion-filled basket poised to fall\nFish hooks hanging at eye level\nChest marked with explosive runes\nLock trapped with vial of poison gas\nJewel removal leads to roof collapse\nSlanted floor, translucent oil, pit\nSnake-cages on collapsing ceiling tiles\nEvil urns release cold ghosts\nCoins coated in grime and poison",
+    "mix" : false,
+    "fields" : [ "mb.room:trap" ]
+  }, {
+    "name" : "Who lurks",
+    "items" : "Animated suits of armor battling goblins\nNechrubel-worshipping lich with a skeletal court\nHeretic cult lead by a possessed 11-year old\nA vengeful cabal of undead porcelain dolls\nDesperate thieves guild dying slowly of cholera\nA meaty mass of slime, larvae and spider legs\nWickheads running from foreboding darkness\nA Bark-Witch and her root-children\nFour-legged pale gremlins stinking of dirt\nTergol's escaped experiment\nDisease spreading ochre-beetles\nDissident courtiers dedicated to the occult",
+    "mix" : false,
+    "fields" : [ "mb.dungeon:lurker" ]
+  } ]
+}

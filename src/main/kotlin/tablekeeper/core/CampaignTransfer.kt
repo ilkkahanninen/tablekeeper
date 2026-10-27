@@ -24,7 +24,14 @@ data class CampaignExport(
 ) {
     companion object {
         const val FORMAT = "tablekeeper-campaign"
-        const val VERSION = 1
+
+        /**
+         * Raise it with every change that would make an older file import wrong: a Flyway migration that rewrites node,
+         * edge or table data, or a change to this shape. Each raise needs a step in [ExportUpgrades] and an export made
+         * by the new version saved as `src/test/resources/exports/v<version>-<module>.json` (ExportCompatibilityTest).
+         * 2: Heart adversary fields (V6, V7).
+         */
+        const val VERSION = 2
     }
 }
 
@@ -114,14 +121,16 @@ class CampaignTransfer(private val db: DSLContext) {
 
 /** Pure reading, checks and naming for imports. */
 object CampaignImport {
-    /** The file's contents, or a [BadRequest] saying why it isn't a campaign export this version can read. */
+    /** The file's contents brought up to this version ([ExportUpgrades]), or a [BadRequest] saying why it isn't a campaign export this version can read. */
     fun parse(bytes: ByteArray): CampaignExport {
         val export = runCatching { Json.mapper.readValue<CampaignExport>(bytes) }
             .getOrElse { throw BadRequest("Not a Tablekeeper campaign file") }
         if (export.format != CampaignExport.FORMAT) throw BadRequest("Not a Tablekeeper campaign file")
         if (export.version > CampaignExport.VERSION) throw BadRequest("The file is from a newer Tablekeeper (format ${export.version})")
-        problems(export).firstOrNull()?.let { throw BadRequest(it) }
-        return export
+        if (export.version < 1) throw BadRequest("Not a Tablekeeper campaign file")
+        val upgraded = ExportUpgrades.upgrade(export)
+        problems(upgraded).firstOrNull()?.let { throw BadRequest(it) }
+        return upgraded
     }
 
     /** What would make [export] fail to import (duplicate codes, edges to missing nodes…); empty = fine. */

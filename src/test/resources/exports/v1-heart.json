@@ -1,0 +1,321 @@
+{
+  "format": "tablekeeper-campaign",
+  "version": 1,
+  "exportedAt": "2026-10-26T12:00:00.000000Z",
+  "campaign": {
+    "name": "Export fixture Heart",
+    "module": "heart"
+  },
+  "nodes": [
+    {
+      "id": "781edca4-5d72-4f07-b668-8550016df492",
+      "type": "heart.adversary",
+      "code": "A1",
+      "title": "New Adversary",
+      "body": "Hunts by sound.",
+      "props": {
+        "names": "Hound of the Derelict",
+        "descriptors": "Starved, many-eyed",
+        "motivation": "Feed",
+        "difficulty": "Risky",
+        "resistance": 6,
+        "protection": 1,
+        "domains": [
+          "Cursed"
+        ],
+        "resources": "Bottled Echo",
+        "equipment": "Rust Knife"
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.155219+02:00",
+      "updatedAt": "2026-10-27T15:49:52.192208+02:00"
+    },
+    {
+      "id": "1344927f-d24e-4fe6-8e88-ce3dde1d633a",
+      "type": "heart.delve",
+      "code": "D1",
+      "title": "The Long Stair",
+      "body": "",
+      "props": {
+        "events": "A rush of wind.\n\nA stranger asks the way.",
+        "stress": "d8",
+        "resistance": 8
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.481042+02:00",
+      "updatedAt": "2026-10-27T15:49:52.503753+02:00"
+    },
+    {
+      "id": "0a4e2cf9-51d4-45c5-8283-e4390fbf8caa",
+      "type": "heart.equipment",
+      "code": "E1",
+      "title": "Rust Knife",
+      "body": "",
+      "props": {
+        "tags": [
+          "Brutal"
+        ],
+        "quality": "d6",
+        "category": "Kill"
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.407262+02:00",
+      "updatedAt": "2026-10-27T15:50:13.900361+02:00"
+    },
+    {
+      "id": "0ed92383-f298-4620-a6fb-a8349797505e",
+      "type": "core.fact",
+      "code": "F1",
+      "title": "The lift still works",
+      "body": "",
+      "props": {},
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.436033+02:00",
+      "updatedAt": "2026-10-27T15:49:52.436033+02:00"
+    },
+    {
+      "id": "45deeaac-c76c-4fac-a7ea-2327d6e490e6",
+      "type": "heart.fallout",
+      "code": "FO1",
+      "title": "Hollow cough",
+      "body": "",
+      "props": {
+        "type": "Minor",
+        "resistance": "Blood",
+        "description": "Coughs up **rust**."
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:50:13.941528+02:00",
+      "updatedAt": "2026-10-27T15:50:13.967111+02:00"
+    },
+    {
+      "id": "e554f67e-2123-4638-b29f-a67bed070a2a",
+      "type": "core.faction",
+      "code": "G1",
+      "title": "The Hounds",
+      "body": "",
+      "props": {},
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:50:14.007987+02:00",
+      "updatedAt": "2026-10-27T15:50:14.007987+02:00"
+    },
+    {
+      "id": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "heart.landmark",
+      "code": "L1",
+      "title": "Derelict",
+      "body": "A dead station. The **Hound** waits by [[Silvia]].",
+      "props": {
+        "tier": "Tier 1",
+        "haunts": "D10 Any",
+        "stress": "d6",
+        "domains": [
+          "Haven",
+          "Occult"
+        ]
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:25.745402+02:00",
+      "updatedAt": "2026-10-27T15:49:52.111209+02:00"
+    },
+    {
+      "id": "96755cb8-7530-4791-be6a-100875bd92ca",
+      "type": "heart.minor_location",
+      "code": "M1",
+      "title": "Signal Room",
+      "body": "",
+      "props": {},
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.459742+02:00",
+      "updatedAt": "2026-10-27T15:49:52.459742+02:00"
+    },
+    {
+      "id": "91221ad3-2632-4ff4-a95c-1c3efe5e0d9e",
+      "type": "core.npc",
+      "code": "N1",
+      "title": "Silvia",
+      "body": "",
+      "props": {
+        "dead": false,
+        "voice": "Whispers",
+        "appearance": "Red coat"
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.24851+02:00",
+      "updatedAt": "2026-10-27T15:49:52.276037+02:00"
+    },
+    {
+      "id": "aead4659-89e2-488f-b64b-7c4923441d70",
+      "type": "heart.pc",
+      "code": "PC1",
+      "title": "Thonal",
+      "body": "",
+      "props": {
+        "beat1": "Find the Hound",
+        "class": "Cleaver",
+        "player": "Jori",
+        "calling": "Adventure",
+        "ancestry": "Drow"
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.542677+02:00",
+      "updatedAt": "2026-10-27T15:50:21.366728+02:00"
+    },
+    {
+      "id": "d5c8a7c0-9972-493c-89d0-640766bdce11",
+      "type": "heart.resource",
+      "code": "R1",
+      "title": "Bottled Echo",
+      "body": "",
+      "props": {
+        "die": "d6",
+        "tags": [],
+        "domains": [
+          "Occult"
+        ]
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.317504+02:00",
+      "updatedAt": "2026-10-27T15:49:52.348798+02:00"
+    },
+    {
+      "id": "6a947605-9a0f-495b-a288-b9cb1a098115",
+      "type": "core.session",
+      "code": "S1",
+      "title": "First Session",
+      "body": "",
+      "props": {
+        "date": "2026-10-20",
+        "recap": "They met [[Silvia]].",
+        "number": 1
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:25.784906+02:00",
+      "updatedAt": "2026-10-27T15:50:14.031222+02:00"
+    },
+    {
+      "id": "0b9a6a2e-1d4c-4a51-9a63-3f0c6e2b7a01",
+      "type": "heart.adversary",
+      "code": "A2",
+      "title": "The Warden",
+      "body": "Guards the lift.",
+      "props": {
+        "name": "Old Warden",
+        "descriptor": "Rusted",
+        "difficulty": "Dangerous",
+        "resistance": 8
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.155219+02:00",
+      "updatedAt": "2026-10-27T15:49:52.192208+02:00"
+    },
+    {
+      "id": "0b9a6a2e-1d4c-4a51-9a63-3f0c6e2b7a02",
+      "type": "heart.adversary",
+      "code": "A3",
+      "title": "Gutter Saint",
+      "body": "",
+      "props": {
+        "name": "Gutter Saint",
+        "difficulty": "Standard",
+        "resistance": 3
+      },
+      "tags": [],
+      "visibility": "gm",
+      "createdAt": "2026-10-27T15:49:52.155219+02:00",
+      "updatedAt": "2026-10-27T15:49:52.192208+02:00"
+    }
+  ],
+  "edges": [
+    {
+      "from": "6a947605-9a0f-495b-a288-b9cb1a098115",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "features",
+      "props": {}
+    },
+    {
+      "from": "781edca4-5d72-4f07-b668-8550016df492",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "located_at",
+      "props": {}
+    },
+    {
+      "from": "91221ad3-2632-4ff4-a95c-1c3efe5e0d9e",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "located_at",
+      "props": {}
+    },
+    {
+      "from": "d5c8a7c0-9972-493c-89d0-640766bdce11",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "located_at",
+      "props": {}
+    },
+    {
+      "from": "0a4e2cf9-51d4-45c5-8283-e4390fbf8caa",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "located_at",
+      "props": {}
+    },
+    {
+      "from": "0ed92383-f298-4620-a6fb-a8349797505e",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "about",
+      "props": {}
+    },
+    {
+      "from": "96755cb8-7530-4791-be6a-100875bd92ca",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "part_of",
+      "props": {}
+    },
+    {
+      "from": "1344927f-d24e-4fe6-8e88-ce3dde1d633a",
+      "to": "48e39bd5-7c03-487e-a78c-9e35cde76e3b",
+      "type": "connects",
+      "props": {}
+    },
+    {
+      "from": "aead4659-89e2-488f-b64b-7c4923441d70",
+      "to": "45deeaac-c76c-4fac-a7ea-2327d6e490e6",
+      "type": "suffers",
+      "props": {}
+    },
+    {
+      "from": "6a947605-9a0f-495b-a288-b9cb1a098115",
+      "to": "aead4659-89e2-488f-b64b-7c4923441d70",
+      "type": "features",
+      "props": {}
+    },
+    {
+      "from": "91221ad3-2632-4ff4-a95c-1c3efe5e0d9e",
+      "to": "e554f67e-2123-4638-b29f-a67bed070a2a",
+      "type": "member_of",
+      "props": {}
+    }
+  ],
+  "randomTables": [
+    {
+      "name": "Names",
+      "items": "Silvia Rust\nOrlo Vane\nMeret Ash",
+      "mix": true,
+      "fields": [
+        "core.npc:title",
+        "heart.adversary:title"
+      ]
+    }
+  ]
+}
