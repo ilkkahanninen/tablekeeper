@@ -120,7 +120,8 @@
       "linkLimits": {"connects:out": 2},
       "props": {
         "resistance": {"type": "integer", "title": "Resistance", "minimum": 1, "x-track": true}, "stress": "@stress",
-        "events": {"type": "string", "title": "Events", "x-widget": "list"}
+        "events": {"type": "string", "title": "Events", "x-widget": "list"},
+        "connection": {"type": "string", "title": "Connection", "x-widget": "textarea"}
       }
     },
     {
