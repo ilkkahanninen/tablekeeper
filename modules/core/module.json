@@ -10,7 +10,7 @@
       "id": "core.npc", "icon": "drama", "label": "NPC", "codePrefix": "N",
       "linkSlots": [{"label": "Location", "rels": ["located_at:out"]}],
       "overview": {"columns": ["voice", "appearance", "dead"], "muted": "dead"},
-      "print": {"summary": {"parts": ["{voice}", "{appearance}", "{dead}"]}},
+      "print": {"summary": {"parts": ["{voice}", "{appearance}", "{dead}"]}, "subtitle": ["{@located_at:out}"]},
       "props": {
         "voice": {"type": "string", "title": "Voice", "x-wide": true},
         "appearance": {"type": "string", "title": "Appearance", "x-wide": true},

@@ -79,6 +79,7 @@ data class PacketModel(val map: MapView, val views: List<ViewData>, val sections
  * [flags]: ticked checkboxes with an "x-trueLabel" (e.g. "dead"), shown next to the title instead of as rows.
  * [notes]: the node's notes as HTML: formatting, and `[[mentions]]` of nodes the audience may see in bold ([Notes.html]).
  * [nodeMap]: the node's own map (its type's `map`, e.g. a dungeon's rooms), when it has places; `map` is a packet's campaign map.
+ * [subtitle]: its type's `print.subtitle`, shown with the title (e.g. where an NPC is); those links aren't in [groups].
  */
 data class PrintModel(
     val campaign: Campaign,
@@ -94,6 +95,7 @@ data class PrintModel(
     val notes: String = "",
     val packet: PacketModel? = null,
     val nodeMap: MapView? = null,
+    val subtitle: String = "",
 ) {
     /** [linkedProps] as tables: a row per linked node, a column per prop (e.g. a delve's landmarks with Tier and Domains). */
     val linkedPropTables: List<LinkedPropTable> get() = linkedPropTables(linkedProps)
@@ -102,7 +104,7 @@ data class PrintModel(
         "campaign" to campaign, "node" to node, "typeLabel" to typeLabel, "displayTitle" to displayTitle,
         "props" to props, "flags" to flags, "linkedProps" to linkedProps, "linkedPropTables" to linkedPropTables,
         "groups" to groups, "facts" to facts,
-        "audience" to audience, "notes" to notes, "nodeMap" to nodeMap,
+        "audience" to audience, "notes" to notes, "nodeMap" to nodeMap, "subtitle" to subtitle,
     ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous, "viewHeadings" to it.viewHeadings) }.orEmpty()
 }
 
@@ -135,10 +137,14 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         }
 
         val links = graph.links(campaign.id, node.id).filter { audience.canSee(it.other.visibility) }
+        // What the audience may see, for the nodes linked to listed ones (a delve's far end, "→ Red Market (L4)")
+        val visible = all.filter { audience.canSee(it.visibility) }
         val (factLinks, otherLinks) = links.partition { module.isA(it.other.type, "core.fact") }
-        val groups = module.groupLinks(node.type, otherLinks).map { (label, ls) ->
+        val subtitleRels = module.subtitleRels(node.type)
+        val groups = module.groupLinks(node.type, otherLinks.filter { it.key !in subtitleRels }).map { (label, ls) ->
             LinkGroup(label, ls.map { link ->
-                ref(module, all, link.other, names, mentions).copy(children = nested(campaign, module, all, node, link, audience, names, mentions))
+                ref(module, visible, link.other, names, mentions, from = node.id)
+                    .copy(children = nested(campaign, module, visible, node, link, audience, names, mentions))
             }.distinctBy { it.code })
         }
         val facts = factLinks.map { it.other }.distinctBy { it.id }.mapNotNull { all.byId[it.id] }
@@ -154,7 +160,8 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             audience = audience.name.lowercase(),
             notes = Notes.html(node.body, mentions),
             packet = module.packet(node.type)?.takeIf { withPacket }?.let { packet(campaign, module, node, it, audience, all) },
-            nodeMap = MapService.nodeView(all.filter { audience.canSee(it.visibility) }, module, node)?.takeIf { it.places.isNotEmpty() },
+            nodeMap = MapService.nodeView(visible, module, node)?.takeIf { it.places.isNotEmpty() },
+            subtitle = module.subtitle(node.type, node.props) { rel -> links.filter { it.key == rel }.map { "${names[it.other.id] ?: it.other.title} (${it.other.code})" } },
         )
     }
 
@@ -169,7 +176,11 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val selected = selection.selected
         val views = module.views.map { ModuleViews.build(module, it, selected, g) }.filter { it.nodes.isNotEmpty() }
         val inViews = views.flatMap { v -> v.nodes.map { it.node.id } }.toSet()
-        val sections = selection.all.filter { it.id !in inViews }
+        // Left out of the packet: the module's leaveOut (dead NPCs), and other sessions where entries list them ("Featured in")
+        val leftOut = def.leaveOut?.let { p -> g.nodes.filter { it.props[p] == true }.map { it.code }.toSet() }.orEmpty()
+        val sameType = g.nodes.filter { it.type == node.type }.map { it.code }.toSet()
+        fun keep(ref: PrintRef) = ref.code !in leftOut && ref.code !in sameType
+        val sections = selection.all.filter { it.id !in inViews && it.code !in leftOut }
             .groupBy { it.type }.entries
             .sortedWith(compareBy({ module.overviewRank(it.key) }, { module.label(it.key) }))
             .map { (type, ofType) ->
@@ -177,11 +188,10 @@ class PrintService(private val graph: GraphService, private val templates: Templ
                 val ordered = ofType.sortedWith(compareBy({ module.depthOf(type, it.props)?.depth ?: Double.MAX_VALUE }, { it.title }))
                 PacketSection(type, module.plural(type), ordered.map { place ->
                     val m = model(campaign, module, place, audience, all, withPacket = false)
-                    // Links back to this session ("featured in S1") say nothing inside its own packet, and a list whose
-                    // nodes the linked props already name (a delve's landmarks, in its Tier and Domains rows) repeats them
+                    // A list whose nodes the linked props already name (a delve's landmarks, in its Tier and Domains rows) repeats them
                     val shown = m.linkedProps.flatMap { lp -> lp.sources.map { it.code } }.toSet()
                     m.copy(groups = m.groups
-                        .map { grp -> grp.copy(items = grp.items.filter { it.code != node.code }) }
+                        .map { grp -> grp.copy(items = grp.items.filter(::keep).map { it.copy(children = it.children.filter(::keep)) }) }
                         .filter { grp -> grp.items.isNotEmpty() && !grp.items.all { it.code in shown } })
                 })
             }
@@ -266,13 +276,13 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         if (shows.isEmpty()) return emptyList()
         return graph.links(campaign.id, link.other.id)
             .filter { it.key in shows && it.other.id != node.id && audience.canSee(it.other.visibility) }
-            .map { ref(module, all, it.other, names, mentions) }
+            .map { ref(module, all, it.other, names, mentions, from = link.other.id) }
             .distinctBy { it.code }
     }
 
     private fun propLine(f: FormField, mentions: Mentions): PropLine? {
         val chosen = (f.value as? List<*>)?.map { it.toString() } ?: listOf(f.value.toString())
-        val details = chosen.mapNotNull { o -> f.hints[o]?.let { PropDetail(o, it) } }
+        val details = if (!f.printHints) emptyList() else chosen.mapNotNull { o -> f.hints[o]?.let { PropDetail(o, it) } }
         return f.text.takeIf { it.isNotBlank() }?.let {
             PropLine(f.name, f.label, it, details, multi = f.kind == "multi", items = f.items.map { item -> Notes.html(item, mentions) },
                 html = if (f.kind == "textarea") Notes.html(f.value.toString(), mentions) else "",
@@ -280,8 +290,16 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         }
     }
 
-    /** How a linked node is listed; its summary as HTML, formatted like notes (e.g. a fallout's description). */
-    private fun ref(module: ResolvedModule, all: CampaignGraph, n: NodeRef, names: Map<UUID, String>, mentions: Mentions): PrintRef =
-        PrintRef(n.code, names[n.id] ?: n.title, module.label(n.type),
-            all.byId[n.id]?.let { Notes.inline(module.summary(n.type, it.props), mentions) }.orEmpty())
+    /**
+     * How a linked node is listed; its summary as HTML, formatted like notes (e.g. a fallout's description). A summary's
+     * `{@rel}` names the nodes [n] links to that way, except [from] (the node it's listed on): a delve's other end.
+     */
+    private fun ref(module: ResolvedModule, g: CampaignGraph, n: NodeRef, names: Map<UUID, String>, mentions: Mentions, from: UUID): PrintRef {
+        val linked = { rel: String ->
+            module.linkOption(n.type, rel)?.let { o -> g.linkedNodes(n.id, o.edgeType, o.direction) }.orEmpty()
+                .filter { it.id != from }.map { "${names[it.id] ?: it.title} (${it.code})" }
+        }
+        return PrintRef(n.code, names[n.id] ?: n.title, module.label(n.type),
+            g.byId[n.id]?.let { Notes.inline(module.summary(n.type, it.props, linked), mentions) }.orEmpty())
+    }
 }

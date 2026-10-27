@@ -83,6 +83,8 @@
   .last-time h2 { margin-top: 0; }
   /* The session's own notes, after Last time (or first in its place) */
   .last-time .notes + .this-time { margin-top: 5mm; }
+  /* The facts this session plans to reveal, after the notes */
+  .last-time * + .to-reveal { margin-top: 5mm; }
 </style>
 </head>
 <body>
@@ -126,6 +128,7 @@
     {% for item in s.items %}
       <div class="place">
         <h3><span class="code">{{ item.node.code }}</span> {{ item.displayTitle }}{% for f in item.flags %} <span class="flag">{{ f }}</span>{% endfor %}</h3>
+        {% if item.subtitle is not empty %}<div class="role">{{ item.subtitle }}</div>{% endif %}
         {# Pebble's include takes a literal map: pass the entry's print model through #}
         {% include "print/_body.peb" with {"node": item.node, "props": item.props, "linkedPropTables": item.linkedPropTables,
             "groups": item.groups, "facts": item.facts, "audience": item.audience, "notes": item.notes,

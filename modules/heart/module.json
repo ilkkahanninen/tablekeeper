@@ -8,7 +8,7 @@
   "fields": {
     "stress": {
       "enum": ["d4", "d6", "d8", "d10", "d12"], "title": "Default stress",
-      "x-enumDescriptions": {"d4": "Tier 0-1", "d6": "Tier 2-3", "d8": "Tier 4"}
+      "x-enumDescriptions": {"d4": "Tier 0-1", "d6": "Tier 2-3", "d8": "Tier 4"}, "x-printHints": false
     },
     "domains": {
       "type": "array", "title": "Domains", "uniqueItems": true,
@@ -44,7 +44,7 @@
       "packet": {
         "rel": "features:out", "between": [{"type": "heart.delve", "rel": "connects:out"}],
         "around": [{"type": "core.npc", "rel": "located_at:out"}, {"type": "core.faction", "rel": "located_at:out"}],
-        "related": [{"type": "core.faction", "rel": "member_of:in"}], "columns": 3, "recap": "recap"
+        "related": [{"type": "core.faction", "rel": "member_of:in"}], "columns": 3, "recap": "recap", "leaveOut": "dead"
       },
       "debrief": [
         {
@@ -104,6 +104,7 @@
       "id": "heart.delve", "icon": "route", "overview": {"columns": ["@connects:out", "resistance"]},
       "extends": "core.place", "label": "Delve", "codePrefix": "D",
       "campaignMap": {"shape": "diamond", "between": "connects:out", "label": false},
+      "print": {"summary": {"parts": ["→ {@connects:out}"]}},
       "quickCreate": [
         {"type": "heart.landmark", "rel": "connects:out"},
         {"type": "core.npc", "rel": "located_at:in"},
@@ -172,7 +173,7 @@
       },
       "props": {
         "category": {
-          "enum": ["Delve", "Kill", "Mend", "Miscellaneous"], "title": "Category",
+          "enum": ["Delve", "Kill", "Mend", "Miscellaneous"], "title": "Category", "x-printHints": false,
           "x-enumDescriptions": {
             "Delve": "Kit that makes moving through unstable or unusual terrain easier.",
             "Kill": "Weapons, or things that can be used as weapons.",

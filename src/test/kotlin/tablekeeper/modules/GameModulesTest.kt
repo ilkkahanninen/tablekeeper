@@ -843,4 +843,34 @@ class GameModulesTest {
             heart.summary("heart.adversary", mapOf("difficulty" to "Risky", "resistance" to 12, "protection" to 2)))
         assertTrue(heart.validateProps("heart.adversary", Json.mapper.readTree("""{"difficulty": "Deadly"}""")).isNotEmpty())
     }
+
+    @Test
+    fun `heart packets leave out the dead and print stress dice without their pick-hints`() {
+        assertEquals("dead", heart.packet("core.session")?.leaveOut)
+        val stress = PropsForm.fields(heart.propsSchema("heart.landmark"), mapOf("stress" to "d6")).single { it.name == "stress" }
+        assertEquals("Tier 2-3" to false, stress.hints["d6"] to stress.printHints, "the hint stays on the form")
+        assertTrue(PropsForm.fields(heart.propsSchema("heart.resource"), emptyMap()).single { it.name == "tags" }.printHints, "tag effects print")
+    }
+
+    @Test
+    fun `a summary can name linked nodes, and an npc's subtitle is where it is`() {
+        val linked = { rel: String -> if (rel == "connects:out") listOf("Red Market (L4)") else emptyList() }
+        assertEquals("→ Red Market (L4)", heart.summary("heart.delve", emptyMap(), linked))
+        assertEquals("", heart.summary("heart.delve", emptyMap()), "a dead end, or no links given: the part drops out")
+        assertEquals(setOf("located_at:out"), heart.subtitleRels("heart.adversary"), "inherited from core.npc")
+        assertEquals("Derelict (L1)", heart.subtitle("heart.adversary", emptyMap()) { listOf("Derelict (L1)") })
+    }
+
+    @Test
+    fun `a summary or subtitle link that isn't a link option fails module load`() {
+        listOf(""""summary": {"parts": ["{@nope:out}"]}""", """"subtitle": ["{@nope:out}"]""").forEach { print ->
+            val dir = Files.createTempDirectory("modules").toFile()
+            File(dir, "bad").mkdirs()
+            File(dir, "bad/module.json").writeText(
+                """{"id": "bad", "name": "Bad", "nodeTypes": [{"id": "bad.place", "label": "Place", "codePrefix": "P", "print": {$print}}]}"""
+            )
+            assertTrue("'nope:out' is not a link option" in assertFailsWith<IllegalArgumentException> { GameModules.load(dir.path) }.message.orEmpty(), print)
+            dir.deleteRecursively()
+        }
+    }
 }

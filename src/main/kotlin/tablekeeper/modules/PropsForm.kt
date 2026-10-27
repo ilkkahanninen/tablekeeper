@@ -17,7 +17,8 @@ import tablekeeper.core.Json
  *   {"type":"string","x-widget":"list"}                -> kind "list": a textarea, items separated by a blank line (e.g. a delve's events)
  *   {"type":"string"}                                  -> kind "text"
  *
- * "x-enumDescriptions": {"Fragile": "…"} on a select/multi field becomes a hover hint per option.
+ * "x-enumDescriptions": {"Fragile": "…"} on a select/multi field becomes a hover hint per option, and prints beside the chosen ones.
+ * "x-printHints": false keeps those hints off prints, for hints that only help pick (a stress die's "Tier 2-3").
  * "x-enumLabels": {"Professional": "d8 Professional"} shows an option differently from its stored value.
  * "x-enumNotes": {"Cleaver": "…"} per-option texts for module views only (e.g. Heart's class inspiration); not on forms or cards.
  * "x-hideIf": {"category": ["Miscellaneous"]} hides a field while another field has one of those values;
@@ -56,6 +57,8 @@ data class FormField(
     val trueLabel: String? = null,
     /** From "x-track": print as a row of boxes to tick off, one per point. */
     val track: Boolean = false,
+    /** From "x-printHints": false = [hints] stay on the form, prints show just the value. */
+    val printHints: Boolean = true,
     /** String for scalar kinds, List<String> for "multi", Boolean for "bool". */
     val value: Any?,
 ) {
@@ -98,7 +101,8 @@ object PropsForm {
             val showIf = condition("x-showIf")
             val hidden = matches(hideIf, props) || (showIf.isNotEmpty() && !matches(showIf, props))
             field(name, s, props).copy(hideIf = hideIf, showIf = showIf, hidden = hidden, row = s.get("x-row")?.asText(),
-                wide = s.get("x-wide")?.asBoolean() == true, track = s.get("x-track")?.asBoolean() == true)
+                wide = s.get("x-wide")?.asBoolean() == true, track = s.get("x-track")?.asBoolean() == true,
+                printHints = s.get("x-printHints")?.asBoolean() != false)
         }.toList()
     }
 

@@ -54,12 +54,14 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
 
 Add a **Session** and tick the landmarks likely to come up and the characters taking part. **Print** then gives one landscape A4 PDF with the text in three columns:
 
-- **Page 1:** the session's title, date and notes, and the whole map with the selected landmarks highlighted. Beside it, under **Last time**, the previous session's "What happened".
+- **Page 1:** the session's title, date and notes, and the whole map with the selected landmarks highlighted. Beside it, under **Last time**, the previous session's "What happened", then **To reveal**: the facts the session plans to reveal (link them from the session with *plans to reveal*), with tick boxes.
 - **Characters:** one block per character, with calling · class, notes, beats, fallouts and their class's inspiration points (once per class).
-- **Landmarks:** in tier order, with props, notes, haunts, who and what is there, minor locations with their contents, and facts with tick boxes.
+- **Landmarks:** in tier order, with props, notes, haunts, who and what is there, minor locations with their contents, and facts with tick boxes. **Reached via** says where each delve leads ("→ Red Market (L4)").
 - **Delves:** those between selected landmarks.
-- **NPCs:** those at the selected landmarks or their minor locations.
+- **NPCs** and **Adversaries:** those at the selected landmarks, their minor locations, or in a delve between them, each with where they are under their name.
 - **Factions:** those at the selected landmarks, or with an NPC in the packet as a member.
+
+Dead NPCs and adversaries are left out, and so are other sessions ("Featured in").
 
 A MÖRK BORG session ticks locations, dungeons and characters. Its packet has the same cover, then the selected locations and dungeons (rooms nested with their creatures' stats and items), the characters with what they carry, the creatures at those places or in their rooms, and factions.
 
@@ -174,10 +176,10 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `linkedProps` | Read-only values from linked nodes | delve shows its landmarks' tier and domains |
 | `context` | Where a node belongs, shown in brackets in pickers; nests it on the campaign page and map | minor location → its landmark |
 | `overview` | Campaign page table: `columns` (props or `@rel`), `sort` (a prop, `-` for descending), `muted` (a boolean prop greys rows), `hidden` (not listed) | sessions by `date`, dead NPCs; MÖRK BORG rooms hidden |
-| `print` | `summary` (how it's listed on other cards: `group` + parts), `nested` (nested lists), `template` (only to replace the shared card) | equipment "Kill d8 · Brutal" |
+| `print` | `summary` (how it's listed on other cards: `group` + parts), `subtitle` (parts shown with its title; links it names aren't listed again), `nested` (nested lists), `template` (only to replace the shared card) | equipment "Kill d8 · Brutal"; NPC subtitle `["{@located_at:out}"]` |
 | `campaignMap` | On the campaign map: `shape` (`circle`, `diamond`, `dot`, or `none` to leave an inherited place off), `depth` from a prop, `between` linked places, `label: false` to draw it without its name | landmarks by tier, delves between |
 | `map` | The type's own map: `{ "places": "<rel>", "shape": "circle", "highlight": "<boolean prop>" }` draws the nodes linked that way and the links between them, highlighted ones filled red; a **Map** link on the page, and on prints that include it | MÖRK BORG dungeon's rooms, entrance |
-| `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time") | Heart session |
+| `checklists`, `packet` | Tick lists on the page; session packet contents (`between`, `around`, `related`, `columns`, `recap` for "Last time", `leaveOut`: a boolean prop whose ticked nodes aren't printed) | Heart session, `"leaveOut": "dead"` |
 | `debrief` | Lists on the page to update the packet's nodes after play: `types`, `fields` edited in place, `done` (clear an `x-row`), `slots` (Location dropdowns, and nodes located inside the packet), `links` (`rel`, `fields`, `create`, `remove`) | session: beats, fallouts, dead, Location |
 
 **Edge type settings:** `label` / `inverseLabel`, allowed `from` / `to` types, and `groupByType`, which lists the `to` side by type: *NPCs*, *Resources*…
@@ -211,12 +213,13 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 | `"x-row": "Beat 1"` | Fields sharing a value sit on one labelled line, also on cards |
 | `"x-enumLabels"` | Show an option differently from its stored value (`"d8": "d8 Professional"`) |
 | `"x-enumDescriptions"` | Hover hint per option; printed on cards |
+| `"x-printHints": false` | Keeps those hints off prints, for hints that only help pick (a stress die's "Tier 2-3") |
 | `"x-enumNotes"` | Text per option for module views only, e.g. Heart's class inspiration (`groupBy` hint); not on forms or cards |
 | `"x-hideIf"` / `"x-showIf"` | Hide or show a field depending on another field; hidden values are cleared |
 | `"x-trueLabel"` | Text for a ticked checkbox (`"dead"`); printed as a tag next to the name |
 | `"x-depth"` | Map depth per enum value (`"Tier 2": 2`) |
 
-`print.summary` and `displayTitle` parts use `{prop}` for the display text and `{prop.value}` for the stored value. A part whose values are all empty is left out.
+`print.summary`, `print.subtitle` and `displayTitle` parts use `{prop}` for the display text and `{prop.value}` for the stored value; in `print.summary` and `print.subtitle`, `{@rel}` lists the nodes linked that way ("Red Market (L4)"; on a card, leaving out the node it's listed on). A part whose values are all empty is left out.
 
 ## Development
 

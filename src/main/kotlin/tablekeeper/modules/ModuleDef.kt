@@ -73,10 +73,12 @@ data class OverviewDef(val columns: List<String>? = null, val sort: String? = nu
 /**
  * How a type prints. [template]: its print template (default: the generic card, or the session packet for a type with a
  * `packet`). [summary]: how it's listed on other nodes' cards; none = title and code. [nested]: also list what linked
- * nodes have, e.g. each minor location's contents.
+ * nodes have, e.g. each minor location's contents. [subtitle]: parts shown with its title, e.g. ["{@located_at:out}"] for
+ * where an NPC is; links a subtitle names leave its link lists.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PrintDef(val template: String? = null, val summary: PrintSummaryDef? = null, val nested: List<PrintNestedDef>? = null)
+data class PrintDef(val template: String? = null, val summary: PrintSummaryDef? = null, val nested: List<PrintNestedDef>? = null,
+                    val subtitle: List<String>? = null)
 
 /**
  * How a type is drawn on the campaign map. [shape]: one of [MAP_SHAPES]; "none" leaves an inherited place off (rooms).
@@ -95,11 +97,12 @@ data class ChecklistDef(val rel: String, val types: List<String>)
 /**
  * A printed packet of the nodes linked via [rel] (e.g. a session's "features"), plus [between] nodes:
  * those whose every link of a kind points at a selected node, e.g. delves between selected landmarks.
- * [around] adds nodes whose link of a kind ends at a selected node, or at a node inside one (via its `context`),
- * e.g. NPCs located at a selected landmark or its minor locations.
+ * [around] adds nodes whose link of a kind ends at a selected or between node, or at a node inside one (via its `context`),
+ * e.g. NPCs located at a selected landmark, its minor locations or a delve between two of them.
  * [related] then adds nodes with a link of a kind to anything already in the packet, e.g. the factions its NPCs are members of.
  * [columns] > 1 prints the text on landscape A4 in that many columns (after the template's cover part).
  * [recap]: a prop of this type, e.g. "recap"; the cover then shows the previous node's (by `overviewSort`), "Last time".
+ * [leaveOut]: a boolean prop, e.g. "dead": nodes with it ticked aren't printed, as entries or in lists (the debrief keeps them).
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PacketDef(
@@ -109,6 +112,7 @@ data class PacketDef(
     val related: List<BetweenDef> = emptyList(),
     val columns: Int = 1,
     val recap: String? = null,
+    val leaveOut: String? = null,
 )
 
 /**
@@ -221,7 +225,7 @@ data class GenConnectDef(val nodes: String, val rel: String, val layout: String)
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PrintSummaryDef(val group: String? = null, val parts: List<String> = emptyList()) {
-    /** Prop names used in [parts]. */
+    /** Prop names used in [parts]; `{@rel}` links are in [Parts.rels]. */
     @get:JsonIgnore
     val propNames: Set<String> get() = Parts.names(parts)
 }

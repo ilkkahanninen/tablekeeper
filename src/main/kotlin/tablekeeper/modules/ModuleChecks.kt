@@ -28,6 +28,9 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
         slotRels.map { rel("linkSlots rel", it) } +
         slotRels.groupingBy { it }.eachCount().filter { it.value > 1 }.map { "$t: linkSlots rel '${it.key}' is in more than one slot" } +
         def.print?.summary?.propNames.orEmpty().map { prop("print summary", it) } +
+        Parts.rels(def.print?.summary?.parts.orEmpty()).map { rel("print summary", it) } +
+        Parts.names(def.print?.subtitle.orEmpty()).map { prop("print subtitle", it) } +
+        Parts.rels(def.print?.subtitle.orEmpty()).map { rel("print subtitle", it) } +
         def.print?.nested.orEmpty().flatMap { n ->
             listOf(rel("print nested rel", n.rel), "$t: print nested show '${n.show}' is not an edge type and direction".takeIf { n.show !in edgeKeys })
         } +
@@ -62,6 +65,8 @@ internal fun ResolvedModule.configErrors(): List<String> = types.values.flatMap 
                 }
         }.orEmpty() +
         prop("packet recap", def.packet?.recap) +
+        def.packet?.leaveOut?.takeIf { p -> types.keys.none { propSchema(it, p)?.get("type")?.asText() == "boolean" } }
+            ?.let { "$t: packet leaveOut '$it' is not a boolean prop of any type" } +
         def.debrief.orEmpty().flatMap { g -> debriefErrors(t, g) } +
         def.displayTitle?.let { Parts.names(it) }.orEmpty().filter { it != "title" }.map { prop("displayTitle", it) } +
         prop("overview sort", def.overview?.sort?.removePrefix("-"))

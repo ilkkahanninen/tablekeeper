@@ -29,9 +29,10 @@ object Packet {
         val selected = nodes(linked(node.id, node.type, def.rel))
         val selectedIds = selected.map { it.id }.toSet()
         val between = def.between.flatMap { b -> between(selectedIds, ofType(b.type)) { linked(it, b.type, b.rel) } }
-        // A node "inside" another via its type's context link, e.g. a minor location inside its landmark
+        // Around the selected and the between nodes (an adversary in a delve on the way); a node "inside" one of them via
+        // its type's context link counts too, e.g. a minor location inside its landmark
         val around = def.around.flatMap { a ->
-            around(selectedIds, ofType(a.type), { linked(it, a.type, a.rel) }, { id -> graph.byId[id]?.let { module.parent(graph, it)?.id } })
+            around(selectedIds + between, ofType(a.type), { linked(it, a.type, a.rel) }, { id -> graph.byId[id]?.let { module.parent(graph, it)?.id } })
         }
         val included = selectedIds + between + around
         val related = def.related.flatMap { r -> related(included, ofType(r.type)) { linked(it, r.type, r.rel) } }

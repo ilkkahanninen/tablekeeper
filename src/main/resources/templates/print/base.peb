@@ -11,6 +11,7 @@
   .head { width: 100%; border-bottom: 0.6mm solid #111; margin-bottom: 2mm; border-collapse: collapse; }
   .head td { vertical-align: bottom; padding: 0 0 1mm 0; }
   .title { font-size: 15pt; font-weight: bold; }
+  .subtitle { font-size: 9pt; color: #555; }
   .type { font-size: 7pt; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; }
   .code { font-size: 11pt; text-align: right; }
   .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
@@ -50,7 +51,7 @@
 <body>
 <div class="card">
   <table class="head"><tr>
-    <td><div class="type">{{ typeLabel }}{% if audience == 'players' %} · handout{% endif %}</div><div class="title">{{ displayTitle }}{% for f in flags %} <span class="flag">{{ f }}</span>{% endfor %}</div></td>
+    <td><div class="type">{{ typeLabel }}{% if audience == 'players' %} · handout{% endif %}</div><div class="title">{{ displayTitle }}{% for f in flags %} <span class="flag">{{ f }}</span>{% endfor %}</div>{% if subtitle is not empty %}<div class="subtitle">{{ subtitle }}</div>{% endif %}</td>
     <td class="code">{{ node.code }}</td>
   </tr></table>
 

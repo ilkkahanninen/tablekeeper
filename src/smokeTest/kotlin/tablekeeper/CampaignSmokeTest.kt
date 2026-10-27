@@ -41,6 +41,44 @@ class CampaignSmokeTest {
     }
 
     @Test
+    fun `a Heart packet prints what helps at the table and leaves out the rest`() = smoke {
+        val cid = campaign("heart", "Packet contents")
+        val derelict = node(cid, "heart.landmark", "Derelict").id   // L1, ticked in the first session, stress d4 ("Tier 0-1")
+        val session = node(cid, "core.session", "First Session").id
+        val market = create(cid, "heart.landmark", "Market")
+        val redMarket = create(cid, "heart.landmark", "Red Market")   // not ticked
+        post("/c/$cid/n/$session/check", "rel" to "features:out", "other" to "$market", "checked" to "on")
+
+        // A delve between the two ticked landmarks, with an adversary in it, and an exit to Red Market
+        val stair = quickCreate(cid, derelict, "heart.delve|connects:in", "The Long Stair")
+        post("/c/$cid/n/$stair/links", "rel" to "connects:out", "other" to "$market")
+        val exit = quickCreate(cid, derelict, "heart.delve|connects:in", "Exit Way")
+        post("/c/$cid/n/$exit/links", "rel" to "connects:out", "other" to "$redMarket")
+        val hound = quickCreate(cid, stair, "heart.adversary|located_at:in", "Hound")
+        save(cid, hound, "prop.difficulty" to "Risky", "prop.resistance" to "6")
+
+        val silvia = quickCreate(cid, derelict, "core.npc|located_at:in", "Silvia")
+        save(cid, silvia, "prop.voice" to "Whispers")
+        val ghost = quickCreate(cid, derelict, "core.npc|located_at:in", "Old Ghost")
+        save(cid, ghost, "prop.dead" to "on")
+        val fact = create(cid, "core.fact", "The lift still works")
+        post("/c/$cid/n/$session/links", "rel" to "plans_reveal:out", "other" to "$fact")
+        val second = create(cid, "core.session", "Second Session")
+        post("/c/$cid/n/$second/check", "rel" to "features:out", "other" to "$derelict", "checked" to "on")
+
+        val html = ok("/c/$cid/n/$session/print").bodyAsText()
+        assertTrue("Hound" in html && "Risky" in html, "An adversary in a delve on the way gets its entry")
+        assertTrue("Old Ghost" !in html, "The dead are left out")
+        assertTrue("To reveal" in html && "The lift still works" in html, "Planned reveals are on the cover")
+        assertTrue("→ Red Market (L3)" in html, "An exit delve says where it leads")
+        assertTrue("""<div class="role">Derelict (L1)</div>""" in html, "An NPC's place is under its name")
+        listOf("Tier 0-1", "Featured in", "Is located at", "Second Session").forEach { assertTrue(it !in html, "'$it' isn't printed") }
+        pdf("/c/$cid/n/$session/print.pdf")
+
+        assertTrue("""<div class="subtitle">Derelict (L1)</div>""" in ok("/c/$cid/n/$silvia/print").bodyAsText(), "The card shows it too")
+    }
+
+    @Test
     fun `a campaign is renamed from its title and deleted with everything in it`() = smoke {
         val cid = campaign("heart", "Before")
         post("/c/$cid", "name" to "After")

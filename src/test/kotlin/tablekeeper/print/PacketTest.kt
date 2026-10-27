@@ -32,6 +32,15 @@ class PacketTest {
     }
 
     @Test
+    fun `npcs in a delve between selected landmarks are around too`() {
+        val adversary = UUID.randomUUID(); val beyond = UUID.randomUUID()
+        val at = mapOf(adversary to listOf(ab), beyond to listOf(cd))
+        // The packet's anchors: the selected landmarks a and b, and the delve ab between them
+        val anchors = setOf(a, b) + Packet.between(setOf(a, b), connects.keys.toList()) { connects.getValue(it) }
+        assertEquals(listOf(adversary), Packet.around(anchors, at.keys.toList(), { at.getValue(it) }, { null }))
+    }
+
+    @Test
     fun `factions with a member in the packet are related, others are not`() {
         val silvia = UUID.randomUUID(); val moth = UUID.randomUUID()
         val hounds = UUID.randomUUID(); val church = UUID.randomUUID(); val empty = UUID.randomUUID()

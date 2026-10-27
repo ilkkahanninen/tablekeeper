@@ -66,11 +66,23 @@ class ResolvedModule(
     /** Display titles of [nodes] by id, for pages and prints that list many nodes. */
     fun displayTitles(nodes: List<Node>): Map<UUID, String> = nodes.associate { it.id to displayTitle(it) }
 
-    /** How a node is described where it's listed on others: its type's `printSummary` parts, e.g. "Kill d8 · Brutal"; "" if none. */
-    fun summary(typeId: String, props: Map<String, Any?>): String {
-        val parts = printSummary(typeId)?.parts.orEmpty()
-        return if (parts.isEmpty()) "" else Parts.fill(parts, fields(typeId, props), " · ")
-    }
+    /**
+     * How a node is described where it's listed on others: its type's `printSummary` parts, e.g. "Kill d8 · Brutal"; "" if
+     * none. [linked]: the nodes linked via a rel, as text (e.g. "Red Market (L4)"), for `{@rel}` parts; none by default.
+     */
+    fun summary(typeId: String, props: Map<String, Any?>, linked: (String) -> List<String> = { emptyList() }): String =
+        fill(printSummary(typeId)?.parts.orEmpty(), typeId, props, linked)
+
+    /** The type's `print.subtitle`, shown with a node's title on prints, e.g. where an NPC is; "" if none. */
+    fun subtitle(typeId: String, props: Map<String, Any?>, linked: (String) -> List<String>): String =
+        fill(types[typeId]?.print?.subtitle.orEmpty(), typeId, props, linked)
+
+    /** The rels a type's subtitle shows, e.g. "located_at:out": their links aren't listed again on its prints. */
+    fun subtitleRels(typeId: String): Set<String> = Parts.rels(types[typeId]?.print?.subtitle.orEmpty())
+
+    private fun fill(parts: List<String>, typeId: String, props: Map<String, Any?>, linked: (String) -> List<String>): String =
+        if (parts.isEmpty()) ""
+        else Parts.fill(parts, fields(typeId, props), " · ", Parts.rels(parts).associate { "@$it" to linked(it).joinToString(", ") })
 
     fun edgeType(id: String): EdgeTypeDef? = edgeTypes.firstOrNull { it.id == id }
 
