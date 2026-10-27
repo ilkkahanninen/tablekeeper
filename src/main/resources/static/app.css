@@ -28,6 +28,10 @@ h3 { font-size: .85rem; margin: .75rem 0 .25rem; color: var(--muted); font-weigh
 a.menu-item { text-decoration: none; color: var(--ink); }
 .top-create { margin-left: .25rem; }
 .top-create > summary { display: inline-block; font-size: .9rem; padding: .25rem .5rem; }
+.top-user { margin-left: auto; }
+.top-nav ~ .top-user { margin-left: .25rem; }   /* on a campaign page the nav already takes the free space */
+.top-user > summary { display: inline-block; font-size: .9rem; padding: .25rem .5rem; }
+.auth-form { max-width: 22rem; }
 .brand { font-weight: 700; color: var(--ink); text-decoration: none; }
 .sep { color: var(--muted); }
 

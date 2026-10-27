@@ -20,7 +20,7 @@ class ExportCompatibilityTest {
     private fun read(name: String) = CampaignImport.parse(files.single { it.name == name }.readBytes())
 
     /** The newest Flyway migration when the export version was last checked; see the test below. */
-    private val checkedMigration = 7
+    private val checkedMigration = 8
 
     @Test
     fun `every version has a saved export and an upgrade step`() {

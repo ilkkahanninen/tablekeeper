@@ -1,6 +1,9 @@
 package tablekeeper
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -12,6 +15,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.parameters
 import io.ktor.server.testing.testApplication
 import org.testcontainers.postgresql.PostgreSQLContainer
+import tablekeeper.auth.SessionUserResolver
 import tablekeeper.auth.UserResolver
 import tablekeeper.core.CampaignExport
 import tablekeeper.core.Json
@@ -24,14 +28,28 @@ import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-/** Postgres in Docker, started once for all smoke tests. Every test makes its own campaigns, so tests don't meet. */
+/** Postgres in Docker, started once for all smoke tests. Every test makes its own campaigns and users, so tests don't meet. */
 object SmokeDb {
-    val deps: Deps by lazy {
+    private val dir = System.getProperty("modulesDir") ?: "modules"
+    private val db by lazy {
         val pg = PostgreSQLContainer("postgres:16").apply { start() }
-        val config = Config.fromEnv(mapOf("DATABASE_URL" to pg.jdbcUrl, "DATABASE_USER" to pg.username, "DATABASE_PASSWORD" to pg.password))
-        val dir = System.getProperty("modulesDir") ?: "modules"
-        deps(Database.connect(config), GameModules.load(dir), Templates(dir, cache = true))
+        Database.connect(Config.fromEnv(mapOf("DATABASE_URL" to pg.jdbcUrl, "DATABASE_USER" to pg.username, "DATABASE_PASSWORD" to pg.password)))
     }
+
+    /** AUTH_MODE=none: the user comes from the [USER] header. */
+    val deps: Deps by lazy { deps(db, GameModules.load(dir), Templates(dir, cache = true)) }
+
+    /** AUTH_MODE=session: the user comes from the session cookie. */
+    val sessionDeps: Deps by lazy { deps(db, GameModules.load(dir), Templates(dir, cache = true), AuthMode.SESSION) }
+}
+
+/** Where the test client's requests come from, as a browser on the app's own pages says (the CSRF check). */
+const val ORIGIN = "http://localhost"
+
+/** What every browser sends and the test client doesn't: the Host, which the CSRF check compares the Origin with. */
+private fun DefaultRequest.DefaultRequestBuilder.asBrowser(origin: String?) {
+    header(HttpHeaders.Host, "localhost")
+    origin?.let { header(HttpHeaders.Origin, it) }
 }
 
 /** The request header that picks the user, so a test can be someone else; without it, requests are "alice"'s. */
@@ -41,7 +59,24 @@ const val USER = "X-Smoke-User"
 fun smoke(block: suspend Smoke.() -> Unit) = testApplication {
     val d = SmokeDb.deps
     application { app(d, UserResolver { call -> d.campaigns.ensureUser(call.request.headers[USER] ?: "alice") }) }
-    Smoke(createClient { followRedirects = false }, d).block()
+    Smoke(createClient { followRedirects = false; defaultRequest { asBrowser(ORIGIN) } }, d).block()
+}
+
+/**
+ * Runs [block] against the whole app with logins (AUTH_MODE=session). [Browsers.browser] makes a client that keeps
+ * its cookies, like one browser: several are several people, or one person on several devices. Its requests come from
+ * `origin` (null: they say nothing, to test the CSRF check).
+ */
+fun sessionSmoke(block: suspend Browsers.() -> Unit) = testApplication {
+    val d = SmokeDb.sessionDeps
+    application { app(d, SessionUserResolver(d.accounts, d.sessionCookie)) }
+    Browsers(d) { origin ->
+        createClient { install(HttpCookies); followRedirects = false; defaultRequest { asBrowser(origin) } }
+    }.block()
+}
+
+class Browsers(val deps: Deps, private val client: (origin: String?) -> HttpClient) {
+    fun browser(origin: String? = ORIGIN): HttpClient = client(origin)
 }
 
 class Smoke(val client: HttpClient, val deps: Deps) {

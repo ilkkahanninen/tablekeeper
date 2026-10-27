@@ -1,6 +1,10 @@
 package tablekeeper
 
+import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
+import io.ktor.http.parameters
 import io.ktor.http.HttpStatusCode
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,6 +29,15 @@ class CampaignSmokeTest {
             pdf("/c/$cid/n/${n.id}/print.pdf")
         }
         ok("/c/$cid/n/${session.id}/debrief")
+    }
+
+    @Test
+    fun `without logins too, a post from another site is refused`() = smoke {
+        val forged = client.submitForm("/campaigns", parameters { append("name", "Forged"); append("module", "heart") }) {
+            header(USER, "csrf-target"); header(HttpHeaders.Origin, "http://evil.example")
+        }
+        assertEquals(HttpStatusCode.Forbidden, forged.status)
+        assertEquals(emptyList(), deps.campaigns.list(deps.campaigns.ensureUser("csrf-target")))
     }
 
     @Test

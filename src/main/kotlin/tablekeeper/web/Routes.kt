@@ -4,6 +4,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.http.encodeURLParameter
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.http.content.staticResources
@@ -23,7 +24,12 @@ import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import tablekeeper.AuthMode
+import tablekeeper.auth.Accounts
+import tablekeeper.auth.LoginThrottle
+import tablekeeper.auth.SessionCookie
 import tablekeeper.auth.user
+import tablekeeper.auth.userOrNull
 import tablekeeper.core.BadRequest
 import tablekeeper.core.Campaign
 import tablekeeper.core.CampaignService
@@ -57,13 +63,20 @@ class Deps(
     val print: PrintService,
     val tables: RandomTableService,
     val transfer: CampaignTransfer,
+    /** Login: `session` adds the login pages (web/AuthRoutes.kt) and the user menu. */
+    val authMode: AuthMode,
+    val accounts: Accounts,
+    val sessionCookie: SessionCookie,
+    val publicUrl: String?,
 ) {
     val linker = Linker(graph)
+    val loginThrottle = LoginThrottle()
     val nodePage = NodePage(graph, linker, tables, print)
     val generate = GenerateService(graph, tables, linker)
 
-    suspend fun ApplicationCall.html(template: String, model: Map<String, Any?>) =
-        respondText(templates.render(template, model), ContentType.Text.Html)
+    /** A page; every model also gets `me`, the logged-in user (AUTH_MODE=session; else null), for the top bar's user menu. */
+    suspend fun ApplicationCall.html(template: String, model: Map<String, Any?>, status: HttpStatusCode = HttpStatusCode.OK) =
+        respondText(templates.render(template, model + ("me" to userOrNull.takeIf { authMode == AuthMode.SESSION })), ContentType.Text.Html, status)
 
     fun ApplicationCall.uuid(name: String): UUID = parameters[name].toUuid() ?: throw NotFound(name)
 
@@ -126,6 +139,14 @@ const val DEBRIEF_CHANGED = "debrief-changed"
 
 private fun String?.toUuid(): UUID? = this?.let { runCatching { UUID.fromString(it) }.getOrNull() }
 
+/** The login page, then back to [next] (a path here) after. */
+fun loginUrl(next: String?): String =
+    if (next == null || next == "/") "/login" else "/login?next=${next.encodeURLParameter()}"
+
+/** [next] if it's a path on this site, else "/": a login can't send anyone elsewhere ("//evil.example" is another site). */
+internal fun safeNext(next: String?): String =
+    next?.takeIf { it.startsWith("/") && !it.startsWith("//") && !it.startsWith("/\\") } ?: "/"
+
 /** For file names: "Red Market!" -> "red-market". */
 internal fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-')
 
@@ -166,6 +187,8 @@ fun Application.routes(d: Deps) = with(d) {
                 ?.let { throw BadRequest("The file has node types ${module.name} doesn't know: ${it.joinToString()}") }
             call.respondRedirect("/c/${transfer.import(call.user, export)}")
         }
+
+        if (authMode == AuthMode.SESSION) authRoutes(d)
 
         route("/c/{cid}") {
             campaignRoutes(d)

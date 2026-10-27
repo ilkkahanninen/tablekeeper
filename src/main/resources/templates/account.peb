@@ -1,0 +1,15 @@
+{% extends "layout.peb" %}
+
+{% block title %}{{ user.username }} · Tablekeeper{% endblock %}
+
+{% block content %}
+{# Change password; the other browsers logged in as this user are logged out #}
+<form class="card stack auth-form" method="post" action="/account">
+  <h1>Change password</h1>
+  {% if error is not null %}<ul class="errors"><li>{{ error }}</li></ul>{% endif %}
+  <input type="hidden" name="username" value="{{ user.username }}" autocomplete="username">
+  <label>Current password <input type="password" name="current" autocomplete="current-password" required autofocus></label>
+  <label>New password <input type="password" name="password" autocomplete="new-password" minlength="10" maxlength="200" required></label>
+  <button>Change</button>
+</form>
+{% endblock %}

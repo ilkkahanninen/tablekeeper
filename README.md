@@ -10,6 +10,7 @@ Games: **Heart: The City Beneath** and **MÖRK BORG**. Games are data-only modul
 
 - **Campaign page:** one table per type (Sessions, Landmarks, Delves, Characters, NPCs, Fallouts, Equipment, Resources, Factions…), with key columns, a filter box and a **Create** button under each table. Minor locations sit under their landmark, sessions are in date order, and dead NPCs are greyed out.
 - **Campaigns** are renamed by editing the name at the top of their page, and deleted with **Delete** in the **⋯** menu at its right (it asks first).
+- **Accounts** (with `AUTH_MODE=session`): sign up, log in, and change your password or log out from the menu under your name. Everyone sees only their own campaigns.
 - **Export and import:** **Export** in the campaign page's **⋯** menu downloads the whole campaign as one JSON file (nodes, links, random tables); **Import** on the home page makes a new campaign from such a file, so it works as a backup and as a way to copy a campaign.
 - **Quick find:** press `/` (or Ctrl/⌘ K) on any campaign page and type part of a name or code; arrows and Enter open the node.
 - **Node pages:**
@@ -84,7 +85,8 @@ docker compose up --build
 |---|---|---|
 | `DATABASE_URL` | `jdbc:postgresql://localhost:5432/tablekeeper` | |
 | `DATABASE_USER` / `DATABASE_PASSWORD` | `tablekeeper` | |
-| `AUTH_MODE` | `none` | `none` = a single implicit `local` user. `session` is reserved for login (not built yet). |
+| `AUTH_MODE` | `none` | `none` = a single implicit `local` user, no login. `session` = accounts: anyone who reaches the app can sign up, then logs in (sessions last 30 days). Campaigns made in `none` mode belong to `local` and don't appear there; move them with Export and Import. |
+| `PUBLIC_URL` | | Where users reach the app (e.g. `https://tables.example.org`) when it's behind a proxy: POSTs must come from there, and `https` makes the login cookie Secure. Unset: POSTs must come from the address the request was sent to. |
 | `MODULES_DIR` | `modules` | Game module folders |
 | `TEMPLATE_CACHE` | `true` | `false` reloads templates on every request (module print templates included) |
 | `PORT` | `8080` | |
@@ -227,7 +229,7 @@ Unit tests (`./gradlew test`, no database) cover module loading and settings, th
 
 ## Known gaps
 
-- **No login yet:** `AUTH_MODE=session` (login page, sessions, Argon2, CSRF) is still to come. Data is already per user, so turning it on needs no migration.
+- **No password reset:** with `AUTH_MODE=session` a forgotten password can only be replaced in the database (`users.password_hash`, an Argon2id string). Logged-in users change theirs from the menu under their name.
 - **Player handouts:** the data model and the `…/print.pdf?audience=players` route exist, but node visibility is hidden from the UI for now.
 
 ## License

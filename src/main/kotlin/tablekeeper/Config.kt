@@ -11,6 +11,8 @@ data class Config(
     val modulesDir: String,
     /** Set TEMPLATE_CACHE=false while editing templates to see changes without restarting. */
     val templateCache: Boolean,
+    /** Where users reach the app, e.g. https://tables.example.org, when it's behind a proxy: the only Origin a POST may come from, and https makes the session cookie Secure. */
+    val publicUrl: String?,
 ) {
     companion object {
         fun fromEnv(env: Map<String, String> = System.getenv()) = Config(
@@ -21,6 +23,7 @@ data class Config(
             authMode = AuthMode.valueOf((env["AUTH_MODE"] ?: "none").uppercase()),
             modulesDir = env["MODULES_DIR"] ?: "modules",
             templateCache = env["TEMPLATE_CACHE"]?.toBooleanStrictOrNull() ?: true,
+            publicUrl = env["PUBLIC_URL"]?.trim()?.trimEnd('/')?.takeIf { it.isNotEmpty() },
         )
     }
 }

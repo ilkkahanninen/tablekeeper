@@ -1,0 +1,14 @@
+{% extends "layout.peb" %}
+
+{% block title %}Sign up · Tablekeeper{% endblock %}
+
+{% block content %}
+<form class="card stack auth-form" method="post" action="/signup">
+  <h1>Sign up</h1>
+  {% if error is not null %}<ul class="errors"><li>{{ error }}</li></ul>{% endif %}
+  <label>Name <input name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" pattern="[A-Za-z0-9._\-]{3,32}" required autofocus></label>
+  <label>Password <input type="password" name="password" autocomplete="new-password" minlength="10" maxlength="200" required></label>
+  <button>Sign up</button>
+  <a href="/login">Log in</a>
+</form>
+{% endblock %}

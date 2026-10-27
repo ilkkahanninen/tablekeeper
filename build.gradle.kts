@@ -19,6 +19,10 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
+    implementation("io.ktor:ktor-server-csrf-jvm:$ktorVersion")   // Origin check on every POST
+
+    // Login: Argon2id password hashes (pure Java)
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 
     // Templates (screen + print share one engine)
     implementation("io.pebbletemplates:pebble:3.2.2")

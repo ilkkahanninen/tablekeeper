@@ -37,6 +37,16 @@
         </form>
       </details>
     {% endif %}
+    {# Logged in (AUTH_MODE=session): the user's menu, at the right end #}
+    {% if me is not null %}
+      <details class="dropdown top-user">
+        <summary class="secondary">{{ me.username }} ▾</summary>
+        <div class="menu dropdown-choices">
+          <a class="menu-item" href="/account">Change password</a>
+          <form method="post" action="/logout"><button class="menu-item">Log out</button></form>
+        </div>
+      </details>
+    {% endif %}
   </header>
   <main>
     {% block content %}{% endblock %}
