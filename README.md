@@ -72,7 +72,7 @@ docker compose up --build
 # open http://localhost:8080
 ```
 
-- **Published image:** every push to `main` that passes the tests is built for amd64 and arm64 and published as `ghcr.io/ilkkahanninen/tablekeeper:latest` (also `:main` and `:sha-<commit>`; a `v1.2.3` tag adds `:1.2.3` and `:1.2`), then the server is told to deploy it (`.github/workflows/ci.yml`). On a server, run it with `AUTH_MODE=session`, `PUBLIC_URL` and the `DATABASE_*` settings below.
+- **Published image:** every push to `main` that passes the tests is built for amd64 and arm64 and published as `ghcr.io/ilkkahanninen/tablekeeper:latest` (also `:main` and `:sha-<commit>`; a `v1.2.3` tag adds `:1.2.3` and `:1.2`), then the server is told to deploy it (`.github/workflows/ci.yml`). On a server, run it with `AUTH_MODE=session`, `PUBLIC_URL` and `DATABASE_URL` (below).
 - The image (about 630 MB, 300 MB to download) holds a trimmed Java runtime, the app, and Chromium's headless shell for PDFs. To keep it small it has no fallback fonts for scripts the print fonts don't cover (e.g. Chinese, emoji): such characters print as boxes.
 - Data lives in the `pgdata` volume. To back up one campaign, use **Export** on its page; to back up the whole database:
   ```sh
@@ -87,8 +87,8 @@ docker compose up --build
 
 | Env var | Default | |
 |---|---|---|
-| `DATABASE_URL` | `jdbc:postgresql://localhost:5432/tablekeeper` | |
-| `DATABASE_USER` / `DATABASE_PASSWORD` | `tablekeeper` | |
+| `DATABASE_URL` | `postgres://tablekeeper:tablekeeper@localhost:5432/tablekeeper` | `postgres://user:password@host:port/database`, as hosting usually provides it (percent-encode special characters in the password; query parameters such as `?sslmode=require` go to the driver). A `jdbc:postgresql://` URL works too. |
+| `DATABASE_USER` / `DATABASE_PASSWORD` | | Only for a `jdbc:` URL, or to fill in a login the URL lacks |
 | `AUTH_MODE` | `none` | `none` = a single implicit `local` user, no login. `session` = accounts: anyone who reaches the app can sign up, then logs in (sessions last 30 days). Campaigns made in `none` mode belong to `local` and don't appear there; move them with Export and Import. |
 | `PUBLIC_URL` | | Where users reach the app (e.g. `https://tables.example.org`) when it's behind a proxy: POSTs must come from there, and `https` makes the login cookie Secure. Unset: POSTs must come from the address the request was sent to. |
 | `MODULES_DIR` | `modules` | Game module folders |

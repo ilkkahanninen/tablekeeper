@@ -21,9 +21,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: jdbc:postgresql://db:5432/tablekeeper
-      DATABASE_USER: tablekeeper
-      DATABASE_PASSWORD: tablekeeper
+      DATABASE_URL: postgres://tablekeeper:tablekeeper@db:5432/tablekeeper
       AUTH_MODE: none          # 'session' for accounts with login (on a server; see README)
       TEMPLATE_CACHE: "false"  # module print templates reload on every request
     volumes:

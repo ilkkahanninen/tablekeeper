@@ -33,7 +33,9 @@ object SmokeDb {
     private val dir = System.getProperty("modulesDir") ?: "modules"
     private val db by lazy {
         val pg = PostgreSQLContainer("postgres:16").apply { start() }
-        Database.connect(Config.fromEnv(mapOf("DATABASE_URL" to pg.jdbcUrl, "DATABASE_USER" to pg.username, "DATABASE_PASSWORD" to pg.password)))
+        // As hosting hands it out: one postgres:// URL with the login in it
+        Database.connect(Config.fromEnv(mapOf("DATABASE_URL" to
+            "postgres://${pg.username}:${pg.password}@${pg.host}:${pg.firstMappedPort}/${pg.databaseName}")))
     }
 
     /** AUTH_MODE=none: the user comes from the [USER] header. */
