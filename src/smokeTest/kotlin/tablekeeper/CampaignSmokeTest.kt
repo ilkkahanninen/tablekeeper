@@ -75,6 +75,21 @@ class CampaignSmokeTest {
         listOf("Tier 0-1", "Featured in", "Is located at", "Second Session").forEach { assertTrue(it !in html, "'$it' isn't printed") }
         pdf("/c/$cid/n/$session/print.pdf")
 
+        create(cid, "heart.pc", "Karg")
+        save(cid, session, "prop.recap" to "They found the lift")
+        save(cid, second, "body" to "Plan: the ghost returns")
+        // The campaign's print: every landmark ticked, so Red Market and the exit to it are in too, and what happened
+        // in each session (but not their notes)
+        val all = ok("/c/$cid/print").bodyAsText()
+        assertTrue("What happened" in all && "They found the lift" in all, "Each session's recap is printed")
+        assertTrue("Plan: the ghost returns" !in all, "Session notes aren't")
+        listOf("Packet contents", "Red Market", "Exit Way", "Hound", "Silvia").forEach { assertTrue(it in all, "'$it' is in the campaign print") }
+        assertTrue("Old Ghost" !in all, "The dead are left out")
+        assertTrue(Regex("First Session").findAll(all).count() == 2, "Sessions are on the cover and head their recaps")
+        assertTrue("<h2>Sessions</h2>" in all && "Karg" in all, "The cover lists the sessions and characters")
+        assertTrue("Print" in ok("/c/$cid").bodyAsText())
+        pdf("/c/$cid/print.pdf")
+
         assertTrue("""<div class="subtitle">Derelict (L1)</div>""" in ok("/c/$cid/n/$silvia/print").bodyAsText(), "The card shows it too")
     }
 
@@ -140,6 +155,7 @@ class CampaignSmokeTest {
         val session = node(cid, "core.session", "First Session")
         post("/c/$cid/n/${session.id}/check", "rel" to "features:out", "other" to dungeon.toString(), "checked" to "on")
         pdf("/c/$cid/n/${session.id}/print.pdf")
+        pdf("/c/$cid/print.pdf")
     }
 
     @Test

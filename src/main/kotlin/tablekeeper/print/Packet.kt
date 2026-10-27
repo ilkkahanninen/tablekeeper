@@ -19,14 +19,17 @@ data class PacketSelection(val selected: List<Node>, val between: List<Node>, va
 
 /** Pure selection rules for session packets. */
 object Packet {
-    /** [node]'s packet per [def], over [graph] (already filtered for the audience). */
-    fun select(module: ResolvedModule, node: Node, def: PacketDef, graph: CampaignGraph): PacketSelection {
+    /**
+     * [node]'s packet per [def], over [graph] (already filtered for the audience). [allTicked]: as if every box of its
+     * type's checklists were ticked (the campaign's print), instead of what [node] links.
+     */
+    fun select(module: ResolvedModule, node: Node, def: PacketDef, graph: CampaignGraph, allTicked: Boolean = false): PacketSelection {
         fun linked(id: UUID, typeId: String, rel: String): List<UUID> =
             module.linkOption(typeId, rel)!!.let { o -> graph.linkedNodes(id, o.edgeType, o.direction).map { it.id } }
         fun ofType(type: String) = graph.nodes.filter { module.isA(it.type, type) }.map { it.id }
         fun nodes(ids: List<UUID>) = ids.mapNotNull { graph.byId[it] }
 
-        val selected = nodes(linked(node.id, node.type, def.rel))
+        val selected = if (allTicked) ticked(module, node.type, def, graph) else nodes(linked(node.id, node.type, def.rel))
         val selectedIds = selected.map { it.id }.toSet()
         val between = def.between.flatMap { b -> between(selectedIds, ofType(b.type)) { linked(it, b.type, b.rel) } }
         // Around the selected and the between nodes (an adversary in a delve on the way); a node "inside" one of them via
@@ -37,6 +40,12 @@ object Packet {
         val included = selectedIds + between + around
         val related = def.related.flatMap { r -> related(included, ofType(r.type)) { linked(it, r.type, r.rel) } }
         return PacketSelection(selected, nodes(between), nodes(around), nodes(related))
+    }
+
+    /** Every node a checklist of [typeId] offers via the packet's rel, e.g. all landmarks and characters for a session. */
+    fun ticked(module: ResolvedModule, typeId: String, def: PacketDef, graph: CampaignGraph): List<Node> {
+        val types = module.checklists(typeId).filter { it.first.rel == def.rel }.flatMap { it.first.types }
+        return graph.nodes.filter { n -> types.any { module.isA(n.type, it) } }
     }
 
     /**

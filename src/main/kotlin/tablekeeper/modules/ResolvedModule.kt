@@ -255,6 +255,9 @@ class ResolvedModule(
 
     fun packet(typeId: String): PacketDef? = types[typeId]?.packet
 
+    /** The type whose packet, with every checklist box ticked, is the campaign's print (a session); null = no campaign print. */
+    val campaignPacketType: String? get() = nodeTypes.firstOrNull { packet(it.id) != null && checklists(it.id).isNotEmpty() }?.id
+
     fun debrief(typeId: String): List<DebriefDef> = types[typeId]?.debrief.orEmpty()
 
     /** The type's `overviewSort`: the prop, and whether newest/largest first ("-date"). */

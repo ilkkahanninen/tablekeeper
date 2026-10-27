@@ -70,9 +70,14 @@ data class PrintFact(val code: String, val title: String, val body: String, val 
 data class PacketRecap(val code: String, val title: String, val text: String, val notes: String)
 
 /** A session packet's extra template variables (the type's `packet` setting). */
-/** [viewHeadings]: a heading per view id, its type's plural ("Characters" for Heart's Inspiration), as the PDF's column bands. */
+/**
+ * [viewHeadings]: a heading per view id, its type's plural ("Characters" for Heart's Inspiration), as the PDF's column bands.
+ * [story]: on the campaign's print, every session's recap (packet "recap") oldest first, headed [storyHeading] ("What happened").
+ * [roster]: on the campaign's print's cover, its sessions and the nodes of its checklists' types the map doesn't draw (characters).
+ */
 data class PacketModel(val map: MapView, val views: List<ViewData>, val sections: List<PacketSection>, val previous: PacketRecap? = null,
-                       val viewHeadings: Map<String, String> = emptyMap(), val soFar: SoFar? = null)
+                       val viewHeadings: Map<String, String> = emptyMap(), val soFar: SoFar? = null,
+                       val story: List<PacketRecap> = emptyList(), val storyHeading: String = "", val roster: List<SoFar> = emptyList())
 
 /** A packet cover's list of the campaign's nodes of a type so far (`packet.soFar`), e.g. "Miseries": 1:1 The sun dims. */
 data class SoFar(val label: String, val items: List<PrintRef>)
@@ -110,7 +115,7 @@ data class PrintModel(
         "groups" to groups, "facts" to facts,
         "audience" to audience, "notes" to notes, "nodeMap" to nodeMap, "subtitle" to subtitle,
     ) + packet?.let { mapOf("map" to it.map, "views" to it.views, "sections" to it.sections, "previous" to it.previous, "viewHeadings" to it.viewHeadings,
-        "soFar" to it.soFar) }.orEmpty()
+        "soFar" to it.soFar, "story" to it.story, "storyHeading" to it.storyHeading, "roster" to it.roster) }.orEmpty()
 }
 
 /** Larger "x-track" values print as a plain number: a row that long wouldn't fit a card. */
@@ -122,11 +127,19 @@ class PrintService(private val graph: GraphService, private val templates: Templ
      * Everything a print template may use. Audience filtering happens HERE,
      * so templates can't accidentally leak GM-only material onto player handouts.
      */
-    fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): PrintModel =
-        model(campaign, module, node, audience, graph.snapshot(campaign.id), withPacket = true)
+    fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience, allTicked: Boolean = false): PrintModel =
+        model(campaign, module, node, audience, graph.snapshot(campaign.id), withPacket = true, allTicked)
+
+    /**
+     * The node the campaign's print is made from: an unsaved one of [ResolvedModule.campaignPacketType] named after the
+     * campaign, printed with `allTicked`, so it's a session packet of everything its checklists offer. Null = no such type.
+     */
+    fun campaignPacket(campaign: Campaign, module: ResolvedModule): Node? = module.campaignPacketType?.let {
+        Node(UUID(0, 0), campaign.id, it, "", campaign.name, "", emptyMap(), "players")
+    }
 
     private fun model(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience,
-                      all: CampaignGraph, withPacket: Boolean): PrintModel {
+                      all: CampaignGraph, withPacket: Boolean, allTicked: Boolean = false): PrintModel {
         if (!audience.canSee(node.visibility)) throw HiddenFromAudience()
         // Names as shown everywhere, e.g. "Thonal (Jori)"
         val names = module.displayTitles(all.nodes)
@@ -165,7 +178,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             facts = facts,
             audience = audience.name.lowercase(),
             notes = Notes.html(node.body, mentions),
-            packet = module.packet(node.type)?.takeIf { withPacket }?.let { packet(campaign, module, node, it, audience, all) },
+            packet = module.packet(node.type)?.takeIf { withPacket }?.let { packet(campaign, module, node, it, audience, all, allTicked) },
             nodeMap = MapService.nodeView(visible, module, node)?.takeIf { it.places.isNotEmpty() },
             subtitle = module.subtitle(node.type, node.props) { rel -> links.filter { it.key == rel }.map { "${names[it.other.id] ?: it.other.title} (${it.other.code})" } },
         )
@@ -176,9 +189,10 @@ class PrintService(private val graph: GraphService, private val templates: Templ
      * over the selected nodes (e.g. Inspiration for the selected characters), and print models of the other selected
      * nodes plus the `between` ones (delves between selected landmarks), grouped by type in the campaign-home order.
      */
-    private fun packet(campaign: Campaign, module: ResolvedModule, node: Node, def: PacketDef, audience: Audience, all: CampaignGraph): PacketModel {
+    private fun packet(campaign: Campaign, module: ResolvedModule, node: Node, def: PacketDef, audience: Audience, all: CampaignGraph,
+                       allTicked: Boolean): PacketModel {
         val g = all.filter { audience.canSee(it.visibility) }
-        val selection = Packet.select(module, node, def, g)
+        val selection = Packet.select(module, node, def, g, allTicked)
         val selected = selection.selected
         val views = module.views.map { ModuleViews.build(module, it, selected, g) }.filter { it.nodes.isNotEmpty() }
         val inViews = views.flatMap { v -> v.nodes.map { it.node.id } }.toSet()
@@ -202,9 +216,12 @@ class PrintService(private val graph: GraphService, private val templates: Templ
                 })
             }
         return PacketModel(MapService.view(all, module, highlight = selected.map { it.id }.toSet()), views, sections,
-            previous = def.recap?.let { recap(module, node, it, g) },
+            previous = def.recap?.let { previousRecap(module, node, it, g) },
             viewHeadings = views.associate { it.view.id to module.plural(it.view.types.first()) },
-            soFar = def.soFar?.let { soFar(module, node, it, g) })
+            soFar = def.soFar?.let { soFar(module, node, it, g) },
+            story = def.recap?.takeIf { allTicked }?.let { p -> inOrder(module, node, g).mapNotNull { recap(module, it, p, g) } }.orEmpty(),
+            storyHeading = def.recap?.let { p -> module.fields(node.type, emptyMap())[p]?.label }.orEmpty(),
+            roster = if (allTicked) roster(module, node, g, leftOut) else emptyList())
     }
 
     /** The nodes of [node]'s type in its `overviewSort` order read oldest first (sessions by date). */
@@ -215,26 +232,45 @@ class PrintService(private val graph: GraphService, private val templates: Templ
      * The [prop] text (e.g. "recap") of the node of [node]'s type just before it ([inOrder]); null if there's none or
      * it's empty.
      */
-    private fun recap(module: ResolvedModule, node: Node, prop: String, g: CampaignGraph): PacketRecap? {
+    private fun previousRecap(module: ResolvedModule, node: Node, prop: String, g: CampaignGraph): PacketRecap? {
         val ordered = inOrder(module, node, g)
-        val previous = ordered.getOrNull(ordered.indexOfFirst { it.id == node.id } - 1) ?: return null
-        val text = previous.props[prop]?.toString()?.trim().orEmpty().ifEmpty { return null }
-        return PacketRecap(previous.code, module.displayTitle(previous), text, Notes.html(text, Mentions.of(g.nodes, module::displayTitle)))
+        return ordered.getOrNull(ordered.indexOfFirst { it.id == node.id } - 1)?.let { recap(module, it, prop, g) }
     }
 
-    /** The cover's [def] list: the campaign's nodes of its type, but those linked (via its rel) to a node after [node]. */
+    /** [node]'s [prop] text as a recap; null if it's empty. */
+    private fun recap(module: ResolvedModule, node: Node, prop: String, g: CampaignGraph): PacketRecap? {
+        val text = node.props[prop]?.toString()?.trim().orEmpty().ifEmpty { return null }
+        return PacketRecap(node.code, module.displayTitle(node), text, Notes.html(text, Mentions.of(g.nodes, module::displayTitle)))
+    }
+
+    /**
+     * The cover's [def] list: the campaign's nodes of its type, but those linked (via its rel) to a node after [node]
+     * (none after the campaign's print, whose node isn't stored).
+     */
     private fun soFar(module: ResolvedModule, node: Node, def: SoFarDef, g: CampaignGraph): SoFar? {
         val ordered = inOrder(module, node, g)
-        val later = ordered.drop(ordered.indexOfFirst { it.id == node.id } + 1).map { it.id }.toSet()
+        val at = ordered.indexOfFirst { it.id == node.id }
+        val later = (if (at < 0) emptyList() else ordered.drop(at + 1)).map { it.id }.toSet()
         val via = def.rel?.let { module.linkOption(def.type, it) }
         val nodes = g.nodes.filter { module.isA(it.type, def.type) }
             .filter { n -> via == null || g.linkedNodes(n.id, via.edgeType, via.direction).none { it.id in later } }
         if (nodes.isEmpty()) return null
+        return refs(module, module.plural(def.type), sortedByProp(nodes, module.overviewSort(def.type), { it.props }, { it.title }), node, g)
+    }
+
+    /** The campaign print's cover lists: its sessions in order, then e.g. its characters (not the places, the map has them). */
+    private fun roster(module: ResolvedModule, node: Node, g: CampaignGraph, leftOut: Set<String>): List<SoFar> {
+        val types = module.checklists(node.type).flatMap { it.first.types }.filter { module.mapShape(it) == null }.distinct()
+        return (listOf(node.type to inOrder(module, node, g)) + types.map { t ->
+            t to sortedByProp(g.nodes.filter { module.isA(it.type, t) && it.code !in leftOut }, module.overviewSort(t), { it.props }, { it.title })
+        }).filter { it.second.isNotEmpty() }.map { (t, nodes) -> refs(module, module.plural(t), nodes, node, g) }
+    }
+
+    /** [nodes] as a cover list headed [label]. */
+    private fun refs(module: ResolvedModule, label: String, nodes: List<Node>, from: Node, g: CampaignGraph): SoFar {
         val names = module.displayTitles(g.nodes)
         val mentions = Mentions.of(g.nodes, module::displayTitle)
-        return SoFar(module.plural(def.type), sortedByProp(nodes, module.overviewSort(def.type), { it.props }, { it.title }).map {
-            ref(module, g, NodeRef(it.id, it.type, it.code, it.title, it.visibility), names, mentions, from = node.id)
-        })
+        return SoFar(label, nodes.map { ref(module, g, NodeRef(it.id, it.type, it.code, it.title, it.visibility), names, mentions, from = from.id) })
     }
 
     /** Module `linkedProps` for [node], for its page: a prop's values per linked node, as the GM sees them. */
@@ -255,26 +291,27 @@ class PrintService(private val graph: GraphService, private val templates: Templ
             LinkedPropValue(rule.prop, rule.label, rule.option.label, sources)
         }
 
-    fun html(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): String =
-        templates.render(template(module, node), model(campaign, module, node, audience).asMap())
+    fun html(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience, allTicked: Boolean = false): String =
+        templates.render(template(module, node), model(campaign, module, node, audience, allTicked).asMap())
 
     /**
      * A node's print as PDF. A packet with `columns` > 1 renders its template in parts: `part = "cover"` as is
-     * (e.g. the map page), then `part = "columns"` once per section (`only` = "view:<id>" or "section:<type>", whose
+     * (e.g. the map page), then `part = "columns"` once per section (`only` = "story", "view:<id>" or "section:<type>", whose
      * heading the template leaves out) as one long column on narrow pages. [Imposition] places those side by side on
      * landscape sheets, each section from a new column, under `print/sheets.peb`'s headings across their columns.
      */
-    fun pdf(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): ByteArray {
+    fun pdf(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience, allTicked: Boolean = false): ByteArray {
         val columns = module.packet(node.type)?.columns ?: 1
-        if (columns <= 1) return pdf(html(campaign, module, node, audience))
-        val model = model(campaign, module, node, audience)
+        if (columns <= 1) return pdf(html(campaign, module, node, audience, allTicked))
+        val model = model(campaign, module, node, audience, allTicked)
         val vars = model.asMap()
         val template = template(module, node)
         val cover = pdf(templates.render(template, vars + ("part" to "cover")))
         val pageCss = "@page { size: ${Imposition.columnWidthMm(columns)}mm ${Imposition.columnHeightMm()}mm; margin: 0; }"
         // Views are headed by their type's plural ("Characters" for Inspiration), sections by theirs
         val sections = model.packet?.let { p ->
-            p.views.map { "view:${it.view.id}" to p.viewHeadings.getValue(it.view.id) } + p.sections.map { "section:${it.typeId}" to it.label }
+            listOfNotNull(("story" to p.storyHeading).takeIf { p.story.isNotEmpty() }) +
+                p.views.map { "view:${it.view.id}" to p.viewHeadings.getValue(it.view.id) } + p.sections.map { "section:${it.typeId}" to it.label }
         }.orEmpty()
         val parts = sections.map { (key, heading) ->
             Imposition.Part(heading, pdf(templates.render(template, vars + ("part" to "columns") + ("only" to key)), pageCss))

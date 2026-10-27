@@ -1,6 +1,10 @@
 {# A session packet's cover text: the previous session's recap ("Last time"), this session's notes ("This time"), and the
    facts it plans to reveal ("To reveal", its own facts), each with a box to tick when it's out, and the module's soFar
-   list (MÖRK BORG's miseries so far). #}
+   list (MÖRK BORG's miseries so far). The campaign's print has its roster first: sessions, then e.g. characters. #}
+{% for l in roster %}
+  <h2>{{ l.label }}</h2>
+  <ul class="so-far">{% for i in l.items %}<li>{% if i.summary is not empty %}{{ i.summary | raw }} {% endif %}{{ i.title }} <span class="ref">({{ i.code }})</span></li>{% endfor %}</ul>
+{% endfor %}
 {% if previous is not null %}
   <h2>Last time</h2>
   <div class="ref">{{ previous.code }} {{ previous.title }}</div>

@@ -6,7 +6,8 @@
 {% block content %}
 {# The name autosaves like a node's title; #save-status shows nothing unless something goes wrong. The ⋯ menu as on node pages:
    Export (the whole campaign as one file, a backup or to import as a copy on the home page) and Delete #}
-<p class="muted small"><a href="/c/{{ campaign.id }}/map">Map</a></p>
+{# The type line as on node pages; Print is a session packet with every checklist box ticked (canPrint: the module has one) #}
+<p class="muted small"><span class="type-icon" aria-hidden="true"><svg><use href="/static/icons.svg#book-open"/></svg></span> Campaign{% if canPrint %} · <a href="/c/{{ campaign.id }}/print.pdf" target="_blank">Print</a>{% endif %} · <a href="/c/{{ campaign.id }}/map">Map</a></p>
 <div class="title-bar page-title">
   <form class="title-form" hx-post="/c/{{ campaign.id }}" hx-trigger="change, submit" hx-target="#save-status">
     <input class="title-input" name="name" value="{{ campaign.name }}" aria-label="Name" required>

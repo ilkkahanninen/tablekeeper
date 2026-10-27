@@ -6,10 +6,12 @@ import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.header
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondRedirect
+import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import tablekeeper.auth.user
+import tablekeeper.core.Audience
 import tablekeeper.core.BadRequest
 import tablekeeper.core.NotFound
 import tablekeeper.map.MapService
@@ -20,7 +22,8 @@ import java.time.LocalDate
 fun Route.campaignRoutes(d: Deps) = with(d) {
     get {
         val (c, m) = call.game()
-        call.html("campaign.peb", mapOf("campaign" to c, "module" to m, "sections" to Overview.sections(m, graph.snapshot(c.id))))
+        call.html("campaign.peb", mapOf("campaign" to c, "module" to m, "sections" to Overview.sections(m, graph.snapshot(c.id)),
+            "canPrint" to (m.campaignPacketType != null)))
     }
 
     // Rename (the page's title autosaves, like a node's); an empty name keeps the old one
@@ -84,6 +87,19 @@ fun Route.campaignRoutes(d: Deps) = with(d) {
         val (c, _) = call.game()
         call.response.header(HttpHeaders.ContentDisposition, "attachment; filename=\"${slug(c.name)}-${LocalDate.now()}.json\"")
         call.respondBytes(transfer.toJson(transfer.export(c)), ContentType.Application.Json)
+    }
+
+    // The campaign's print (linked above its title): a session packet with every checklist box ticked
+    get("/print") {
+        val (c, m) = call.game()
+        val n = print.campaignPacket(c, m) ?: throw NotFound("Print")
+        call.respondText(print.html(c, m, n, Audience.of(call.request.queryParameters["audience"]), allTicked = true), ContentType.Text.Html)
+    }
+
+    get("/print.pdf") {
+        val (c, m) = call.game()
+        val n = print.campaignPacket(c, m) ?: throw NotFound("Print")
+        call.pdf(slug(c.name)) { print.pdf(c, m, n, Audience.of(call.request.queryParameters["audience"]), allTicked = true) }
     }
 
     get("/map.pdf") {

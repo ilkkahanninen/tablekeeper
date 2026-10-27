@@ -9,7 +9,7 @@
   - "columns": each module view over the selected nodes (its `print` partial, e.g. Heart's characters' Inspiration), then a
     section per type of the selected and nearby nodes, each entry drawn by print/_body.peb.
     Laid out as one column on narrow pages, which the app places side by side (packet "columns"). The PDF renders one
-    section at a time (variable `only`: "view:<id>" or "section:<type id>") without its h2: the app draws section
+    section at a time (variable `only`: "story" on the campaign's print, "view:<id>" or "section:<type id>") without its h2: the app draws section
     headings across their columns on each sheet.
   No part (the HTML preview) shows both. Model: the session's print model plus map, views, sections.
 #}
@@ -31,6 +31,7 @@
   /* Entries are spaced below, not above their titles: one that starts a column then sits right under the heading band */
   h3 { font-size: 12pt; margin: 0 0 1mm; page-break-after: avoid; }
   .place { page-break-inside: avoid; margin-bottom: 6mm; }
+  .recap { margin-bottom: 4mm; }
   .flag { font-size: 7pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #8c1c13; vertical-align: middle; }
 
   /* Entry body (print/_body.peb), as on the cards */
@@ -101,8 +102,8 @@
       </tr></table>
     {% else %}
       {% include "print/_session_head.peb" %}
-      {% if previous is not null %}
-        {# The previous session's recap beside a smaller map, so the cover stays one page #}
+      {% if previous is not null or roster is not empty %}
+        {# The previous session's recap (or the campaign's roster) beside a smaller map, so the cover stays one page #}
         <table class="cover"><tr>
           <td class="cover-map">{% if map.places is not empty %}{% include "map/_svg.peb" with {"links": false, "svgWidth": 760, "svgHeight": 537} %}{% endif %}</td>
           <td class="last-time">{% include "print/_session_recap.peb" %}</td>
@@ -117,6 +118,17 @@
 
   {% if part != 'cover' %}
   <div class="text">
+  {# The campaign's print: every session's recap, oldest first #}
+  {% if story is not empty and (only is null or only == 'story') %}
+    {% if only is null %}<h2>{{ storyHeading }}</h2>{% endif %}
+    {% for r in story %}
+      <div class="recap">
+        <h3><span class="code">{{ r.code }}</span> {{ r.title }}</h3>
+        <div class="body">{{ r.notes | raw }}</div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
   {% for v in views %}{% if v.view.print is not null and (only is null or only == 'view:' ~ v.view.id) %}
     {% if only is null %}<h2>{{ viewHeadings[v.view.id] }}</h2>{% endif %}
     {% include v.view.print with {"v": v} %}

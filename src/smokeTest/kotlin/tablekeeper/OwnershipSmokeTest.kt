@@ -15,7 +15,7 @@ class OwnershipSmokeTest {
         val tid = post("/c/$cid/tables", "name" to "Names").target().substringAfter("/tables/")
 
         assertTrue("Alice's own" !in ok("/", user = "bob").bodyAsText())
-        listOf("", "/map", "/map.pdf", "/export.json", "/tables", "/tables/$tid", "/find?q=D", "/n/$l", "/n/$l/print.pdf", "/n/$l/debrief")
+        listOf("", "/map", "/map.pdf", "/print", "/print.pdf", "/export.json", "/tables", "/tables/$tid", "/find?q=D", "/n/$l", "/n/$l/print.pdf", "/n/$l/debrief")
             .forEach { assertEquals(HttpStatusCode.NotFound, get("/c/$cid$it", user = "bob").status, "GET $it") }
         listOf("" to arrayOf("name" to "Bob's now"), "/nodes" to arrayOf("type" to "core.npc"), "/delete" to emptyArray(),
             "/n/$l" to arrayOf("autosave" to "1", "body" to "Bob was here"), "/n/$l/delete" to emptyArray(),
