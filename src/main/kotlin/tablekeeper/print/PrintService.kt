@@ -1,9 +1,5 @@
 package tablekeeper.print
 
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder
-import com.openhtmltopdf.svgsupport.BatikSVGDrawer
-import org.jsoup.Jsoup
-import org.jsoup.helper.W3CDom
 import tablekeeper.core.Audience
 import tablekeeper.core.Campaign
 import tablekeeper.core.CampaignGraph
@@ -24,7 +20,6 @@ import tablekeeper.modules.sortedByProp
 import tablekeeper.templates.Templates
 import tablekeeper.views.ModuleViews
 import tablekeeper.views.ViewData
-import java.io.ByteArrayOutputStream
 import java.util.UUID
 
 /**
@@ -114,7 +109,7 @@ data class PrintModel(
 /** Larger "x-track" values print as a plain number: a row that long wouldn't fit a card. */
 private const val MAX_TRACK = 40
 
-class PrintService(private val graph: GraphService, private val templates: Templates) {
+class PrintService(private val graph: GraphService, private val templates: Templates, private val renderer: HtmlToPdf) {
 
     /**
      * Everything a print template may use. Audience filtering happens HERE,
@@ -232,7 +227,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
      * A node's print as PDF. A packet with `columns` > 1 renders its template in parts: `part = "cover"` as is
      * (e.g. the map page), then `part = "columns"` once per section (`only` = "view:<id>" or "section:<type>", whose
      * heading the template leaves out) as one long column on narrow pages. [Imposition] places those side by side on
-     * landscape sheets, each section from a new column, and draws the headings across their columns.
+     * landscape sheets, each section from a new column, under `print/sheets.peb`'s headings across their columns.
      */
     fun pdf(campaign: Campaign, module: ResolvedModule, node: Node, audience: Audience): ByteArray {
         val columns = module.packet(node.type)?.columns ?: 1
@@ -249,7 +244,7 @@ class PrintService(private val graph: GraphService, private val templates: Templ
         val parts = sections.map { (key, heading) ->
             Imposition.Part(heading, pdf(templates.render(template, vars + ("part" to "columns") + ("only" to key)), pageCss))
         }
-        return Imposition.columns(cover, parts, columns)
+        return Imposition.columns(cover, parts, columns) { sheets -> pdf(templates.render("print/sheets.peb", mapOf("sheets" to sheets))) }
     }
 
     /** A map (the campaign's, or a node's own) as a one-page PDF headed "[title] · Map". */
@@ -260,24 +255,9 @@ class PrintService(private val graph: GraphService, private val templates: Templ
     private fun template(module: ResolvedModule, node: Node) =
         module.printTemplate(node.type) ?: if (module.packet(node.type) != null) "print/session.peb" else "print/generic.peb"
 
-    /**
-     * HTML -> PDF. jsoup tidies Pebble output into a DOM, so templates don't need to be strict XHTML.
-     * [pageCss] is appended last, so it overrides the template's own `@page` (used for narrow column pages).
-     */
-    private fun pdf(html: String, pageCss: String? = null): ByteArray {
-        val parsed = Jsoup.parse(html)
-        pageCss?.let { parsed.head().appendElement("style").appendText(it) }
-        val doc = W3CDom().fromJsoup(parsed)
-        return ByteArrayOutputStream().use { out ->
-            PdfRendererBuilder()
-                .useFastMode()
-                .useSVGDrawer(BatikSVGDrawer())
-                .withW3cDocument(doc, "/")
-                .toStream(out)
-                .run()
-            out.toByteArray()
-        }
-    }
+    /** HTML -> PDF; [pageCss] comes last, so it overrides the template's own `@page` (used for narrow column pages). */
+    private fun pdf(html: String, pageCss: String? = null): ByteArray =
+        renderer.pdf(if (pageCss == null) html else "$html<style>$pageCss</style>")
 
     /** Nodes linked to [link]'s far end via the card type's `printNested` "show" rel, e.g. a minor location's contents. */
     private fun nested(campaign: Campaign, module: ResolvedModule, all: CampaignGraph, node: Node, link: Link,

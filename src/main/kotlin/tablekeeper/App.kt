@@ -23,6 +23,7 @@ import tablekeeper.core.NotFound
 import tablekeeper.core.RandomTableService
 import tablekeeper.db.Database
 import tablekeeper.modules.GameModules
+import tablekeeper.print.Chromium
 import tablekeeper.print.PrintService
 import tablekeeper.templates.Templates
 import tablekeeper.web.Deps
@@ -42,7 +43,8 @@ fun main() {
 /** The services over [db]. */
 fun deps(db: DSLContext, modules: GameModules, templates: Templates): Deps {
     val graph = GraphService(db)
-    return Deps(CampaignService(db), graph, modules, templates, PrintService(graph, templates), RandomTableService(db), CampaignTransfer(db))
+    val chromium = Chromium().also { c -> Runtime.getRuntime().addShutdownHook(Thread { c.close() }) }
+    return Deps(CampaignService(db), graph, modules, templates, PrintService(graph, templates, chromium), RandomTableService(db), CampaignTransfer(db))
 }
 
 /** The app without its server: who's asking, domain errors as HTTP statuses, and the routes (the smoke tests run this too). */

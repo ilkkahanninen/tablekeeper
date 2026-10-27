@@ -1,0 +1,14 @@
+Print fonts (templates/print/_fonts.peb), all under the SIL Open Font License 1.1 (OFL-*.txt here).
+
+Alegreya-{Regular,Bold,Italic,BoldItalic}.ttf
+  Alegreya by Juan Pablo del Peral, Huerta Tipográfica. Static instances (wght 400 and 700) of the variable fonts
+  Alegreya[wght].ttf and Alegreya-Italic[wght].ttf from https://github.com/google/fonts/tree/main/ofl/alegreya,
+  made with fontTools (varLib.instancer), names set to family "Alegreya" with the style. Kerning (GPOS) kept.
+  Static because Chromium embeds a variable font in a PDF as Type 3 drawings.
+
+AlegreyaSans-{Regular,Bold}.ttf
+  Alegreya Sans, as published at https://github.com/google/fonts/tree/main/ofl/alegreyasans.
+
+NotoSansSymbols2-Regular.ttf
+  Noto Sans Symbols 2, as published at https://github.com/google/fonts/tree/main/ofl/notosanssymbols2.
+  The fallback for symbols the others lack (✓ ✗ ☐ ★ ▾). Anything none of them has (e.g. ⋯) comes from the machine's fonts.

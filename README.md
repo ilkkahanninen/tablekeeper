@@ -106,7 +106,7 @@ After the session, write **What happened** on the session, and use the **Debrief
 
 ## How it works
 
-Kotlin 2.1 (JDK 21), Ktor + htmx, Pebble templates, Postgres 16 (jOOQ as plain SQL, Flyway), openhtmltopdf for PDFs.
+Kotlin 2.1 (JDK 21), Ktor + htmx, Pebble templates, Postgres 16 (jOOQ as plain SQL, Flyway), headless Chromium (Playwright) for PDFs.
 
 - **Data:** a generic graph, scoped by campaign, and every campaign by its owner.
   - `nodes`: `type` (e.g. `heart.landmark`), a short `code` (`L3`), `title`, `body` (notes), `props` (JSONB, validated by the module's JSON Schema) and `visibility`.
@@ -116,7 +116,7 @@ Kotlin 2.1 (JDK 21), Ktor + htmx, Pebble templates, Postgres 16 (jOOQ as plain S
   - Types inherit through `extends` (a Heart Landmark is a `core.place`), and modules extend other modules.
   - Templates in a module folder (`modules/heart/views/*.peb`, `modules/heart/print/*.peb`) are used without a rebuild. Cards and session packets are shared (`templates/print/_body.peb`, `session.peb`); a module only adds what's its own, like Heart's Inspiration in the packet.
   - Bad settings stop the app at startup, with a message.
-- **Print:** HTML to PDF. Multi-column pages are made by laying out one long narrow column and placing three of those pages per landscape sheet (`print/Imposition.kt`).
+- **Print:** HTML to PDF in headless Chromium, with embedded fonts (Alegreya, Alegreya Sans, Noto Sans Symbols 2), so text is kerned and any language prints. `./gradlew run` installs Chromium on first use; the Docker image has it. Multi-column pages are made by laying out one long narrow column and placing three of those pages per landscape sheet (`print/Imposition.kt`).
 - **Map:** laid out on the server (`map/MapLayout.kt`), so the screen and the PDF draw the same SVG.
 
 ```
@@ -229,11 +229,10 @@ Unit tests (`./gradlew test`, no database) cover module loading and settings, th
 
 - **No login yet:** `AUTH_MODE=session` (login page, sessions, Argon2, CSRF) is still to come. Data is already per user, so turning it on needs no migration.
 - **Player handouts:** the data model and the `…/print.pdf?audience=players` route exist, but node visibility is hidden from the UI for now.
-- **PDF fonts:** the built-in fonts cover Latin-1 (ä, ö, å) but not symbols like →. Embed a TTF via `PdfRendererBuilder.useFont` for more.
 
 ## License
 
-The code is released under the [MIT License](LICENSE). The type icons in `static/icons.svg` are from [Lucide](https://lucide.dev) (ISC License, included in the file).
+The code is released under the [MIT License](LICENSE). The type icons in `static/icons.svg` are from [Lucide](https://lucide.dev) (ISC License, included in the file). The print fonts in `src/main/resources/fonts/` (Alegreya and Alegreya Sans by Huerta Tipográfica, Noto Sans Symbols 2 by Google) are under the SIL Open Font License 1.1, included next to them with their sources in `SOURCES.txt`.
 
 **Heart: The City Beneath** is © Rowan, Rook and Decard. The game text in `modules/heart/` (class inspiration texts, equipment and resource tag descriptions, resource die descriptions and similar) comes from the rule book. It belongs to its publisher and is **not** covered by the MIT License. Tablekeeper is an unofficial fan tool, not affiliated with or endorsed by Rowan, Rook and Decard.
 

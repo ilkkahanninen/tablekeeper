@@ -32,3 +32,13 @@ with Ockult Örtmästare Games or Stockholm Kartell. It is published under the
 MÖRK BORG Third Party License.
 
 MÖRK BORG is copyright Ockult Örtmästare Games and Stockholm Kartell.
+
+---
+
+Fonts (not covered by the MIT License above)
+
+The print fonts in src/main/resources/fonts/ are licensed under the SIL Open Font
+License 1.1; the licence texts are next to them (OFL-*.txt), and SOURCES.txt says
+where each comes from. Alegreya: Copyright 2011 The Alegreya Project Authors.
+Alegreya Sans: Copyright 2013 The Alegreya Sans Project Authors. Noto Sans
+Symbols 2: Copyright 2022 The Noto Project Authors.

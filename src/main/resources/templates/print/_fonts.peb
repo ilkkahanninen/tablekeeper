@@ -1,0 +1,15 @@
+{# The print fonts, inside a print template's <style>: Alegreya for text, Alegreya Sans for codes and map labels, and Noto Sans
+   Symbols 2 for what they lack (✓ ☐ ★…). Embedded from /fonts (classpath fonts/, SIL Open Font License), so every
+   machine prints the same; Chromium kerns them and sets their ligatures. Static fonts only: Chromium embeds a variable
+   one as Type 3 drawings (see fonts/SOURCES.txt). #}
+  @font-face { font-family: "Alegreya"; src: url(/fonts/Alegreya-Regular.ttf) format("truetype"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Alegreya"; src: url(/fonts/Alegreya-Bold.ttf) format("truetype"); font-weight: 700; font-style: normal; }
+  @font-face { font-family: "Alegreya"; src: url(/fonts/Alegreya-Italic.ttf) format("truetype"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "Alegreya"; src: url(/fonts/Alegreya-BoldItalic.ttf) format("truetype"); font-weight: 700; font-style: italic; }
+  @font-face { font-family: "Alegreya Sans"; src: url(/fonts/AlegreyaSans-Regular.ttf) format("truetype"); font-weight: 400; }
+  @font-face { font-family: "Alegreya Sans"; src: url(/fonts/AlegreyaSans-Bold.ttf) format("truetype"); font-weight: 700; }
+  @font-face { font-family: "Noto Sans Symbols 2"; src: url(/fonts/NotoSansSymbols2-Regular.ttf) format("truetype"); }
+  /* Lining figures: codes, dice, dates and stats read better level with the capitals than Alegreya's default old-style ones */
+  body, svg text { font-family: "Alegreya", "Noto Sans Symbols 2", serif; font-kerning: normal; font-variant-numeric: lining-nums; }
+  /* Codes, and map labels: small, where the sans's larger x-height reads better */
+  .code, .ref, svg text, svg tspan { font-family: "Alegreya Sans", "Noto Sans Symbols 2", sans-serif; }

@@ -132,6 +132,7 @@ internal fun slug(s: String) = s.lowercase().replace(Regex("[^a-z0-9]+"), "-").t
 fun Application.routes(d: Deps) = with(d) {
     routing {
         staticResources("/static", "static")
+        staticResources("/fonts", "fonts")   // the print fonts, for the print preview (Chromium serves them itself)
 
         get("/") {
             call.html("index.peb", mapOf(

@@ -18,14 +18,15 @@
 <meta charset="utf-8">
 <title>{{ node.code }} {{ node.title }}</title>
 <style>
+  {% include "print/_fonts.peb" %}
   @page { size: A4 landscape; margin: 10mm; }
-  body { font-family: serif; font-size: 9.5pt; color: #111; margin: 0; line-height: 1.3; }
+  body { font-size: 9.5pt; color: #111; margin: 0; line-height: 1.3; }
   header { border-bottom: 0.6mm solid #111; margin-bottom: 2mm; }
   h1 { font-size: 15pt; margin: 0 0 1mm; }
   .date { font-size: 9pt; color: #555; margin-left: 2mm; font-weight: normal; }
   .notes { margin: 1mm 0 2mm; }
-  .code, .ref { font-family: monospace; font-size: 8pt; color: #555; }
-  h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: 0.6pt; color: #8c1c13; border-bottom: 0.3mm solid #8c1c13; margin: 4mm 0 2mm; padding-bottom: 0.5mm; page-break-after: avoid; }
+  .code, .ref { font-size: 8pt; color: #555; }
+  h2 { font-size: 9pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.6pt; color: #8c1c13; border-bottom: 0.3mm solid #8c1c13; margin: 4mm 0 2mm; padding-bottom: 0.5mm; page-break-after: avoid; }
   .text > h2:first-child { margin-top: 0; }
   /* Entries are spaced below, not above their titles: one that starts a column then sits right under the heading band */
   h3 { font-size: 12pt; margin: 0 0 1mm; page-break-after: avoid; }
@@ -37,8 +38,8 @@
   /* Values from linked nodes (print/_linked_props.peb): a row per linked node, a column per value */
   table.linked { border-collapse: collapse; margin: 0 0 2mm; }
   .linked th { text-align: left; font-weight: normal; font-size: 7.5pt; text-transform: uppercase; color: #555; padding: 0.4mm 4mm 0.6mm 0; border-bottom: 0.2mm solid #aaa; }
-  .linked td { padding: 0.6mm 4mm 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: top; }
-  .props td { padding: 0.4mm 3mm 0.4mm 0; vertical-align: top; }
+  .linked td { padding: 0.6mm 4mm 0.6mm 0; border-bottom: 0.2mm dotted #aaa; vertical-align: baseline; }
+  .props td { padding: 0.4mm 3mm 0.4mm 0; vertical-align: baseline; }
   .props td.k { color: #555; font-size: 7.5pt; text-transform: uppercase; white-space: nowrap; }
   .props .t, .detail .t, .fact .t { font-weight: bold; }
   .body { margin: 1mm 0; }
@@ -47,7 +48,7 @@
   .body ul, .notes ul { margin: 0 0 1.5mm; padding-left: 4.5mm; }
   .body > :last-child, .notes > :last-child { margin-bottom: 0; }
   .props td .body { margin: 0; }
-  h4 { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; margin: 2mm 0 0.5mm; }
+  h4 { font-size: 7.5pt; font-weight: normal; text-transform: uppercase; letter-spacing: 0.5pt; color: #555; margin: 2mm 0 0.5mm; }
   ul { margin: 0; padding-left: 4.5mm; list-style: disc; }
   li { margin: 0 0 0.6mm 0; }
   ul.nested { list-style: circle; margin-top: 0.6mm; }

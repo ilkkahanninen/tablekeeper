@@ -35,11 +35,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
     implementation("com.networknt:json-schema-validator:1.5.1")
 
-    // Print: HTML -> PDF (pure JVM, no browser needed)
-    implementation("org.jsoup:jsoup:1.18.1")
-    implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
-    implementation("com.openhtmltopdf:openhtmltopdf-svg-support:1.0.10")  // inline <svg>, e.g. the campaign map
-    implementation("org.apache.pdfbox:pdfbox:2.0.24")  // same version openhtmltopdf uses; multi-column imposition
+    // Print: HTML -> PDF in headless Chromium (downloaded on first use; the Docker image has it installed)
+    implementation("com.microsoft.playwright:playwright:1.63.0")
+    implementation("org.apache.pdfbox:pdfbox:2.0.24")  // multi-column imposition
 
     implementation("ch.qos.logback:logback-classic:1.5.12")
 
@@ -53,6 +51,14 @@ kotlin {
 application {
     mainClass.set("tablekeeper.AppKt")
 }
+
+// Chromium for PDFs (Chromium.kt), headless shell only; quick when it's already there. `run` and the smoke tests need it.
+val installChromium by tasks.registering(JavaExec::class) {
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.microsoft.playwright.CLI")
+    args("install", "--only-shell", "chromium")
+}
+tasks.named("run") { dependsOn(installChromium) }
 
 // Smoke tests (src/smokeTest): the whole app, routes and SQL, against Postgres in Docker (Testcontainers)
 testing {
@@ -70,6 +76,7 @@ testing {
                     systemProperty("modulesDir", rootProject.file("modules").absolutePath)
                     systemProperty("exportsDir", rootProject.file("src/test/resources/exports").absolutePath)
                     shouldRunAfter(tasks.test)
+                    dependsOn(installChromium)
                 }
             }
         }
