@@ -54,6 +54,31 @@ application {
     mainClass.set("tablekeeper.AppKt")
 }
 
+// Smoke tests (src/smokeTest): the whole app, routes and SQL, against Postgres in Docker (Testcontainers)
+testing {
+    suites {
+        register<JvmTestSuite>("smokeTest") {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project())
+                implementation("io.ktor:ktor-server-test-host-jvm:$ktorVersion")
+                implementation("org.testcontainers:testcontainers-postgresql:2.0.5")
+                implementation("org.jetbrains.kotlin:kotlin-test-junit5")
+            }
+            targets.all {
+                testTask.configure {
+                    systemProperty("modulesDir", rootProject.file("modules").absolutePath)
+                    systemProperty("exportsDir", rootProject.file("src/test/resources/exports").absolutePath)
+                    shouldRunAfter(tasks.test)
+                }
+            }
+        }
+    }
+}
+// The suite uses the app's own libraries (jOOQ, Jackson, Ktor) directly
+configurations["smokeTestImplementation"].extendsFrom(configurations.implementation.get())
+tasks.check { dependsOn(testing.suites.named("smokeTest")) }
+
 tasks.test {
     useJUnitPlatform()
     // Tests read the real module definitions from ./modules

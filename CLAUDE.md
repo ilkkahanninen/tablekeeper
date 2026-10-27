@@ -10,12 +10,14 @@ Tablekeeper: TTRPG prep and notes stored as a graph (nodes + edges), printed to 
 docker compose up --build                 # app + Postgres, http://localhost:8080
 docker compose up -d db                   # just Postgres, published on 127.0.0.1:5432 (the app's default DATABASE_URL)
 ./gradlew run                             # app on the host (IntelliJ: shared "Tablekeeper" run config in .run/); stop the app container first, both use :8080
-./gradlew test                            # all tests
+./gradlew test                            # unit tests (no database)
+./gradlew smokeTest                       # the whole app against Postgres in Docker (Testcontainers); needs Docker running
+./gradlew check                           # both
 ./gradlew test --tests 'tablekeeper.modules.GameModulesTest'                       # one class
 ./gradlew test --tests 'tablekeeper.modules.GameModulesTest.landmark is a place*'  # one test (backtick names, use a wildcard)
 ```
 
-Tests load the real `./modules` directory (passed as the `modulesDir` system property in `build.gradle.kts`) and need no database. Under docker compose, `./modules` is mounted and `TEMPLATE_CACHE=false`, so print templates reload live; `module.json` changes need an app restart.
+Tests load the real `./modules` directory (passed as the `modulesDir` system property in `build.gradle.kts`) and need no database. Smoke tests (`src/smokeTest`, `Smoke.kt`) run the real `Application.app` (`App.kt`) in-process against a throwaway Postgres 16 container, so routes, SQL and templates are checked too. The `X-Smoke-User` header picks the user (default `alice`), and every test makes its own campaigns. Add one for a new route or query, and an ownership check (`OwnershipSmokeTest`) for anything that takes an id. Under docker compose, `./modules` is mounted and `TEMPLATE_CACHE=false`, so print templates reload live; `module.json` changes need an app restart.
 
 ## UI rules
 
@@ -63,4 +65,4 @@ Prefer adding game-specific behaviour to module JSON/templates over adding Kotli
 
 ## Known gaps
 
-From README: `AUTH_MODE=session`, player handouts (hidden from the UI), embedded TTF for PDF symbols beyond Latin-1 (e.g. →), Unit tests cover module loading, map layout, campaign-page tables, packet selection, module views, random tables, the debrief selection and notes rendering. Routes, SQL and templates have no automated tests: check them by running the app against a throwaway campaign (e.g. `PORT=8099 ./gradlew run`) and deleting it afterwards.
+From README: `AUTH_MODE=session`, player handouts (hidden from the UI), embedded TTF for PDF symbols beyond Latin-1 (e.g. →), Smoke tests check that routes answer and pages and PDFs render, not how they look: check layout changes by running the app against a throwaway campaign (e.g. `PORT=8099 ./gradlew run`) and deleting it afterwards.

@@ -219,11 +219,11 @@ Links are written as `rel`: `<edge type>:out` (this node → the other) or `:in`
 ## Development
 
 ```sh
-./gradlew build                                                     # compile + tests
+./gradlew build                                                     # compile + all tests (smoke tests need Docker)
 ./gradlew test --tests 'tablekeeper.modules.GameModulesTest'        # one class
 ```
 
-Unit tests cover module loading and settings, the map layout, campaign-page tables, session packet selection, module views and random tables. Routes and database queries have no automated tests and are checked by running the app. `CLAUDE.md` has notes for AI coding agents.
+Unit tests (`./gradlew test`, no database) cover module loading and settings, the map layout, campaign-page tables, session packets and imposition, module views, random tables, generators, the debrief, notes and export files. Smoke tests (`./gradlew smokeTest`, needs Docker) run the whole app against a throwaway Postgres: pages, saves, links, the debrief, prints, generators, export and import, and that no one reaches another user's campaign. `./gradlew check` runs both. `CLAUDE.md` has notes for AI coding agents.
 
 ## Known gaps
 
