@@ -72,6 +72,7 @@ docker compose up --build
 # open http://localhost:8080
 ```
 
+- The image (about 630 MB, 300 MB to download) holds a trimmed Java runtime, the app, and Chromium's headless shell for PDFs. To keep it small it has no fallback fonts for scripts the print fonts don't cover (e.g. Chinese, emoji): such characters print as boxes.
 - Data lives in the `pgdata` volume. To back up one campaign, use **Export** on its page; to back up the whole database:
   ```sh
   docker compose exec db pg_dump -U tablekeeper tablekeeper > backups/$(date +%F).sql
