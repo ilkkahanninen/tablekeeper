@@ -61,6 +61,8 @@ val installChromium by tasks.registering(JavaExec::class) {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.microsoft.playwright.CLI")
     args("install", "--only-shell", "chromium")
+    // On CI also its system libraries (apt, via the runner's sudo); a developer's machine is left alone
+    if (System.getenv("CI") != null) args("--with-deps")
 }
 tasks.named("run") { dependsOn(installChromium) }
 

@@ -17,6 +17,8 @@ docker compose up -d db                   # just Postgres, published on 127.0.0.
 ./gradlew test --tests 'tablekeeper.modules.GameModulesTest.landmark is a place*'  # one test (backtick names, use a wildcard)
 ```
 
+CI (`.github/workflows/ci.yml`, on pushes and PRs to `main`): `./gradlew check` (with `CI` set, `installChromium` also apt-installs Chromium's libraries), then on pushes the image is built natively for amd64 and arm64, pushed to `ghcr.io/ilkkahanninen/tablekeeper` and tagged as one multi-arch image, then `deploy` POSTs to the `DEPLOY_WEBHOOK_URL` secret, signed with `DEPLOY_WEBHOOK_SECRET` (skipped while unset).
+
 Tests load the real `./modules` directory (passed as the `modulesDir` system property in `build.gradle.kts`) and need no database. Smoke tests (`src/smokeTest`, `Smoke.kt`) run the real `Application.app` (`App.kt`) in-process against a throwaway Postgres 16 container, so routes, SQL and templates are checked too. The `X-Smoke-User` header picks the user (default `alice`), and every test makes its own campaigns. Add one for a new route or query, and an ownership check (`OwnershipSmokeTest`) for anything that takes an id. Under docker compose, `./modules` is mounted and `TEMPLATE_CACHE=false`, so print templates reload live; `module.json` changes need an app restart.
 
 ## UI rules

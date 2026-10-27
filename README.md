@@ -72,6 +72,7 @@ docker compose up --build
 # open http://localhost:8080
 ```
 
+- **Published image:** every push to `main` that passes the tests is built for amd64 and arm64 and published as `ghcr.io/ilkkahanninen/tablekeeper:latest` (also `:main` and `:sha-<commit>`; a `v1.2.3` tag adds `:1.2.3` and `:1.2`), then the server is told to deploy it (`.github/workflows/ci.yml`). On a server, run it with `AUTH_MODE=session`, `PUBLIC_URL` and the `DATABASE_*` settings below.
 - The image (about 630 MB, 300 MB to download) holds a trimmed Java runtime, the app, and Chromium's headless shell for PDFs. To keep it small it has no fallback fonts for scripts the print fonts don't cover (e.g. Chinese, emoji): such characters print as boxes.
 - Data lives in the `pgdata` volume. To back up one campaign, use **Export** on its page; to back up the whole database:
   ```sh
